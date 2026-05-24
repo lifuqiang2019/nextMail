@@ -1,0 +1,86 @@
+{
+  "settings": {
+    "storeName": "NextMail Mall",
+    "heroTitle": "品质好物，一站购齐",
+    "heroSubtitle": "在同一个 Next 项目里同时提供商城前台、购物车和后台配置能力，适合继续扩展订单、支付和会员模块。"
+  },
+  "categories": [
+    {
+      "id": "cat-digital",
+      "name": "数码设备",
+      "description": "办公和生活常用的高频电子产品。"
+    },
+    {
+      "id": "cat-home",
+      "name": "家居好物",
+      "description": "提升居家幸福感的实用商品。"
+    },
+    {
+      "id": "cat-sport",
+      "name": "运动出行",
+      "description": "适合通勤和日常锻炼的装备。"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-headphone",
+      "name": "主动降噪耳机 Pro",
+      "categoryId": "cat-digital",
+      "price": 899,
+      "originalPrice": 1099,
+      "badge": "热卖",
+      "inventory": 42,
+      "description": "支持长续航和多设备切换，适合办公、通勤和视频会议。"
+    },
+    {
+      "id": "prod-keyboard",
+      "name": "轻薄机械键盘",
+      "categoryId": "cat-digital",
+      "price": 399,
+      "originalPrice": 499,
+      "badge": "新品",
+      "inventory": 58,
+      "description": "84 键配列，兼顾手感和桌面空间，适合程序员与设计师。"
+    },
+    {
+      "id": "prod-lamp",
+      "name": "智能护眼台灯",
+      "categoryId": "cat-home",
+      "price": 259,
+      "originalPrice": 329,
+      "badge": "精选",
+      "inventory": 65,
+      "description": "支持多档亮度和色温调节，夜间阅读更舒适。"
+    },
+    {
+      "id": "prod-storage",
+      "name": "模块化收纳箱",
+      "categoryId": "cat-home",
+      "price": 129,
+      "originalPrice": 169,
+      "badge": "人气",
+      "inventory": 110,
+      "description": "透明可叠放设计，适合衣物、书籍和小件分区整理。"
+    },
+    {
+      "id": "prod-bottle",
+      "name": "轻量保温运动杯",
+      "categoryId": "cat-sport",
+      "price": 89,
+      "originalPrice": 119,
+      "badge": "推荐",
+      "inventory": 88,
+      "description": "便携防漏，适合健身、骑行和通勤随身携带。"
+    },
+    {
+      "id": "prod-bag",
+      "name": "城市通勤双肩包",
+      "categoryId": "cat-sport",
+      "price": 269,
+      "originalPrice": 339,
+      "badge": "爆款",
+      "inventory": 36,
+      "description": "多层分区，可放置笔记本和随身设备，兼顾轻便与防泼水。"
+    }
+  ]
+}
