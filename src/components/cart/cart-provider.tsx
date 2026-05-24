@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   createContext,
@@ -104,6 +104,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           badge: product.badge,
           categoryId: product.categoryId,
           imageUrl: product.imageUrl,
+          inventory: product.inventory,
           quantity: 1,
         },
       ];

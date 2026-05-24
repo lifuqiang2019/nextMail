@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Badge, Dropdown } from "antd";
 import type { MenuProps } from "antd";
@@ -63,7 +63,7 @@ export function SiteHeader({
               onClick={logout}
               type="button"
             >
-              {loggingOut ? "閫€鍑轰腑..." : "閫€鍑虹櫥褰?}
+              {loggingOut ? "退出中..." : "退出登录"}
             </button>
           ),
         },
@@ -121,7 +121,7 @@ export function SiteHeader({
               <Badge count={itemCount} offset={[4, -4]} overflowCount={99} size="small">
                 <ShoppingCart size={18} />
               </Badge>
-              <span className="hidden sm:inline">璐墿杞?/span>
+              <span className="hidden sm:inline">购物车</span>
               {subtotal > 0 && (
                 <span className="ml-1 text-xs font-bold text-red-500">{formatCurrency(subtotal)}</span>
               )}

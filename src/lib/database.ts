@@ -42,14 +42,14 @@ export function normalizeEmail(email: string) {
 }
 
 export async function findUserIdByEmail(email: string) {
-  return prisma.user.findUnique({
+  return prisma.customerUser.findUnique({
     where: { email: normalizeEmail(email) },
     select: { id: true },
   });
 }
 
 export async function findUserForLogin(email: string): Promise<LoginUserRecord | null> {
-  return prisma.user.findUnique({
+  return prisma.customerUser.findUnique({
     where: { email: normalizeEmail(email) },
     select: {
       id: true,
@@ -65,7 +65,7 @@ export async function createUserRecord(input: {
   name: string;
   passwordHash: string;
 }): Promise<SessionUser> {
-  return prisma.user.create({
+  return prisma.customerUser.create({
     data: {
       email: normalizeEmail(input.email),
       name: input.name,
@@ -80,7 +80,7 @@ export async function createUserRecord(input: {
 }
 
 export async function findSessionUserById(userId: string): Promise<SessionUser | null> {
-  return prisma.user.findUnique({
+  return prisma.customerUser.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -135,12 +135,14 @@ export async function createOrderRecord(
         throw new Error(`${product.name} 库存不足。`);
       }
 
+      const productPrice = Number(product.price);
+
       return {
         productId: product.id,
         productName: product.name,
-        productPrice: product.price,
+        productPrice,
         quantity: item.quantity,
-        lineTotal: product.price * item.quantity,
+        lineTotal: productPrice * item.quantity,
       };
     });
 

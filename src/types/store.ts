@@ -1,4 +1,4 @@
-﻿export type StoreSettings = {
+export type StoreSettings = {
   storeName: string;
   heroTitle: string;
   heroSubtitle: string;
@@ -71,6 +71,7 @@ export type CartItem = {
   badge?: string;
   categoryId: string;
   imageUrl?: string;
+  inventory: number;
   quantity: number;
 };
 
@@ -85,4 +86,41 @@ export type AdminProfile = {
   username: string;
   displayName: string;
   email?: string | null;
+};
+
+export type SessionUser = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+export type CheckoutFormData = {
+  receiverName: string;
+  receiverPhone: string;
+  receiverEmail: string;
+  receiverAddress: string;
+  note?: string;
+};
+
+export type OrderItem = {
+  id: string;
+  productId: string;
+  productName: string;
+  productPrice: number;
+  quantity: number;
+  lineTotal: number;
+};
+
+export type Order = {
+  id: string;
+  userId: string;
+  status: string;
+  totalAmount: number;
+  receiverName: string;
+  receiverPhone: string;
+  receiverEmail: string;
+  receiverAddress: string;
+  note?: string;
+  createdAt: string;
+  items: OrderItem[];
 };

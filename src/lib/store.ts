@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   Category,
   FilterGroup,
   Product,
@@ -52,7 +52,7 @@ function sanitizeCategories(input: unknown): Category[] {
       id: sanitizeText(item?.id, `cat-${index + 1}`),
       name: sanitizeText(item?.name, `鍒嗙被 ${index + 1}`),
       slug: sanitizeText(item?.slug),
-      description: sanitizeText(item?.description, "寰呰ˉ鍏呭垎绫绘弿杩般€?),
+      description: sanitizeText(item?.description, "待补充分类描述。"),
       sortOrder: Math.max(Math.round(sanitizeNumber(item?.sortOrder, index + 1)), 0),
       isActive: Boolean(item?.isActive ?? true),
     }))
@@ -129,7 +129,7 @@ function sanitizeProducts(input: unknown, categories: Category[], filterGroups: 
         originalPrice: originalPrice > 0 ? Math.max(originalPrice, price) : undefined,
         badge: sanitizeText(item?.badge),
         inventory: Math.max(Math.round(sanitizeNumber(item?.inventory, 0)), 0),
-        description: sanitizeText(item?.description, "寰呰ˉ鍏呭晢鍝佹弿杩般€?),
+        description: sanitizeText(item?.description, "待补充商品描述。"),
         imageUrl: sanitizeText(item?.imageUrl, "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80"),
         sizes: sanitizeSizes(item?.sizes),
         colorway: sanitizeText(item?.colorway, "榛樿閰嶈壊"),

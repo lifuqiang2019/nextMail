@@ -1,4 +1,4 @@
-﻿import { CheckoutShell } from "@/components/shop/checkout-shell";
+import { CheckoutShell } from "@/components/shop/checkout-shell";
 import { readStoreData } from "@/lib/store";
 
 export const dynamic = "force-dynamic";

@@ -80,6 +80,7 @@ model Product {
   updatedAt     DateTime             @updatedAt
   category      Category             @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   filterRefs    ProductFilterOption[]
+  orderItems    OrderItem[]
 
   @@index([categoryId])
 }
@@ -95,7 +96,7 @@ model ProductFilterOption {
 }
 
 model CustomerUser {
-  id           String            @id
+  id           String            @id @default(cuid())
   name         String
   email        String            @unique
   passwordHash String
@@ -103,6 +104,7 @@ model CustomerUser {
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   sessions     CustomerSession[]
+  orders       Order[]
 }
 
 model CustomerSession {
@@ -114,6 +116,41 @@ model CustomerSession {
   user       CustomerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model Order {
+  id              String       @id @default(cuid())
+  userId          String
+  status          String       @default("PENDING")
+  totalAmount     Float
+  receiverName    String
+  receiverPhone   String
+  receiverEmail   String
+  receiverAddress String       @db.Text
+  note            String?      @db.Text
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  user            CustomerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items           OrderItem[]
+
+  @@index([userId, createdAt])
+}
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  productId    String
+  productName  String
+  productPrice Float
+  quantity     Int
+  lineTotal    Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([orderId, createdAt])
+  @@index([productId])
 }
 
 model AdminUser {

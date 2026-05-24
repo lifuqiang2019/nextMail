@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { message } from "antd";
 import Image from "next/image";
@@ -46,7 +46,7 @@ function ProductCard({ product }: { product: Product }) {
         )}
         {discount && (
           <div className="absolute left-0 top-0">
-            <div className="tm-badge">{discount}鎶?/div>
+            <div className="tm-badge">{discount}折</div>
           </div>
         )}
         {product.badge && (
@@ -70,7 +70,7 @@ function ProductCard({ product }: { product: Product }) {
           )}
         </div>
 
-        <p className="mt-1 text-xs text-gray-400">灏虹爜锛歿product.sizes.join(" / ")}</p>
+        <p className="mt-1 text-xs text-gray-400">尺码：{product.sizes.join(" / ")}</p>
 
         <div className="mt-auto pt-2">
           <button
@@ -79,7 +79,7 @@ function ProductCard({ product }: { product: Product }) {
             onClick={handleAdd}
             type="button"
           >
-            {adding ? "宸叉坊鍔?鉁? : "鍔犲叆璐墿杞?}
+            {adding ? "已加入" : "加入购物车"}
           </button>
         </div>
       </div>
@@ -124,7 +124,7 @@ export function StoreShell({ initialData }: { initialData: StoreData }) {
         <span className="shrink-0 text-gray-400">绛涢€夛細</span>
         {filterGroups.map((group) => (
           <div key={group.id} className="flex items-center gap-1.5 shrink-0">
-            <span className="text-xs text-gray-400">{group.name}锛?/span>
+            <span className="text-xs text-gray-400">{group.name}：</span>
             <div className="flex gap-1">
               <button
                 className={`shrink-0 rounded-full border px-3 py-1 text-xs transition ${
@@ -169,7 +169,7 @@ export function StoreShell({ initialData }: { initialData: StoreData }) {
           鍏?<span className="font-bold text-gray-800">{products.length}</span> 浠跺晢鍝?          {hasActiveFilters && <span className="ml-1 text-orange-500">锛堝凡绛涢€夛級</span>}
         </p>
         <div className="flex items-center gap-1 text-xs text-gray-400">
-          <span>鍟嗗搧榛樿鎸?/span>
+          <span>商品默认按</span>
           <span className="font-medium text-orange-500">鎺ㄨ崘</span>
           <span>鎺掑簭</span>
         </div>
@@ -178,8 +178,8 @@ export function StoreShell({ initialData }: { initialData: StoreData }) {
       {products.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-20 text-gray-400">
           <span className="text-5xl">馃摝</span>
-          <p className="mt-4 text-base font-medium">鏆傛棤绗﹀悎鏉′欢鐨勫晢鍝?/p>
-          <p className="mt-1 text-sm">璇曡瘯璋冩暣绛涢€夋潯浠?/p>
+          <p className="mt-4 text-base font-medium">暂无符合条件的商品</p>
+          <p className="mt-1 text-sm">试试调整筛选条件</p>
           <button
             className="mt-4 tm-btn-primary px-8 py-2 text-sm"
             onClick={() => setSelectedFilters({})}

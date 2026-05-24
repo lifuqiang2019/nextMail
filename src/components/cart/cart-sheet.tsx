@@ -57,7 +57,7 @@ export function CartSheet() {
                 key={item.id}
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
+                  <div>
                     <h3 className="font-medium text-slate-900">{item.name}</h3>
                     <p className="mt-1 text-sm text-slate-500">
                       {formatCurrency(item.price)} / 件
@@ -73,9 +73,9 @@ export function CartSheet() {
                 </div>
 
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="inline-flex w-fit items-center rounded-full border border-slate-200">
+                  <div className="inline-flex items-center rounded-full border border-slate-200">
                     <button
-                      className="px-3 py-2 text-slate-600"
+                      className="px-3 py-1 text-slate-600"
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       type="button"
                     >
@@ -85,7 +85,7 @@ export function CartSheet() {
                       {item.quantity}
                     </span>
                     <button
-                      className="px-3 py-2 text-slate-600 disabled:cursor-not-allowed disabled:text-slate-300"
+                      className="px-3 py-1 text-slate-600 disabled:cursor-not-allowed disabled:text-slate-300"
                       disabled={item.quantity >= item.inventory}
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       type="button"
@@ -93,7 +93,7 @@ export function CartSheet() {
                       +
                     </button>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 px-3 py-2 text-left sm:bg-transparent sm:px-0 sm:py-0 sm:text-right">
+                  <div className="text-left sm:text-right">
                     <p className="font-semibold text-slate-900">
                       {formatCurrency(item.price * item.quantity)}
                     </p>
@@ -105,7 +105,7 @@ export function CartSheet() {
           )}
         </div>
 
-        <div className="border-t border-slate-200 bg-white px-4 py-4 sm:px-6 sm:py-5">
+        <div className="border-t border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
           <div className="flex items-center justify-between text-sm text-slate-500">
             <span>小计</span>
             <span>{formatCurrency(subtotal)}</span>
