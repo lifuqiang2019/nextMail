@@ -12,7 +12,7 @@ export default async function AuthPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="tm-shell py-5 sm:py-10 lg:py-14">
       <CustomerAuthCard />
     </div>
   );

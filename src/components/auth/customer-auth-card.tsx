@@ -34,20 +34,28 @@ export function CustomerAuthCard() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 py-10">
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">欢迎登录 {process.env.NEXT_PUBLIC_STORE_NAME || "商城"}</h1>
-        <p className="mt-2 text-sm text-gray-500">登录后可管理购物车、收藏商品和查看订单</p>
-      </div>
+    <div className="auth-page">
+      <header className="auth-header">
+        <p className="auth-header__kicker">ACCOUNT</p>
+        <h1 className="auth-header__title">
+          欢迎登录 {process.env.NEXT_PUBLIC_STORE_NAME || "商城"}
+        </h1>
+        <p className="auth-header__desc">
+          登录后可同步购物车、查看订单记录，并继续完成你的下单流程。
+        </p>
+      </header>
 
-      <Card className="shadow-md" styles={{ body: { padding: "28px 24px" } }}>
+      <Card
+        className="auth-card"
+        styles={{ body: { padding: "26px 22px" } }}
+      >
         <Segmented
           block
-          className="mb-6"
+          className="auth-tabs"
           onChange={(value) => setMode(value as "login" | "register")}
           options={[
-            { label: "🔑 账号登录", value: "login" },
-            { label: "📝 快速注册", value: "register" },
+            { label: "账号登录", value: "login" },
+            { label: "快速注册", value: "register" },
           ]}
           value={mode}
         />
@@ -55,18 +63,19 @@ export function CustomerAuthCard() {
         <Form layout="vertical" onFinish={submit} size="large">
           {mode === "register" && (
             <Form.Item
-              label="昵称"
+              label={<span className="auth-form-label">昵称</span>}
               name="name"
               rules={[{ required: true, message: "请输入昵称" }]}
             >
               <Input
-                prefix={<User size={15} className="text-gray-400" />}
+                prefix={<User size={16} />}
                 placeholder="给自己取个昵称吧"
+                className="auth-form-input"
               />
             </Form.Item>
           )}
           <Form.Item
-            label="邮箱"
+            label={<span className="auth-form-label">邮箱</span>}
             name="email"
             rules={[
               { required: true, message: "请输入邮箱" },
@@ -74,12 +83,13 @@ export function CustomerAuthCard() {
             ]}
           >
             <Input
-              prefix={<Mail size={15} className="text-gray-400" />}
+              prefix={<Mail size={16} />}
               placeholder="name@example.com"
+              className="auth-form-input"
             />
           </Form.Item>
           <Form.Item
-            label="密码"
+            label={<span className="auth-form-label">密码</span>}
             name="password"
             rules={[
               { required: true, message: "请输入密码" },
@@ -87,13 +97,14 @@ export function CustomerAuthCard() {
             ]}
           >
             <Input.Password
-              prefix={<Lock size={15} className="text-gray-400" />}
+              prefix={<Lock size={16} />}
               placeholder="请输入密码"
+              className="auth-form-input"
             />
           </Form.Item>
           <Button
             block
-            className="!rounded-lg !bg-gradient-to-r !from-orange-500 !to-red-500 !border-none !py-5 !text-base !font-bold !text-white hover:!from-orange-600 hover:!to-red-600"
+            className="auth-submit-btn"
             htmlType="submit"
             loading={loading}
             type="primary"
@@ -102,11 +113,10 @@ export function CustomerAuthCard() {
           </Button>
         </Form>
 
-        <div className="mt-4 border-t border-gray-100 pt-4 text-center">
-          <p className="text-xs text-gray-400">
+        <div className="auth-switch">
+          <p>
             {mode === "login" ? "还没有账号？" : "已有账号？"}
             <button
-              className="ml-1 font-medium text-orange-500 transition hover:underline"
               onClick={() => setMode(mode === "login" ? "register" : "login")}
               type="button"
             >
@@ -116,11 +126,11 @@ export function CustomerAuthCard() {
         </div>
       </Card>
 
-      <p className="mt-6 text-center text-xs text-gray-400">
+      <footer className="auth-footer">
         登录即表示同意我们的{" "}
-        <span className="text-orange-500">《用户协议》</span> 和{" "}
-        <span className="text-orange-500">《隐私政策》</span>
-      </p>
+        <span className="auth-footer__link">《用户协议》</span> 和{" "}
+        <span className="auth-footer__link">《隐私政策》</span>
+      </footer>
     </div>
   );
 }

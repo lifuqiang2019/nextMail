@@ -33,14 +33,14 @@ export default async function RootLayout({
         <AntdRegistry>
           <AppProviders>
             <SiteHeader currentUser={currentUser} isMobile={isMobile} storeName={store.settings.storeName} />
-            <main className={isMobile ? "pb-20" : ""}>{children}</main>
+            <main className={isMobile ? "pb-20" : "pb-4"}>{children}</main>
             {isMobile ? (
-              <footer className="px-4 pb-24 pt-8 text-center text-xs text-gray-400">
+              <footer className="tm-shell pb-24 pt-10 text-center text-xs text-gray-400">
                 <p>© 2026 {store.settings.storeName}</p>
               </footer>
             ) : (
-              <footer className="mt-12 border-t border-gray-200 bg-white">
-                <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+              <footer className="mt-14 border-t border-gray-200/80 bg-white/92">
+                <div className="tm-shell py-12">
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
                       <h4 className="font-bold text-gray-900">关于我们</h4>

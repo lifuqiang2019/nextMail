@@ -70,188 +70,121 @@ export function SiteHeader({
       ];
 
   if (isMobile) {
+    const hideSearch = ["/cart", "/auth", "/account", "/orders"].includes(pathname);
+    
     return (
-      <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-screen-sm flex-col gap-3 px-3 pb-3 pt-3">
-          <div className="flex items-center justify-between gap-3">
-            <Link className="min-w-0 flex-1" href="/">
-              <div className="flex items-center gap-2">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff1eb]">
-                  <Store className="h-6 w-6 text-[#ff5a1f]" />
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-xl font-bold tracking-tight text-gray-900">{storeName}</p>
-                  <p className="text-xs text-gray-400">潮流球鞋与穿搭精选</p>
-                </div>
-              </div>
-            </Link>
+      <header className="site-header">
+        <div className={`site-header__inner tm-shell${!hideSearch ? '' : ' site-header--compact'}`}>
+          {/* Logo 和标题居中 */}
+          <Link className="header-brand" href="/">
+            <div className="header-brand__logo">
+              <Store />
+            </div>
+            <div className="header-brand__info">
+              <p className="header-brand__name">{storeName}</p>
+              {!hideSearch && <p className="header-brand__slogan">潮流鞋款与穿搭精选</p>}
+            </div>
+          </Link>
 
-            <div className="flex items-center gap-2">
-              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                <button
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 text-gray-700"
-                  type="button"
-                >
-                  <User size={18} />
-                </button>
-              </Dropdown>
+          {/* 搜索框 - 仅在首页显示 */}
+          {!hideSearch && (
+            <div className="header-search">
+              <div className="header-search__input-wrapper">
+                <Search className="header-search__icon" />
+                <input
+                  className="header-search__input"
+                  placeholder="搜索商品、品牌、风格"
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                />
+              </div>
               <button
-                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 text-gray-700"
-                onClick={toggleCart}
+                className="header-search__btn"
                 type="button"
               >
-                <Badge count={itemCount} offset={[0, 2]} size="small">
-                  <ShoppingCart size={18} />
-                </Badge>
+                搜索
               </button>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 rounded-2xl border border-[#ffd3c2] bg-[#fffaf8] p-1 shadow-[0_6px_18px_rgba(255,90,31,0.08)]">
-            <div className="flex flex-1 items-center gap-2 rounded-xl bg-white px-3 py-2.5">
-              <Search className="h-4 w-4 shrink-0 text-gray-400" />
-              <input
-                className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
-                placeholder="搜索商品、品牌、风格"
-                type="text"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-              />
-            </div>
-            <button
-              className="flex min-w-[68px] items-center justify-center rounded-xl bg-gradient-to-r from-[#ff7a1a] to-[#ff5a1f] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(255,90,31,0.22)]"
-              type="button"
-            >
-              搜索
-            </button>
-          </div>
+          )}
         </div>
       </header>
     );
   }
 
   return (
-    <header className="border-b border-[#f0f0f0] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
-      <div className="border-b border-[#f2f2f2] bg-[#fafafa] text-xs text-gray-500">
-        <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            {currentUser ? (
-              <span className="whitespace-nowrap">
-                Hi，<span className="font-medium text-gray-800">{currentUser.name}</span>
-                <button className="ml-3 hover:text-[#ff5000]" onClick={logout} type="button">
-                  退出
-                </button>
-              </span>
-            ) : (
-              <span className="whitespace-nowrap">
-                欢迎来到 {storeName}
-                <Link className="ml-3 hover:text-[#ff5000]" href="/auth">
-                  请登录
-                </Link>
-                <Link className="ml-3 hover:text-[#ff5000]" href="/auth?tab=register">
-                  免费注册
-                </Link>
-              </span>
-            )}
+    <header className="border-b border-[#e8e8e8] bg-white">
+      {/* Logo 居中 + 购物车图标在右侧 */}
+      <div className="tm-shell flex items-center justify-between py-5">
+        <div className="w-[120px]" />
+        
+        <Link className="flex items-center justify-center gap-3" href="/">
+          <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#fff1eb]">
+            <Store className="h-6 w-6 text-[#ff6b35]" />
           </div>
-          <div className="flex items-center gap-4">
-            <Link className="hover:text-[#ff5000]" href="/account">
-              我的账号
-            </Link>
-            <Link className="hover:text-[#ff5000]" href="/cart">
-              购物车 {itemCount > 0 ? <span className="font-bold text-[#ff5000]">{itemCount}</span> : null}
-            </Link>
-            <span className="text-gray-300">|</span>
-            <Link className="hover:text-[#ff5000]" href="/admin" target="_blank">
-              商家后台
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="mx-auto grid max-w-7xl grid-cols-[280px_minmax(0,1fr)_132px] items-center gap-10 px-4 py-7 sm:px-6 lg:px-8">
-        <Link className="min-w-0" href="/">
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[28px] bg-[#fff2eb] shadow-[inset_0_0_0_1px_rgba(255,90,31,0.08)]">
-              <Store className="h-8 w-8 text-[#ff5a1f]" />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-[23px] font-bold leading-tight tracking-tight text-gray-950">{storeName}</p>
-              <p className="mt-1 truncate text-sm text-gray-400">精选鞋款 · 服饰 · 潮流搭配</p>
-            </div>
+          <div>
+            <p className="text-[20px] font-semibold text-[#1a1a1a]">{storeName}</p>
+            <p className="mt-0.5 text-sm text-[#8f8f8f]">精选鞋款 · 服饰 · 潮流搭配</p>
           </div>
         </Link>
 
-        <div className="min-w-0">
-          <div className="flex items-center gap-3 rounded-[30px] border border-[#ffd6c8] bg-[#fffaf7] p-1.5 shadow-[0_18px_34px_rgba(255,90,31,0.08)]">
-            <div className="flex flex-1 items-center gap-3 rounded-[24px] bg-white px-5 py-3.5 shadow-[inset_0_0_0_1px_rgba(15,23,42,0.04)]">
-              <Search className="h-5 w-5 shrink-0 text-gray-400" />
-              <input
-                className="w-full bg-transparent text-base text-gray-800 outline-none placeholder:text-gray-400"
-                placeholder="搜索商品、品牌、系列、关键词"
-                type="text"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-              />
-            </div>
-            <button
-              className="flex min-w-[116px] items-center justify-center rounded-[24px] bg-gradient-to-r from-[#ff7a1a] to-[#ff5a1f] px-7 py-3.5 text-base font-semibold text-white shadow-[0_12px_24px_rgba(255,90,31,0.24)] transition hover:translate-y-[-1px]"
-              type="button"
-            >
-              搜索
-            </button>
-          </div>
-          <div className="mt-3 flex items-center gap-4 pl-3 text-sm text-gray-400">
-            <span className="font-medium text-[#ff5a1f]">热门搜索</span>
-            <span className="transition hover:text-[#ff5a1f]">Nike</span>
-            <span className="transition hover:text-[#ff5a1f]">Air Jordan</span>
-            <span className="transition hover:text-[#ff5a1f]">卫衣</span>
-            <span className="transition hover:text-[#ff5a1f]">跑鞋</span>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-4">
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <button
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f8fafc] text-gray-600 transition hover:bg-[#fff1eb] hover:text-[#ff5000]"
-              type="button"
-            >
-              <User size={24} />
-            </button>
-          </Dropdown>
-
+        <div className="flex items-center justify-end gap-3 w-[120px]">
           <button
-            className="relative flex h-12 w-12 items-center justify-center rounded-full bg-[#f8fafc] text-gray-600 transition hover:bg-[#fff1eb] hover:text-[#ff5000]"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[#e8e8e8] bg-white text-[#8f8f8f] transition hover:border-[#ffd8c8] hover:bg-[#fff1eb] hover:text-[#ff6b35]"
             onClick={toggleCart}
             type="button"
           >
-            <Badge count={itemCount} offset={[6, -2]} size="small">
-              <ShoppingCart size={24} className={itemCount > 0 ? "text-[#ff5000]" : ""} />
+            <Badge count={itemCount} offset={[4, -2]} size="small" className="[&_.ant-badge-count]:bg-[#ff3b3b]">
+              <ShoppingCart size={20} strokeWidth={1.7} />
             </Badge>
           </button>
         </div>
       </div>
 
-      <div className="border-t border-[#fafafa] border-b border-[#ffe0d4] bg-white">
-        <div className="mx-auto flex max-w-7xl items-center gap-10 px-4 sm:px-6 lg:px-8">
-          <div className="flex h-13 w-52 items-center justify-center rounded-t-[18px] bg-[#ff5a1f] text-base font-semibold text-white shadow-[0_8px_20px_rgba(255,90,31,0.18)]">
-            全部商品分类
+      {/* 搜索栏居中 */}
+      <div className="border-t border-[#e8e8e8] bg-white">
+        <div className="tm-shell flex items-center justify-center py-4">
+          <div className="w-full max-w-[600px]">
+            <div className="flex items-center gap-2 rounded-[12px] bg-[#fafafa] p-1.5">
+              <div className="flex flex-1 items-center gap-2 px-3">
+                <Search className="h-5 w-5 shrink-0 text-[#8f8f8f]" />
+                <input
+                  className="w-full bg-transparent text-base text-[#1a1a1a] outline-none placeholder:text-[#b8b8b8]"
+                  placeholder="搜索商品、品牌、系列、关键词"
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                />
+              </div>
+              <button
+                className="flex min-w-[100px] items-center justify-center rounded-[10px] bg-[#ff6b35] px-5 py-2.5 text-base font-medium text-white shadow-[0_2px_8px_rgba(255,107,53,0.25)] transition hover:translate-y-[-1px]"
+                type="button"
+              >
+                搜索
+              </button>
+            </div>
           </div>
-          <nav className="flex h-13 items-center gap-8 text-[15px]">
+        </div>
+      </div>
+
+      {/* 导航栏 - 去掉"分类"，只保留首页、个人中心、我的订单 */}
+      <div className="border-t border-[#e8e8e8] bg-white">
+        <div className="tm-shell flex items-center justify-center gap-8">
+          <nav className="flex h-[48px] items-center gap-7 text-[15px]">
             <Link
-              className={pathname === "/" ? "font-semibold text-[#ff5a1f]" : "text-gray-700 transition hover:text-[#ff5a1f]"}
+              className={pathname === "/" ? "font-semibold text-[#ff6b35]" : "text-[#4a4a4a] transition hover:text-[#ff6b35]"}
               href="/"
             >
               首页
             </Link>
             <Link
-              className={pathname === "/account" ? "font-semibold text-[#ff5a1f]" : "text-gray-700 transition hover:text-[#ff5a1f]"}
+              className={pathname === "/account" ? "font-semibold text-[#ff6b35]" : "text-[#4a4a4a] transition hover:text-[#ff6b35]"}
               href="/account"
             >
               个人中心
             </Link>
             <Link
-              className={pathname === "/orders" ? "font-semibold text-[#ff5a1f]" : "text-gray-700 transition hover:text-[#ff5a1f]"}
+              className={pathname === "/orders" ? "font-semibold text-[#ff6b35]" : "text-[#4a4a4a] transition hover:text-[#ff6b35]"}
               href="/orders"
             >
               我的订单

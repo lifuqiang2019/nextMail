@@ -11,8 +11,8 @@ export default async function OrdersPage() {
 
   if (!isDatabaseConfigured()) {
     return (
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-        <section className="rounded-[32px] bg-white p-8 shadow-sm">
+      <div className="tm-shell flex flex-col gap-8 py-10 lg:py-14">
+        <section className="tm-panel p-8">
           <h1 className="text-3xl font-semibold text-slate-950">我的订单</h1>
           <p className="mt-3 text-sm leading-7 text-slate-500">
             当前还没有配置 MySQL 连接串，订单功能代码已经接好，填好 `DATABASE_URL` 后即可使用。
@@ -24,8 +24,8 @@ export default async function OrdersPage() {
 
   if (!user) {
     return (
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-        <section className="rounded-[32px] bg-white p-8 shadow-sm">
+      <div className="tm-shell flex flex-col gap-8 py-10 lg:py-14">
+        <section className="tm-panel p-8">
           <h1 className="text-3xl font-semibold text-slate-950">我的订单</h1>
           <p className="mt-3 text-sm leading-7 text-slate-500">
             请先登录，再查看你自己的订单记录。
@@ -44,9 +44,9 @@ export default async function OrdersPage() {
   const orders = await readOrdersByUserId(user.id);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:gap-8 lg:py-14">
-      <section className="rounded-[32px] bg-slate-950 px-6 py-8 text-white shadow-xl sm:px-8">
-        <p className="text-sm uppercase tracking-[0.3em] text-slate-300">Orders</p>
+    <div className="tm-shell flex flex-col gap-6 py-8 lg:gap-8 lg:py-14">
+      <section className="rounded-[32px] bg-slate-950 px-6 py-8 text-white shadow-[0_22px_50px_rgba(15,23,42,0.18)] sm:px-8">
+        <p className="tm-kicker text-slate-300">Orders</p>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">我的订单</h1>
         <p className="mt-3 text-sm leading-7 text-slate-300 sm:text-base">
           已登录账号: {user.email}
@@ -55,7 +55,7 @@ export default async function OrdersPage() {
 
       <section className="space-y-5">
         {orders.length === 0 ? (
-          <div className="rounded-[28px] border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
+          <div className="tm-panel border-dashed p-8 text-center">
             <p className="text-lg font-medium text-slate-900">你还没有订单</p>
             <p className="mt-2 text-sm text-slate-500">去首页挑选商品后，在购物车页面完成下单。</p>
             <Link
@@ -68,7 +68,7 @@ export default async function OrdersPage() {
         ) : (
           orders.map((order) => (
             <article
-              className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm"
+              className="tm-panel p-6 sm:p-7"
               key={order.id}
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -79,7 +79,7 @@ export default async function OrdersPage() {
                     下单时间: {new Date(order.createdAt).toLocaleString("zh-CN")}
                   </p>
                 </div>
-                <div className="rounded-2xl bg-slate-100 px-4 py-3 text-left sm:text-right">
+                <div className="rounded-[22px] bg-slate-100 px-4 py-3 text-left sm:text-right">
                   <p className="text-sm text-slate-500">订单状态</p>
                   <p className="mt-1 text-sm font-medium text-slate-900">{order.status}</p>
                   <p className="mt-2 text-xl font-semibold text-slate-950">
@@ -97,10 +97,7 @@ export default async function OrdersPage() {
                     quantity: number;
                     lineTotal: number;
                   }) => (
-                    <div
-                      className="flex flex-col gap-2 rounded-2xl border border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-                      key={item.id}
-                    >
+                    <div className="tm-muted-panel flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between" key={item.id}>
                       <div>
                         <p className="font-medium text-slate-900">{item.productName}</p>
                         <p className="mt-1 text-sm text-slate-500">
@@ -114,7 +111,7 @@ export default async function OrdersPage() {
                   ))}
                 </div>
 
-                <div className="rounded-3xl bg-slate-50 p-5">
+                <div className="rounded-[24px] bg-slate-50 p-5">
                   <p className="text-sm text-slate-500">收货信息</p>
                   <div className="mt-3 space-y-2 text-sm text-slate-700">
                     <p>收货人: {order.receiverName}</p>

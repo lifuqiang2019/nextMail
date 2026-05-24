@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LayoutGrid, ShoppingCart, User } from "lucide-react";
+import { Home, ShoppingCart, User } from "lucide-react";
 import { useCart } from "@/components/cart/cart-provider";
 import { Badge } from "antd";
 
@@ -12,34 +12,33 @@ export function BottomNav() {
 
   const navItems = [
     { name: "首页", href: "/", icon: Home },
-    { name: "分类", href: "/#categories", icon: LayoutGrid },
     { name: "购物车", href: "/cart", icon: ShoppingCart, badge: itemCount },
     { name: "我的", href: "/account", icon: User },
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 pb-safe">
-      <nav className="flex items-center justify-around h-14">
+    <div className="bottom-nav md:hidden">
+      <nav className="bottom-nav__inner tm-shell">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+          const iconColor = isActive ? '#ff6b35' : '#bbb';
+          
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
-                isActive ? "text-orange-500" : "text-gray-500 hover:text-orange-500"
-              }`}
+              className={`nav-item${isActive ? ' nav-item--active' : ''}`}
             >
-              <div className="relative">
+              <div className="nav-item__icon">
                 {item.badge ? (
-                  <Badge count={item.badge} size="small" offset={[4, -4]}>
-                    <item.icon size={22} className={isActive ? "text-orange-500" : ""} />
+                  <Badge count={item.badge} size="small" offset={[4, -2]}>
+                    <item.icon size={23} strokeWidth={1.9} color={iconColor} />
                   </Badge>
                 ) : (
-                  <item.icon size={22} className={isActive ? "text-orange-500" : ""} />
+                  <item.icon size={23} strokeWidth={1.9} color={iconColor} />
                 )}
               </div>
-              <span className="text-[10px] font-medium">{item.name}</span>
+              <span className="nav-item__label">{item.name}</span>
             </Link>
           );
         })}
