@@ -5,15 +5,7 @@ import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { useCart } from "@/components/cart/cart-provider";
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("zh-CN", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+import { formatCurrency } from "@/lib/format";
 
 export function CartSidebar() {
   const { isOpen, closeCart, items, subtotal, updateQuantity, removeItem, clearCart } = useCart();

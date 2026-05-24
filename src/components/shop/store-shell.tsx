@@ -20,7 +20,7 @@ function ProductCard({ product }: { product: Product }) {
   const handleAdd = () => {
     setAdding(true);
     addItem(product);
-    message.success({ content: `"${product.name}" 宸插姞鍏ヨ喘鐗╄溅`, duration: 1.5 });
+    message.success({ content: `"${product.name}" 已加入购物车`, duration: 1.5 });
     setTimeout(() => setAdding(false), 800);
   };
 
@@ -41,7 +41,7 @@ function ProductCard({ product }: { product: Product }) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-gray-300">
-            <span>鏆傛棤鍥剧墖</span>
+            <span>暂无图片</span>
           </div>
         )}
         {discount && (
@@ -55,18 +55,18 @@ function ProductCard({ product }: { product: Product }) {
           </div>
         )}
         <div className="absolute bottom-2 right-2">
-          <span className="rounded-full bg-black/50 px-2 py-0.5 text-xs text-white">搴撳瓨 {product.inventory}</span>
+          <span className="rounded-full bg-black/50 px-2 py-0.5 text-xs text-white">库存 {product.inventory}</span>
         </div>
       </div>
 
       <div className="flex flex-1 flex-col p-3">
         <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-800">{product.name}</p>
-        <p className="mt-1 text-xs text-gray-400">{product.brand} 路 {product.colorway}</p>
+        <p className="mt-1 text-xs text-gray-400">{product.brand} / {product.colorway}</p>
 
         <div className="mt-2 flex items-baseline gap-1.5">
-          <span className="text-xl font-bold text-red-500">楼{product.price}</span>
+          <span className="text-xl font-bold text-red-500">¥{product.price}</span>
           {product.originalPrice && (
-            <span className="text-xs text-gray-400 line-through">楼{product.originalPrice}</span>
+            <span className="text-xs text-gray-400 line-through">¥{product.originalPrice}</span>
           )}
         </div>
 
@@ -121,7 +121,7 @@ export function StoreShell({ initialData }: { initialData: StoreData }) {
       {contextHolder}
 
       <div className="mb-4 flex items-center gap-2 overflow-x-auto text-sm text-gray-500">
-        <span className="shrink-0 text-gray-400">绛涢€夛細</span>
+        <span className="shrink-0 text-gray-400">筛选：</span>
         {filterGroups.map((group) => (
           <div key={group.id} className="flex items-center gap-1.5 shrink-0">
             <span className="text-xs text-gray-400">{group.name}：</span>
@@ -135,7 +135,7 @@ export function StoreShell({ initialData }: { initialData: StoreData }) {
                 onClick={() => selectFilter(group)}
                 type="button"
               >
-                鍏ㄩ儴
+                全部
               </button>
               {group.options.filter((o) => o.isActive !== false).map((option) => (
                 <button
@@ -160,24 +160,26 @@ export function StoreShell({ initialData }: { initialData: StoreData }) {
             onClick={() => setSelectedFilters({})}
             type="button"
           >
-            娓呴櫎绛涢€?          </button>
+            清除筛选
+          </button>
         )}
       </div>
 
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-gray-500">
-          鍏?<span className="font-bold text-gray-800">{products.length}</span> 浠跺晢鍝?          {hasActiveFilters && <span className="ml-1 text-orange-500">锛堝凡绛涢€夛級</span>}
+          共 <span className="font-bold text-gray-800">{products.length}</span> 件商品
+          {hasActiveFilters && <span className="ml-1 text-orange-500">（已筛选）</span>}
         </p>
         <div className="flex items-center gap-1 text-xs text-gray-400">
           <span>商品默认按</span>
-          <span className="font-medium text-orange-500">鎺ㄨ崘</span>
-          <span>鎺掑簭</span>
+          <span className="font-medium text-orange-500">推荐</span>
+          <span>排序</span>
         </div>
       </div>
 
       {products.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-20 text-gray-400">
-          <span className="text-5xl">馃摝</span>
+          <span className="text-5xl">暂无</span>
           <p className="mt-4 text-base font-medium">暂无符合条件的商品</p>
           <p className="mt-1 text-sm">试试调整筛选条件</p>
           <button
@@ -185,7 +187,8 @@ export function StoreShell({ initialData }: { initialData: StoreData }) {
             onClick={() => setSelectedFilters({})}
             type="button"
           >
-            娓呴櫎绛涢€?          </button>
+            清除筛选
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">

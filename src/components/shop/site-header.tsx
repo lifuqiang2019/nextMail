@@ -8,16 +8,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useCart } from "@/components/cart/cart-provider";
+import { formatCurrency } from "@/lib/format";
 import type { CustomerProfile } from "@/types/store";
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("zh-CN", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 export function SiteHeader({
   storeName,
@@ -45,12 +37,12 @@ export function SiteHeader({
         {
           key: "account",
           icon: <User size={14} />,
-          label: <Link href="/account">璐﹀彿涓績</Link>,
+          label: <Link href="/account">账号中心</Link>,
         },
         {
           key: "orders",
           icon: <ShoppingBag size={14} />,
-          label: <Link href="/account">鎴戠殑璁㈠崟</Link>,
+          label: <Link href="/orders">我的订单</Link>,
         },
         { type: "divider" },
         {
@@ -72,7 +64,7 @@ export function SiteHeader({
         {
           key: "login",
           icon: <User size={14} />,
-          label: <Link href="/auth">鐧诲綍</Link>,
+          label: <Link href="/auth">登录</Link>,
         },
       ];
 
@@ -91,7 +83,7 @@ export function SiteHeader({
             <div className="relative flex-1 max-w-xl">
               <input
                 className="tm-input"
-                placeholder="鎼滅储鍟嗗搧..."
+                placeholder="搜索商品..."
                 type="text"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
@@ -100,7 +92,7 @@ export function SiteHeader({
                 className="absolute right-0 top-0 flex h-full items-center rounded-r bg-orange-500 px-4 text-white transition hover:bg-orange-600"
                 type="button"
               >
-                馃攳
+                搜索
               </button>
             </div>
           </div>
@@ -109,7 +101,7 @@ export function SiteHeader({
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <button className="flex items-center gap-1.5 rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-orange-300 hover:text-orange-500" type="button">
                 <User size={16} />
-                <span className="hidden sm:inline">{currentUser ? currentUser.name : "鐧诲綍"}</span>
+                <span className="hidden sm:inline">{currentUser ? currentUser.name : "登录"}</span>
               </button>
             </Dropdown>
 
@@ -138,7 +130,7 @@ export function SiteHeader({
             }`}
             href="/"
           >
-            棣栭〉
+            首页
           </Link>
           <Link
             className={`shrink-0 whitespace-nowrap pb-1 font-medium transition ${
@@ -146,21 +138,23 @@ export function SiteHeader({
             }`}
             href="/cart"
           >
-            璐墿杞?          </Link>
+            购物车
+          </Link>
           <Link
             className={`shrink-0 whitespace-nowrap pb-1 font-medium transition ${
               pathname === "/account" ? "border-b-2 border-orange-500 text-orange-500" : "text-gray-600 hover:text-orange-500"
             }`}
             href="/account"
           >
-            璐﹀彿涓績
+            账号中心
           </Link>
           <Link
             className="shrink-0 whitespace-nowrap pb-1 font-medium text-gray-400 transition hover:text-orange-500"
             href="/admin"
             target="_blank"
           >
-            鍟嗗鍚庡彴 鈫?          </Link>
+            商家后台 {">"}
+          </Link>
         </nav>
       </div>
     </header>
