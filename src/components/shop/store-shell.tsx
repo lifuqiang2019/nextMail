@@ -1,36 +1,107 @@
 "use client";
 
+import { message } from "antd";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 
 import { useCart } from "@/components/cart/cart-provider";
-import type { FilterGroup, StoreData } from "@/types/store";
+import type { FilterGroup, Product, StoreData } from "@/types/store";
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("zh-CN", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+function calcDiscount(original: number, current: number) {
+  if (!original || original <= current) return null;
+  return Math.round((1 - current / original) * 10);
+}
+
+function ProductCard({ product }: { product: Product }) {
+  const { addItem } = useCart();
+  const [adding, setAdding] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  const handleAdd = () => {
+    setAdding(true);
+    addItem(product);
+    message.success({ content: `"${product.name}" 已加入购物车`, duration: 1.5 });
+    setTimeout(() => setAdding(false), 800);
+  };
+
+  const discount = product.originalPrice ? calcDiscount(product.originalPrice, product.price) : null;
+
+  return (
+    <div className="tm-card flex flex-col overflow-hidden">
+      <div className="relative aspect-[4/3] bg-gray-100">
+        {!imgError ? (
+          <Image
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            src={product.imageUrl || "https://via.placeholder.com/400x300?text=No+Image"}
+            style={{ objectFit: "cover" }}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-gray-300">
+            <span>暂无图片</span>
+          </div>
+        )}
+        {discount && (
+          <div className="absolute left-0 top-0">
+            <div className="tm-badge">{discount}折</div>
+          </div>
+        )}
+        {product.badge && (
+          <div className="absolute left-0 top-6">
+            <span className="rounded-l bg-orange-400 px-2 py-0.5 text-xs font-bold text-white">{product.badge}</span>
+          </div>
+        )}
+        <div className="absolute bottom-2 right-2">
+          <span className="rounded-full bg-black/50 px-2 py-0.5 text-xs text-white">库存 {product.inventory}</span>
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col p-3">
+        <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-800">{product.name}</p>
+        <p className="mt-1 text-xs text-gray-400">{product.brand} · {product.colorway}</p>
+
+        <div className="mt-2 flex items-baseline gap-1.5">
+          <span className="text-xl font-bold text-red-500">¥{product.price}</span>
+          {product.originalPrice && (
+            <span className="text-xs text-gray-400 line-through">¥{product.originalPrice}</span>
+          )}
+        </div>
+
+        <p className="mt-1 text-xs text-gray-400">尺码：{product.sizes.join(" / ")}</p>
+
+        <div className="mt-auto pt-2">
+          <button
+            className="tm-btn-primary w-full py-2 text-sm"
+            disabled={adding}
+            onClick={handleAdd}
+            type="button"
+          >
+            {adding ? "已添加 ✓" : "加入购物车"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function StoreShell({ initialData }: { initialData: StoreData }) {
-  const { addItem, itemCount, openCart } = useCart();
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
+  const [, contextHolder] = message.useMessage();
 
   const products = useMemo(() => {
     return initialData.products.filter((product) => {
       return initialData.filterGroups.every((group) => {
         const selectedOptionId = selectedFilters[group.id];
-        if (!selectedOptionId) {
-          return true;
-        }
+        if (!selectedOptionId) return true;
         return product.filterOptionIds.includes(selectedOptionId);
       });
     });
-  }, [initialData.filterGroups, initialData.products, selectedFilters]);
+  }, [selectedFilters, initialData.filterGroups, initialData.products]);
 
-  const filterGroups = initialData.filterGroups.filter((group) => group.isActive !== false);
+  const filterGroups = initialData.filterGroups.filter((g) => g.isActive !== false);
 
   const selectFilter = (group: FilterGroup, optionId?: string) => {
     setSelectedFilters((current) => {
@@ -39,108 +110,93 @@ export function StoreShell({ initialData }: { initialData: StoreData }) {
         delete next[group.id];
         return next;
       }
-      return {
-        ...current,
-        [group.id]: optionId,
-      };
+      return { ...current, [group.id]: optionId };
     });
   };
 
-  return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:py-10">
-      <section className="overflow-hidden rounded-[28px] bg-slate-950 px-5 py-6 text-white shadow-xl sm:px-8 sm:py-8">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-300">Mobile First Storefront</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{initialData.settings.heroTitle}</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">{initialData.settings.heroSubtitle}</p>
-        <p className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">{initialData.settings.heroNotice}</p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button className="rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950" onClick={openCart} type="button">
-            购物车 ({itemCount})
-          </button>
-          <div className="rounded-full border border-white/15 px-4 py-3 text-sm text-slate-200">
-            联系方式：{initialData.settings.supportPhone}
-          </div>
-        </div>
-      </section>
+  const hasActiveFilters = Object.keys(selectedFilters).length > 0;
 
-      <section className="rounded-[28px] bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-slate-500">条件过滤</p>
-            <h2 className="text-xl font-semibold text-slate-950">后台可配置筛选条件</h2>
-          </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">移动端优先</span>
-        </div>
-        <div className="space-y-4">
-          {filterGroups.map((group) => (
-            <div key={group.id}>
-              <p className="mb-2 text-sm font-medium text-slate-700">{group.name}</p>
-              <div className="flex gap-2 overflow-x-auto pb-1">
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      {contextHolder}
+
+      <div className="mb-4 flex items-center gap-2 overflow-x-auto text-sm text-gray-500">
+        <span className="shrink-0 text-gray-400">筛选：</span>
+        {filterGroups.map((group) => (
+          <div key={group.id} className="flex items-center gap-1.5 shrink-0">
+            <span className="text-xs text-gray-400">{group.name}：</span>
+            <div className="flex gap-1">
+              <button
+                className={`shrink-0 rounded-full border px-3 py-1 text-xs transition ${
+                  !selectedFilters[group.id]
+                    ? "border-orange-500 bg-orange-50 text-orange-500 font-medium"
+                    : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"
+                }`}
+                onClick={() => selectFilter(group)}
+                type="button"
+              >
+                全部
+              </button>
+              {group.options.filter((o) => o.isActive !== false).map((option) => (
                 <button
-                  className={`shrink-0 rounded-full border px-4 py-2 text-sm ${
-                    !selectedFilters[group.id]
-                      ? "border-slate-950 bg-slate-950 text-white"
-                      : "border-slate-200 bg-white text-slate-700"
+                  key={option.id}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-xs transition ${
+                    selectedFilters[group.id] === option.id
+                      ? "border-orange-500 bg-orange-50 text-orange-500 font-medium"
+                      : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"
                   }`}
-                  onClick={() => selectFilter(group)}
+                  onClick={() => selectFilter(group, option.id)}
                   type="button"
                 >
-                  全部
+                  {option.label}
                 </button>
-                {group.options.filter((option) => option.isActive !== false).map((option) => (
-                  <button
-                    className={`shrink-0 rounded-full border px-4 py-2 text-sm ${
-                      selectedFilters[group.id] === option.id
-                        ? "border-slate-950 bg-slate-950 text-white"
-                        : "border-slate-200 bg-white text-slate-700"
-                    }`}
-                    key={option.id}
-                    onClick={() => selectFilter(group, option.id)}
-                    type="button"
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-slate-500">商品列表</p>
-            <h2 className="text-xl font-semibold text-slate-950">共 {products.length} 件商品</h2>
           </div>
+        ))}
+        {hasActiveFilters && (
+          <button
+            className="shrink-0 text-xs text-gray-400 underline transition hover:text-red-500"
+            onClick={() => setSelectedFilters({})}
+            type="button"
+          >
+            清除筛选
+          </button>
+        )}
+      </div>
+
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          共 <span className="font-bold text-gray-800">{products.length}</span> 件商品
+          {hasActiveFilters && <span className="ml-1 text-orange-500">（已筛选）</span>}
+        </p>
+        <div className="flex items-center gap-1 text-xs text-gray-400">
+          <span>商品默认按</span>
+          <span className="font-medium text-orange-500">推荐</span>
+          <span>排序</span>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      </div>
+
+      {products.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-20 text-gray-400">
+          <span className="text-5xl">📦</span>
+          <p className="mt-4 text-base font-medium">暂无符合条件的商品</p>
+          <p className="mt-1 text-sm">试试调整筛选条件</p>
+          <button
+            className="mt-4 tm-btn-primary px-8 py-2 text-sm"
+            onClick={() => setSelectedFilters({})}
+            type="button"
+          >
+            清除筛选
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {products.map((product) => (
-            <article className="overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-sm" key={product.id}>
-              <div className="aspect-[4/3] bg-cover bg-center" style={{ backgroundImage: `url(${product.imageUrl})` }} />
-              <div className="p-4 sm:p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{product.badge || product.brand}</span>
-                  <span className="text-xs text-slate-500">库存 {product.inventory}</span>
-                </div>
-                <h3 className="mt-3 text-lg font-semibold text-slate-950">{product.name}</h3>
-                <p className="mt-1 text-sm text-slate-500">{product.brand} · {product.colorway}</p>
-                <p className="mt-3 text-sm leading-6 text-slate-500">{product.description}</p>
-                <p className="mt-3 text-xs text-slate-500">尺码：{product.sizes.join(" / ")}</p>
-                <div className="mt-4 flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-2xl font-semibold text-slate-950">{formatCurrency(product.price)}</p>
-                    {product.originalPrice ? <p className="text-sm text-slate-400 line-through">{formatCurrency(product.originalPrice)}</p> : null}
-                  </div>
-                  <button className="rounded-full bg-slate-950 px-4 py-2.5 text-sm font-medium text-white" onClick={() => addItem(product)} type="button">
-                    加入购物车
-                  </button>
-                </div>
-              </div>
-            </article>
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
-      </section>
+      )}
     </div>
   );
 }
