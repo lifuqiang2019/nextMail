@@ -158,83 +158,78 @@ function decimalToNumber(value: { toNumber(): number } | null | undefined) {
 }
 
 export async function readStoreData(): Promise<StoreData> {
-  try {
-    const [settings, categories, filterGroups, products] = await Promise.all([
-      prisma.storeSetting.findUnique({ where: { id: 1 } }),
-      prisma.category.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
-      prisma.filterGroup.findMany({
-        include: { options: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] } },
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-      }),
-      prisma.product.findMany({
-        include: { filterRefs: true },
-        orderBy: [{ featured: "desc" }, { createdAt: "asc" }],
-      }),
-    ]);
+  const [settings, categories, filterGroups, products] = await Promise.all([
+    prisma.storeSetting.findUnique({ where: { id: 1 } }),
+    prisma.category.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
+    prisma.filterGroup.findMany({
+      include: { options: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] } },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    }),
+    prisma.product.findMany({
+      include: { filterRefs: true },
+      orderBy: [{ featured: "desc" }, { createdAt: "asc" }],
+    }),
+  ]);
 
-    if (!settings || categories.length === 0 || products.length === 0) {
-      return normalizeStoreData(fallbackStore);
-    }
-
-    return normalizeStoreData({
-      settings: {
-        storeName: settings.storeName,
-        heroTitle: settings.heroTitle,
-        heroSubtitle: settings.heroSubtitle,
-        heroNotice: settings.heroNotice,
-        supportEmail: settings.supportEmail,
-        supportPhone: settings.supportPhone,
-        purchaseGuide: settings.purchaseGuide,
-        orderLink: settings.orderLink,
-      },
-      categories: categories.map((category) => ({
-        id: category.id,
-        name: category.name,
-        slug: category.slug ?? undefined,
-        description: category.description,
-        sortOrder: category.sortOrder,
-        isActive: category.isActive,
-      })),
-      filterGroups: filterGroups.map((group) => ({
-        id: group.id,
-        name: group.name,
-        slug: group.slug ?? undefined,
-        description: group.description,
-        sortOrder: group.sortOrder,
-        isActive: group.isActive,
-        options: group.options.map((option) => ({
-          id: option.id,
-          groupId: option.groupId,
-          label: option.label,
-          value: option.value,
-          sortOrder: option.sortOrder,
-          isActive: option.isActive,
-        })),
-      })),
-      products: products.map((product) => ({
-        id: product.id,
-        name: product.name,
-        slug: product.slug ?? undefined,
-        sku: product.sku ?? undefined,
-        brand: product.brand,
-        categoryId: product.categoryId,
-        price: decimalToNumber(product.price) ?? 0,
-        originalPrice: decimalToNumber(product.originalPrice),
-        badge: product.badge ?? undefined,
-        inventory: product.inventory,
-        description: product.description,
-        imageUrl: product.imageUrl,
-        sizes: product.sizes ? product.sizes.split(",").filter(Boolean) : [],
-        colorway: product.colorway,
-        featured: product.featured,
-        status: product.status,
-        filterOptionIds: product.filterRefs.map((ref) => ref.optionId),
-      })),
-    });
-  } catch (error) {
-    console.warn("readStoreData fallback:", error);
+  if (!settings || categories.length === 0 || products.length === 0) {
     return normalizeStoreData(fallbackStore);
   }
+
+  return normalizeStoreData({
+    settings: {
+      storeName: settings.storeName,
+      heroTitle: settings.heroTitle,
+      heroSubtitle: settings.heroSubtitle,
+      heroNotice: settings.heroNotice,
+      supportEmail: settings.supportEmail,
+      supportPhone: settings.supportPhone,
+      purchaseGuide: settings.purchaseGuide,
+      orderLink: settings.orderLink,
+    },
+    categories: categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug ?? undefined,
+      description: category.description,
+      sortOrder: category.sortOrder,
+      isActive: category.isActive,
+    })),
+    filterGroups: filterGroups.map((group) => ({
+      id: group.id,
+      name: group.name,
+      slug: group.slug ?? undefined,
+      description: group.description,
+      sortOrder: group.sortOrder,
+      isActive: group.isActive,
+      options: group.options.map((option) => ({
+        id: option.id,
+        groupId: option.groupId,
+        label: option.label,
+        value: option.value,
+        sortOrder: option.sortOrder,
+        isActive: option.isActive,
+      })),
+    })),
+    products: products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      slug: product.slug ?? undefined,
+      sku: product.sku ?? undefined,
+      brand: product.brand,
+      categoryId: product.categoryId,
+      price: decimalToNumber(product.price) ?? 0,
+      originalPrice: decimalToNumber(product.originalPrice),
+      badge: product.badge ?? undefined,
+      inventory: product.inventory,
+      description: product.description,
+      imageUrl: product.imageUrl,
+      sizes: product.sizes ? product.sizes.split(",").filter(Boolean) : [],
+      colorway: product.colorway,
+      featured: product.featured,
+      status: product.status,
+      filterOptionIds: product.filterRefs.map((ref) => ref.optionId),
+    })),
+  });
 }
 
 export async function writeStoreData(input: Partial<StoreData>): Promise<StoreData> {

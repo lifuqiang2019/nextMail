@@ -45,26 +45,21 @@ export async function getCurrentCustomerProfile(): Promise<CustomerProfile | nul
     return null;
   }
 
-  try {
-    const session = await prisma.customerSession.findUnique({
-      where: { token },
-      include: { user: true },
-    });
+  const session = await prisma.customerSession.findUnique({
+    where: { token },
+    include: { user: true },
+  });
 
-    if (!session || session.expiresAt < new Date() || !session.user.isActive) {
-      await destroyCustomerSession();
-      return null;
-    }
-
-    return {
-      id: session.user.id,
-      name: session.user.name,
-      email: session.user.email,
-    };
-  } catch (error) {
-    console.warn("getCurrentCustomerProfile fallback:", error);
+  if (!session || session.expiresAt < new Date() || !session.user.isActive) {
+    await destroyCustomerSession();
     return null;
   }
+
+  return {
+    id: session.user.id,
+    name: session.user.name,
+    email: session.user.email,
+  };
 }
 
 export async function requireCustomerProfile() {
