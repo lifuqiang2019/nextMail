@@ -41,14 +41,11 @@ function readCartSnapshot(): CartItem[] {
 
   try {
     const cached = window.localStorage.getItem(STORAGE_KEY) ?? "";
-
     if (cached === cartSnapshotCache) {
       return cartItemsCache;
     }
-
     cartSnapshotCache = cached;
     cartItemsCache = cached ? (JSON.parse(cached) as CartItem[]) : EMPTY_CART;
-
     return cartItemsCache;
   } catch {
     cartSnapshotCache = "";
@@ -61,12 +58,9 @@ function subscribeCart(callback: () => void) {
   if (typeof window === "undefined") {
     return () => {};
   }
-
   const handler = () => callback();
-
   window.addEventListener("storage", handler);
   window.addEventListener(STORAGE_EVENT, handler);
-
   return () => {
     window.removeEventListener("storage", handler);
     window.removeEventListener(STORAGE_EVENT, handler);
@@ -79,44 +73,26 @@ function writeCartSnapshot(items: CartItem[]) {
   }
 
   const nextSnapshot = JSON.stringify(items);
-
   cartSnapshotCache = nextSnapshot;
   cartItemsCache = items;
-
   window.localStorage.setItem(STORAGE_KEY, nextSnapshot);
   window.dispatchEvent(new Event(STORAGE_EVENT));
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const items = useSyncExternalStore(
-    subscribeCart,
-    readCartSnapshot,
-    () => EMPTY_CART,
-  );
+  const items = useSyncExternalStore(subscribeCart, readCartSnapshot, () => EMPTY_CART);
   const [isOpen, setIsOpen] = useState(false);
 
-  const commitItems = useCallback(
-    (updater: CartItem[] | ((current: CartItem[]) => CartItem[])) => {
-      const nextItems =
-        typeof updater === "function"
-          ? updater(readCartSnapshot())
-          : updater;
-
-      writeCartSnapshot(nextItems);
-    },
-    [],
-  );
+  const commitItems = useCallback((updater: CartItem[] | ((current: CartItem[]) => CartItem[])) => {
+    const nextItems = typeof updater === "function" ? updater(readCartSnapshot()) : updater;
+    writeCartSnapshot(nextItems);
+  }, []);
 
   const addItem = useCallback((product: Product) => {
     commitItems((current) => {
       const existingItem = current.find((item) => item.id === product.id);
-
       if (existingItem) {
-        return current.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        );
+        return current.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
       }
 
       return [
@@ -127,11 +103,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           price: product.price,
           badge: product.badge,
           categoryId: product.categoryId,
+          imageUrl: product.imageUrl,
           quantity: 1,
         },
       ];
     });
-
     setIsOpen(true);
   }, [commitItems]);
 
@@ -140,10 +116,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (quantity <= 0) {
         return current.filter((item) => item.id !== productId);
       }
-
-      return current.map((item) =>
-        item.id === productId ? { ...item, quantity } : item,
-      );
+      return current.map((item) => (item.id === productId ? { ...item, quantity } : item));
     });
   }, [commitItems]);
 
@@ -157,10 +130,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<CartContextValue>(() => {
     const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-    const subtotal = items.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0,
-    );
+    const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
 
     return {
       items,
@@ -182,10 +152,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
 export function useCart() {
   const context = useContext(CartContext);
-
   if (!context) {
     throw new Error("useCart must be used within CartProvider");
   }
-
   return context;
 }
