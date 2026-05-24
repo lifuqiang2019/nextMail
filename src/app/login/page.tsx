@@ -67,18 +67,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:gap-8 lg:py-14">
       <section className="rounded-[32px] bg-slate-950 px-6 py-8 text-white shadow-xl sm:px-8">
         <p className="text-sm uppercase tracking-[0.3em] text-slate-300">Account</p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight">邮箱登录 / 注册</h1>
+        <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">邮箱登录 / 注册</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
           当前版本使用邮箱和密码进行注册登录，后续可以继续扩展验证码登录、找回密码和会员中心。
         </p>
       </section>
 
       <section className="grid gap-8 lg:grid-cols-[1fr_1.1fr]">
-        <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex gap-3">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="grid grid-cols-2 gap-3">
             <button
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                 mode === "login"
@@ -158,7 +158,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <p className="text-sm text-slate-500">功能说明</p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-950">当前账号能力</h2>
           <div className="mt-6 space-y-4 text-sm leading-7 text-slate-600">

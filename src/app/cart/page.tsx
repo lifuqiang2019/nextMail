@@ -86,7 +86,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:gap-8 lg:py-14">
       <section className="rounded-[32px] bg-white p-6 shadow-sm sm:p-8">
         <p className="text-sm text-slate-500">Checkout</p>
         <h1 className="mt-2 text-3xl font-semibold text-slate-950">购物车结算页</h1>
@@ -96,14 +96,14 @@ export default function CartPage() {
       </section>
 
       <div className="grid gap-8 lg:grid-cols-[1.7fr_0.9fr]">
-        <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
+        <section className="order-2 rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:order-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-slate-500">已选商品</p>
               <h2 className="text-2xl font-semibold text-slate-950">商品明细</h2>
             </div>
             <button
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+              className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950 sm:w-auto"
               onClick={clearCart}
               type="button"
             >
@@ -127,41 +127,40 @@ export default function CartPage() {
               </div>
             ) : (
               items.map((item) => (
-                <div
-                  className="flex flex-col gap-4 rounded-3xl border border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between"
-                  key={item.id}
-                >
+                <div className="rounded-3xl border border-slate-200 p-4 sm:p-5" key={item.id}>
                   <div>
                     <h3 className="text-lg font-semibold text-slate-950">{item.name}</h3>
                     <p className="mt-2 text-sm text-slate-500">
                       单价 {formatCurrency(item.price)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="inline-flex items-center rounded-full border border-slate-200">
-                      <button
-                        className="px-3 py-1 text-slate-600"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        type="button"
-                      >
-                        -
-                      </button>
-                      <span className="min-w-10 text-center text-sm font-medium text-slate-900">
-                        {item.quantity}
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="inline-flex items-center rounded-full border border-slate-200">
+                        <button
+                          className="px-3 py-2 text-slate-600"
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          type="button"
+                        >
+                          -
+                        </button>
+                        <span className="min-w-10 text-center text-sm font-medium text-slate-900">
+                          {item.quantity}
+                        </span>
+                        <button
+                          className="px-3 py-2 text-slate-600 disabled:cursor-not-allowed disabled:text-slate-300"
+                          disabled={item.quantity >= item.inventory}
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          type="button"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-xs text-slate-400">
+                        库存 {item.inventory} 件
                       </span>
-                      <button
-                        className="px-3 py-1 text-slate-600 disabled:cursor-not-allowed disabled:text-slate-300"
-                        disabled={item.quantity >= item.inventory}
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        type="button"
-                      >
-                        +
-                      </button>
                     </div>
-                    <span className="text-xs text-slate-400">
-                      库存 {item.inventory} 件
-                    </span>
-                    <span className="min-w-28 text-right text-lg font-semibold text-slate-950">
+                    <span className="rounded-2xl bg-slate-50 px-3 py-2 text-left text-lg font-semibold text-slate-950 sm:min-w-28 sm:bg-transparent sm:px-0 sm:py-0 sm:text-right">
                       {formatCurrency(item.price * item.quantity)}
                     </span>
                   </div>
@@ -171,7 +170,7 @@ export default function CartPage() {
           </div>
         </section>
 
-        <aside className="h-fit rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
+        <aside className="order-1 h-fit rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:order-2 lg:sticky lg:top-24">
           <p className="text-sm text-slate-500">订单摘要</p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-950">待支付金额</h2>
 
@@ -192,7 +191,7 @@ export default function CartPage() {
           </div>
 
           <div className="mt-6 rounded-3xl border border-slate-200 p-5">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-slate-500">账号状态</p>
                 <p className="mt-1 text-sm font-medium text-slate-900">
@@ -205,7 +204,7 @@ export default function CartPage() {
               </div>
               {!user && !isLoading ? (
                 <Link
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                  className="w-full rounded-full border border-slate-200 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950 sm:w-auto"
                   href="/login"
                 >
                   去登录

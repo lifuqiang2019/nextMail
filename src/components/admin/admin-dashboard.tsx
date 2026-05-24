@@ -163,24 +163,24 @@ export function AdminDashboard({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-      <section className="flex flex-col gap-4 rounded-[32px] bg-slate-950 px-6 py-8 text-white lg:flex-row lg:items-end lg:justify-between lg:px-10">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:gap-8 lg:py-14">
+      <section className="flex flex-col gap-4 rounded-[32px] bg-slate-950 px-5 py-6 text-white sm:px-6 sm:py-8 lg:flex-row lg:items-end lg:justify-between lg:px-10">
         <div>
           <p className="text-sm uppercase tracking-[0.3em] text-slate-300">Admin Console</p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight">商城后台配置</h1>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">商城后台配置</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
             在同一个 Next 项目中维护店铺信息、分类和商品数据。{getDataModeText(dataAccessMode)}
           </p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
-            className="rounded-full border border-white/20 px-5 py-3 text-sm font-medium text-white transition hover:border-white/40 hover:bg-white/10"
+            className="w-full rounded-full border border-white/20 px-5 py-3 text-center text-sm font-medium text-white transition hover:border-white/40 hover:bg-white/10 sm:w-auto"
             href="/"
           >
             返回前台
           </Link>
           <button
-            className="rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
             disabled={saveStatus === "saving"}
             onClick={saveData}
             type="button"
@@ -191,7 +191,7 @@ export function AdminDashboard({
       </section>
 
       <section className="grid gap-8 lg:grid-cols-[1.1fr_1.9fr]">
-        <div className="space-y-6 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="space-y-6 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div>
             <p className="text-sm text-slate-500">店铺信息</p>
             <h2 className="text-2xl font-semibold text-slate-950">基础配置</h2>
@@ -234,14 +234,14 @@ export function AdminDashboard({
         </div>
 
         <div className="space-y-8">
-          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
+          <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-slate-500">分类管理</p>
                 <h2 className="text-2xl font-semibold text-slate-950">首页左侧分类</h2>
               </div>
               <button
-                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950 sm:w-auto"
                 onClick={addCategory}
                 type="button"
               >
@@ -289,14 +289,14 @@ export function AdminDashboard({
             </div>
           </section>
 
-          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
+          <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-slate-500">商品管理</p>
                 <h2 className="text-2xl font-semibold text-slate-950">首页商品展示</h2>
               </div>
               <button
-                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950 sm:w-auto"
                 onClick={addProduct}
                 type="button"
               >
@@ -306,7 +306,7 @@ export function AdminDashboard({
 
             <div className="mt-6 space-y-5">
               {formData.products.map((product) => (
-                <div className="rounded-3xl border border-slate-200 p-5" key={product.id}>
+                <div className="rounded-3xl border border-slate-200 p-4 sm:p-5" key={product.id}>
                   <div className="grid gap-4 md:grid-cols-2">
                     <label className="space-y-2">
                       <span className="text-sm font-medium text-slate-700">商品名称</span>
@@ -399,7 +399,7 @@ export function AdminDashboard({
 
                   <div className="mt-4 flex justify-end">
                     <button
-                      className="rounded-full border border-rose-200 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
+                      className="w-full rounded-full border border-rose-200 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50 sm:w-auto"
                       onClick={() => removeProduct(product.id)}
                       type="button"
                     >
