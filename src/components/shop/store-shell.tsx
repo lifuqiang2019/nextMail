@@ -27,8 +27,8 @@ function ProductCard({ product }: { product: Product }) {
   const discount = product.originalPrice ? calcDiscount(product.originalPrice, product.price) : null;
 
   return (
-    <div className="tm-card flex flex-col overflow-hidden">
-      <div className="relative aspect-[4/3] bg-gray-100">
+    <div className="tm-card flex flex-col overflow-hidden rounded-xl border border-transparent hover:border-orange-200">
+      <div className="relative aspect-[1/1] bg-gray-50">
         {!imgError ? (
           <Image
             alt={product.name}
@@ -72,9 +72,9 @@ function ProductCard({ product }: { product: Product }) {
 
         <p className="mt-1 text-xs text-gray-400">尺码：{product.sizes.join(" / ")}</p>
 
-        <div className="mt-auto pt-2">
+        <div className="mt-auto pt-3">
           <button
-            className="tm-btn-primary w-full py-2 text-sm"
+            className="w-full rounded-full bg-gradient-to-r from-orange-400 to-orange-500 py-1.5 text-xs font-bold text-white transition hover:opacity-90 active:scale-95"
             disabled={adding}
             onClick={handleAdd}
             type="button"
@@ -117,11 +117,11 @@ export function StoreShell({ initialData }: { initialData: StoreData }) {
   const hasActiveFilters = Object.keys(selectedFilters).length > 0;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8 py-4 md:py-6">
       {contextHolder}
 
-      <div className="mb-4 flex items-center gap-2 overflow-x-auto text-sm text-gray-500">
-        <span className="shrink-0 text-gray-400">筛选：</span>
+      <div className="mb-4 flex items-center gap-2 overflow-x-auto text-sm text-gray-500 bg-white p-3 rounded-xl shadow-sm hide-scrollbar">
+        <span className="shrink-0 text-gray-400 font-medium">筛选：</span>
         {filterGroups.map((group) => (
           <div key={group.id} className="flex items-center gap-1.5 shrink-0">
             <span className="text-xs text-gray-400">{group.name}：</span>

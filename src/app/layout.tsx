@@ -4,6 +4,7 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { AppProviders } from "@/components/providers/app-providers";
 import { CartSidebar } from "@/components/cart/cart-sidebar";
 import { SiteHeader } from "@/components/shop/site-header";
+import { BottomNav } from "@/components/shop/bottom-nav";
 import { getCurrentCustomerProfile } from "@/lib/auth/customer";
 import { readStoreData } from "@/lib/store";
 
@@ -30,8 +31,8 @@ export default async function RootLayout({
         <AntdRegistry>
           <AppProviders>
             <SiteHeader currentUser={currentUser} storeName={store.settings.storeName} />
-            <main>{children}</main>
-            <footer className="mt-12 border-t border-gray-200 bg-white">
+            <main className="pb-16 md:pb-0">{children}</main>
+            <footer className="mt-12 border-t border-gray-200 bg-white pb-16 md:pb-0">
               <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
@@ -67,6 +68,7 @@ export default async function RootLayout({
                 </div>
               </div>
             </footer>
+            <BottomNav />
             <CartSidebar />
           </AppProviders>
         </AntdRegistry>
