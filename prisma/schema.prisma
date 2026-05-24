@@ -1,93 +1,140 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
-}
-
-enum OrderStatus {
-  PENDING
-  PAID
-  CANCELLED
 }
 
 model StoreSetting {
-  id           String   @id @default("store")
-  storeName    String
-  heroTitle    String
-  heroSubtitle String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              Int      @id
+  storeName       String
+  heroTitle       String
+  heroSubtitle    String   @db.Text
+  heroNotice      String   @default("") @db.Text
+  supportEmail    String   @default("")
+  supportPhone    String   @default("")
+  purchaseGuide   String   @default("") @db.Text
+  orderLink       String   @default("") @db.Text
+  updatedAt       DateTime @updatedAt
 }
 
 model Category {
   id          String    @id
   name        String
+  slug        String?   @unique
   description String
-  products    Product[]
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model FilterGroup {
+  id          String         @id
+  name        String
+  slug        String?        @unique
+  description String         @default("")
+  sortOrder   Int            @default(0)
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  options     FilterOption[]
+}
+
+model FilterOption {
+  id          String               @id
+  groupId     String
+  label       String
+  value       String
+  sortOrder   Int                  @default(0)
+  isActive    Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  group       FilterGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productRefs ProductFilterOption[]
+
+  @@index([groupId])
 }
 
 model Product {
-  id            String      @id
+  id            String               @id
   name          String
+  slug          String?
+  sku           String?
+  brand         String               @default("")
   categoryId    String
-  category      Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  price         Int
-  originalPrice Int?
+  price         Decimal              @default(0) @db.Decimal(10, 2)
+  originalPrice Decimal?             @db.Decimal(10, 2)
   badge         String?
-  inventory     Int
-  description   String
-  orderItems    OrderItem[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  inventory     Int                  @default(0)
+  description   String               @db.Text
+  imageUrl      String               @default("") @db.Text
+  sizes         String               @default("") @db.Text
+  colorway      String               @default("")
+  featured      Boolean              @default(false)
+  status        String               @default("ACTIVE")
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  category      Category             @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  filterRefs    ProductFilterOption[]
 
   @@index([categoryId])
 }
 
-model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+model ProductFilterOption {
+  productId String
+  optionId  String
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  option    FilterOption @relation(fields: [optionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([productId, optionId])
+  @@index([optionId])
+}
+
+model CustomerUser {
+  id           String            @id
   name         String
+  email        String            @unique
   passwordHash String
-  orders       Order[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  sessions     CustomerSession[]
 }
 
-model Order {
-  id              String      @id @default(cuid())
-  userId          String
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status          OrderStatus @default(PENDING)
-  totalAmount     Int
-  receiverName    String
-  receiverPhone   String
-  receiverEmail   String
-  receiverAddress String
-  note            String?
-  items           OrderItem[]
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+model CustomerSession {
+  id         String       @id
+  token      String       @unique
+  userId     String
+  expiresAt  DateTime
+  createdAt  DateTime     @default(now())
+  user       CustomerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, createdAt])
+  @@index([userId])
 }
 
-model OrderItem {
-  id           String  @id @default(cuid())
-  orderId      String
-  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId    String?
-  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
-  productName  String
-  productPrice Int
-  quantity     Int
-  lineTotal    Int
-  createdAt    DateTime @default(now())
+model AdminUser {
+  id           String         @id
+  username     String         @unique
+  displayName  String
+  email        String?
+  passwordHash String
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sessions     AdminSession[]
+}
 
-  @@index([orderId])
-  @@index([productId])
+model AdminSession {
+  id         String    @id
+  token      String    @unique
+  userId     String
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  user       AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

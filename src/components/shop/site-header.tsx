@@ -1,152 +1,167 @@
-"use client";
+﻿"use client";
 
+import { Badge, Dropdown } from "antd";
+import type { MenuProps } from "antd";
+import { ShoppingCart, Store, User, LogOut, ShoppingBag } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useCart } from "@/components/cart/cart-provider";
-import { useAuth } from "@/components/providers/auth-provider";
+import type { CustomerProfile } from "@/types/store";
 
-const navLinks = [
-  { href: "/", label: "商城首页" },
-  { href: "/admin", label: "后台配置" },
-  { href: "/cart", label: "结算页" },
-  { href: "/orders", label: "我的订单" },
-] as const;
-
-function linkClass(active: boolean) {
-  return active
-    ? "inline-flex items-center justify-center rounded-full !bg-slate-950 px-4 py-2 text-sm font-medium !text-white shadow-sm whitespace-nowrap"
-    : "inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 whitespace-nowrap";
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("zh-CN", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
-export function SiteHeader({ storeName }: { storeName: string }) {
+export function SiteHeader({
+  storeName,
+  currentUser,
+}: {
+  storeName: string;
+  currentUser: CustomerProfile | null;
+}) {
   const pathname = usePathname();
-  const { itemCount, toggleCart } = useCart();
-  const { isLoading, logout, user } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
+  const { itemCount, toggleCart, subtotal } = useCart();
+  const [searchValue, setSearchValue] = useState("");
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const logout = async () => {
+    setLoggingOut(true);
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/");
+    router.refresh();
+    setLoggingOut(false);
+  };
+
+  const userMenuItems: MenuProps["items"] = currentUser
+    ? [
+        {
+          key: "account",
+          icon: <User size={14} />,
+          label: <Link href="/account">璐﹀彿涓績</Link>,
+        },
+        {
+          key: "orders",
+          icon: <ShoppingBag size={14} />,
+          label: <Link href="/account">鎴戠殑璁㈠崟</Link>,
+        },
+        { type: "divider" },
+        {
+          key: "logout",
+          icon: <LogOut size={14} />,
+          label: (
+            <button
+              className="w-full text-left"
+              disabled={loggingOut}
+              onClick={logout}
+              type="button"
+            >
+              {loggingOut ? "閫€鍑轰腑..." : "閫€鍑虹櫥褰?}
+            </button>
+          ),
+        },
+      ]
+    : [
+        {
+          key: "login",
+          icon: <User size={14} />,
+          label: <Link href="/auth">鐧诲綍</Link>,
+        },
+      ];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:px-8">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <Link className="line-clamp-1 text-base font-semibold text-slate-950 sm:text-lg" href="/">
-              {storeName}
-            </Link>
-            <p className="mt-1 max-w-[14rem] text-xs text-slate-500 sm:max-w-none sm:text-sm">
-              前台商城与后台配置一体化
-            </p>
-          </div>
-          <button
-            aria-expanded={isMenuOpen}
-            aria-label={isMenuOpen ? "关闭导航菜单" : "打开导航菜单"}
-            className="shrink-0 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950 md:hidden"
-            onClick={() => setIsMenuOpen((current) => !current)}
-            type="button"
-          >
-            {isMenuOpen ? "关闭" : "菜单"}
-          </button>
-        </div>
+    <header className="bg-white shadow-sm" style={{ borderBottom: "2px solid #ff5000" }}>
+      <div className="mx-auto max-w-7xl px-4 pb-3 pt-3 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-4">
+          <Link className="shrink-0" href="/">
+            <div className="flex items-center gap-2">
+              <Store size={24} style={{ color: "#ff5000" }} />
+              <span className="text-lg font-bold text-gray-900">{storeName}</span>
+            </div>
+          </Link>
 
-        <div className="hidden flex-col gap-3 md:flex lg:flex-row lg:items-center lg:justify-between">
-          <div className="-mx-1 overflow-x-auto px-1 pb-1">
-            <div className="flex min-w-max items-center gap-2">
-              {navLinks.map((link) => (
-                <Link className={linkClass(pathname === link.href)} href={link.href} key={link.href}>
-                  {link.label}
-                </Link>
-              ))}
+          <div className="flex flex-1 items-center gap-3">
+            <div className="relative flex-1 max-w-xl">
+              <input
+                className="tm-input"
+                placeholder="鎼滅储鍟嗗搧..."
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+              />
               <button
-                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium whitespace-nowrap text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
-                onClick={toggleCart}
+                className="absolute right-0 top-0 flex h-full items-center rounded-r bg-orange-500 px-4 text-white transition hover:bg-orange-600"
                 type="button"
               >
-                购物车 ({itemCount})
+                馃攳
               </button>
             </div>
           </div>
 
-          <div className="flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            {isLoading ? (
-              <span className="text-sm text-slate-500">正在读取登录状态...</span>
-            ) : user ? (
-              <>
-                <span className="text-sm text-slate-600">
-                  已登录: <span className="font-medium text-slate-950">{user.name}</span>
-                </span>
-                <button
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium whitespace-nowrap text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
-                  onClick={logout}
-                  type="button"
-                >
-                  退出登录
-                </button>
-              </>
-            ) : (
-              <Link className={linkClass(pathname === "/login")} href="/login">
-                邮箱登录 / 注册
-              </Link>
-            )}
-          </div>
-        </div>
-
-        {isMenuOpen ? (
-          <div className="rounded-[28px] border border-slate-200 bg-white p-3 shadow-sm md:hidden sm:p-4">
-            <div className="flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <Link
-                  className={`${linkClass(pathname === link.href)} w-full`}
-                  href={link.href}
-                  key={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <button
-                className="w-full rounded-full border border-slate-200 px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
-                onClick={() => {
-                  toggleCart();
-                  setIsMenuOpen(false);
-                }}
-                type="button"
-              >
-                购物车 ({itemCount})
+          <div className="flex items-center gap-3">
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <button className="flex items-center gap-1.5 rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-orange-300 hover:text-orange-500" type="button">
+                <User size={16} />
+                <span className="hidden sm:inline">{currentUser ? currentUser.name : "鐧诲綍"}</span>
               </button>
-            </div>
+            </Dropdown>
 
-            <div className="mt-4 border-t border-slate-200 pt-4">
-              {isLoading ? (
-                <span className="text-sm text-slate-500">正在读取登录状态...</span>
-              ) : user ? (
-                <div className="flex flex-col gap-3 rounded-3xl bg-slate-50 p-4">
-                  <span className="text-sm text-slate-600">
-                    已登录: <span className="font-medium text-slate-950">{user.name}</span>
-                  </span>
-                  <button
-                    className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
-                    onClick={() => {
-                      logout();
-                      setIsMenuOpen(false);
-                    }}
-                    type="button"
-                  >
-                    退出登录
-                  </button>
-                </div>
-              ) : (
-                <Link
-                  className={`${linkClass(pathname === "/login")} w-full`}
-                  href="/login"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  邮箱登录 / 注册
-                </Link>
+            <button
+              className="relative flex items-center gap-1.5 rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-orange-300 hover:text-orange-500"
+              onClick={toggleCart}
+              type="button"
+            >
+              <Badge count={itemCount} offset={[4, -4]} overflowCount={99} size="small">
+                <ShoppingCart size={18} />
+              </Badge>
+              <span className="hidden sm:inline">璐墿杞?/span>
+              {subtotal > 0 && (
+                <span className="ml-1 text-xs font-bold text-red-500">{formatCurrency(subtotal)}</span>
               )}
-            </div>
+            </button>
           </div>
-        ) : null}
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 pb-2 sm:px-6 lg:px-8">
+        <nav className="flex items-center gap-6 overflow-x-auto text-sm">
+          <Link
+            className={`shrink-0 whitespace-nowrap pb-1 font-medium transition ${
+              pathname === "/" ? "border-b-2 border-orange-500 text-orange-500" : "text-gray-600 hover:text-orange-500"
+            }`}
+            href="/"
+          >
+            棣栭〉
+          </Link>
+          <Link
+            className={`shrink-0 whitespace-nowrap pb-1 font-medium transition ${
+              pathname === "/cart" ? "border-b-2 border-orange-500 text-orange-500" : "text-gray-600 hover:text-orange-500"
+            }`}
+            href="/cart"
+          >
+            璐墿杞?          </Link>
+          <Link
+            className={`shrink-0 whitespace-nowrap pb-1 font-medium transition ${
+              pathname === "/account" ? "border-b-2 border-orange-500 text-orange-500" : "text-gray-600 hover:text-orange-500"
+            }`}
+            href="/account"
+          >
+            璐﹀彿涓績
+          </Link>
+          <Link
+            className="shrink-0 whitespace-nowrap pb-1 font-medium text-gray-400 transition hover:text-orange-500"
+            href="/admin"
+            target="_blank"
+          >
+            鍟嗗鍚庡彴 鈫?          </Link>
+        </nav>
       </div>
     </header>
   );

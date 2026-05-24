@@ -1,34 +1,24 @@
+import { NextResponse } from "next/server";
+
+import { ensureAdminApiAccess } from "@/lib/admin/guards";
 import { readStoreData, writeStoreData } from "@/lib/store";
 import type { StoreData } from "@/types/store";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  try {
-    const store = await readStoreData();
+  const access = await ensureAdminApiAccess();
+  if (access.response) return access.response;
 
-    return Response.json(store);
-  } catch {
-    return Response.json({ message: "读取店铺配置失败。" }, { status: 500 });
-  }
+  const store = await readStoreData();
+  return NextResponse.json(store);
 }
 
 export async function PUT(request: Request) {
-  try {
-    const payload = (await request.json()) as Partial<StoreData>;
+  const access = await ensureAdminApiAccess();
+  if (access.response) return access.response;
 
-    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-      return Response.json({ message: "请求体必须是一个对象。" }, { status: 400 });
-    }
-
-    const nextData = await writeStoreData(payload);
-
-    return Response.json(nextData);
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      return Response.json({ message: "请求体不是合法的 JSON。" }, { status: 400 });
-    }
-
-    return Response.json({ message: "保存店铺配置失败。" }, { status: 500 });
-  }
+  const payload = (await request.json()) as Partial<StoreData>;
+  const nextData = await writeStoreData(payload);
+  return NextResponse.json(nextData);
 }

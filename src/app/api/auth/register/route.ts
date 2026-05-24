@@ -1,58 +1,35 @@
-import { z } from "zod";
+import { NextResponse } from "next/server";
 
-import { hashPassword, saveSession } from "@/lib/auth";
-import {
-  createUserRecord,
-  findUserIdByEmail,
-  isDatabaseConfigured,
-  normalizeEmail,
-} from "@/lib/database";
-
-export const dynamic = "force-dynamic";
-
-const registerSchema = z.object({
-  email: z.string().email("请输入正确的邮箱地址。"),
-  password: z.string().min(6, "密码至少 6 位。"),
-  name: z.string().trim().min(2, "昵称至少 2 个字符。").max(30, "昵称不能超过 30 个字符。").optional(),
-});
+import { createCustomerSession } from "@/lib/auth/customer";
+import { hashPassword } from "@/lib/auth/password";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
-  if (!isDatabaseConfigured()) {
-    return Response.json(
-      { message: "当前未配置 DATABASE_URL，暂时无法使用注册功能。" },
-      { status: 503 },
-    );
+  const { name, email, password } = (await request.json()) as {
+    name?: string;
+    email?: string;
+    password?: string;
+  };
+
+  if (!name || !email || !password || password.length < 6) {
+    return NextResponse.json({ message: "请填写完整注册信息，密码至少 6 位" }, { status: 400 });
   }
 
-  try {
-    const body = await request.json();
-    const payload = registerSchema.parse(body);
-    const email = normalizeEmail(payload.email);
+  const exists = await prisma.customerUser.findUnique({ where: { email } });
+  if (exists) {
+    return NextResponse.json({ message: "该邮箱已注册" }, { status: 409 });
+  }
 
-    const existingUser = await findUserIdByEmail(email);
-
-    if (existingUser) {
-      return Response.json({ message: "该邮箱已注册。" }, { status: 409 });
-    }
-
-    const user = await createUserRecord({
+  const user = await prisma.customerUser.create({
+    data: {
+      id: crypto.randomUUID(),
+      name,
       email,
-      name: payload.name?.trim() || email.split("@")[0],
-      passwordHash: await hashPassword(payload.password),
-    });
+      passwordHash: await hashPassword(password),
+    },
+  });
 
-    await saveSession(user);
+  await createCustomerSession(user.id);
 
-    return Response.json({ user });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return Response.json({ message: error.issues[0]?.message || "参数错误。" }, { status: 400 });
-    }
-
-    if (error instanceof SyntaxError) {
-      return Response.json({ message: "请求体不是合法的 JSON。" }, { status: 400 });
-    }
-
-    return Response.json({ message: "注册失败，请稍后重试。" }, { status: 500 });
-  }
+  return NextResponse.json({ ok: true });
 }

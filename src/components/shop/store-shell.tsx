@@ -1,206 +1,199 @@
-"use client";
+﻿"use client";
 
+import { message } from "antd";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 
 import { useCart } from "@/components/cart/cart-provider";
-import { formatCurrency } from "@/lib/format";
-import type { StoreData } from "@/types/store";
+import type { FilterGroup, Product, StoreData } from "@/types/store";
 
-export function StoreShell({ initialData }: { initialData: StoreData }) {
-  const [activeCategoryId, setActiveCategoryId] = useState<string>("all");
-  const { addItem, itemCount, openCart } = useCart();
+function calcDiscount(original: number, current: number) {
+  if (!original || original <= current) return null;
+  return Math.round((1 - current / original) * 10);
+}
 
-  const products = useMemo(() => {
-    if (activeCategoryId === "all") {
-      return initialData.products;
-    }
+function ProductCard({ product }: { product: Product }) {
+  const { addItem } = useCart();
+  const [adding, setAdding] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
-    return initialData.products.filter(
-      (product) => product.categoryId === activeCategoryId,
-    );
-  }, [activeCategoryId, initialData.products]);
+  const handleAdd = () => {
+    setAdding(true);
+    addItem(product);
+    message.success({ content: `"${product.name}" 宸插姞鍏ヨ喘鐗╄溅`, duration: 1.5 });
+    setTimeout(() => setAdding(false), 800);
+  };
 
-  const activeCategory = initialData.categories.find(
-    (item) => item.id === activeCategoryId,
-  );
+  const discount = product.originalPrice ? calcDiscount(product.originalPrice, product.price) : null;
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8 lg:gap-10 lg:py-14">
-      <section className="rounded-[28px] bg-slate-950 px-5 py-6 text-white shadow-xl sm:rounded-[32px] sm:px-6 sm:py-8 lg:px-10 lg:py-10">
-        <div className="grid gap-6 lg:grid-cols-[1.8fr_1fr] lg:items-start">
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-300 sm:text-sm sm:tracking-[0.3em]">
-              {initialData.settings.storeName}
-            </p>
-            <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:mt-4 sm:text-4xl lg:text-5xl">
-              {initialData.settings.heroTitle}
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-lg">
-              {initialData.settings.heroSubtitle}
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
-              <button
-                className="w-full rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950 transition hover:bg-slate-100 sm:w-auto"
-                onClick={() => setActiveCategoryId("all")}
-                type="button"
-              >
-                浏览全部商品
-              </button>
-              <button
-                className="w-full rounded-full border border-white/20 px-5 py-3 text-sm font-medium text-white transition hover:border-white/40 hover:bg-white/10 sm:w-auto"
-                onClick={openCart}
-                type="button"
-              >
-                查看购物车 ({itemCount})
-              </button>
-            </div>
+    <div className="tm-card flex flex-col overflow-hidden">
+      <div className="relative aspect-[4/3] bg-gray-100">
+        {!imgError ? (
+          <Image
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            src={product.imageUrl || "https://via.placeholder.com/400x300?text=No+Image"}
+            style={{ objectFit: "cover" }}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-gray-300">
+            <span>鏆傛棤鍥剧墖</span>
           </div>
+        )}
+        {discount && (
+          <div className="absolute left-0 top-0">
+            <div className="tm-badge">{discount}鎶?/div>
+          </div>
+        )}
+        {product.badge && (
+          <div className="absolute left-0 top-6">
+            <span className="rounded-l bg-orange-400 px-2 py-0.5 text-xs font-bold text-white">{product.badge}</span>
+          </div>
+        )}
+        <div className="absolute bottom-2 right-2">
+          <span className="rounded-full bg-black/50 px-2 py-0.5 text-xs text-white">搴撳瓨 {product.inventory}</span>
+        </div>
+      </div>
 
-          <div className="grid gap-3 rounded-[28px] border border-white/10 bg-white/5 p-4 sm:grid-cols-3 sm:gap-4 sm:p-5 lg:grid-cols-1">
-            <div className="rounded-3xl bg-white/8 p-4">
-              <p className="text-sm text-slate-300">商品数量</p>
-              <p className="mt-2 text-3xl font-semibold text-white">
-                {initialData.products.length}
-              </p>
-            </div>
-            <div className="rounded-3xl bg-white/8 p-4">
-              <p className="text-sm text-slate-300">分类数量</p>
-              <p className="mt-2 text-3xl font-semibold text-white">
-                {initialData.categories.length}
-              </p>
-            </div>
-            <div className="rounded-3xl bg-white/8 p-4">
-              <p className="text-sm text-slate-300">后台能力</p>
-              <p className="mt-2 text-lg font-medium text-white">
-                支持店铺配置、分类维护和商品管理
-              </p>
-            </div>
-          </div>
+      <div className="flex flex-1 flex-col p-3">
+        <p className="line-clamp-2 text-sm font-medium leading-snug text-gray-800">{product.name}</p>
+        <p className="mt-1 text-xs text-gray-400">{product.brand} 路 {product.colorway}</p>
+
+        <div className="mt-2 flex items-baseline gap-1.5">
+          <span className="text-xl font-bold text-red-500">楼{product.price}</span>
+          {product.originalPrice && (
+            <span className="text-xs text-gray-400 line-through">楼{product.originalPrice}</span>
+          )}
         </div>
 
-        <div className="mt-8 rounded-[24px] border border-white/10 bg-white/5 p-4 sm:rounded-[28px] sm:p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-slate-300">商品分类</p>
-              <h2 className="text-xl font-semibold text-white">分类筛选导航</h2>
-            </div>
-            <span className="w-fit rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-slate-200">
-              共 {initialData.categories.length} 个分类
-            </span>
-          </div>
+        <p className="mt-1 text-xs text-gray-400">灏虹爜锛歿product.sizes.join(" / ")}</p>
 
-          <div className="-mx-1 mt-5 overflow-x-auto px-1 pb-1">
-            <div className="flex min-w-max gap-2 sm:gap-3">
+        <div className="mt-auto pt-2">
+          <button
+            className="tm-btn-primary w-full py-2 text-sm"
+            disabled={adding}
+            onClick={handleAdd}
+            type="button"
+          >
+            {adding ? "宸叉坊鍔?鉁? : "鍔犲叆璐墿杞?}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function StoreShell({ initialData }: { initialData: StoreData }) {
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
+  const [, contextHolder] = message.useMessage();
+
+  const products = useMemo(() => {
+    return initialData.products.filter((product) => {
+      return initialData.filterGroups.every((group) => {
+        const selectedOptionId = selectedFilters[group.id];
+        if (!selectedOptionId) return true;
+        return product.filterOptionIds.includes(selectedOptionId);
+      });
+    });
+  }, [selectedFilters, initialData.filterGroups, initialData.products]);
+
+  const filterGroups = initialData.filterGroups.filter((g) => g.isActive !== false);
+
+  const selectFilter = (group: FilterGroup, optionId?: string) => {
+    setSelectedFilters((current) => {
+      if (!optionId) {
+        const next = { ...current };
+        delete next[group.id];
+        return next;
+      }
+      return { ...current, [group.id]: optionId };
+    });
+  };
+
+  const hasActiveFilters = Object.keys(selectedFilters).length > 0;
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      {contextHolder}
+
+      <div className="mb-4 flex items-center gap-2 overflow-x-auto text-sm text-gray-500">
+        <span className="shrink-0 text-gray-400">绛涢€夛細</span>
+        {filterGroups.map((group) => (
+          <div key={group.id} className="flex items-center gap-1.5 shrink-0">
+            <span className="text-xs text-gray-400">{group.name}锛?/span>
+            <div className="flex gap-1">
               <button
-                aria-pressed={activeCategoryId === "all"}
-                className={`rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
-                  activeCategoryId === "all"
-                    ? "!border-slate-950 !bg-slate-950 !text-white shadow-sm"
-                    : "border border-white/20 text-white hover:border-white/40 hover:bg-white/10"
+                className={`shrink-0 rounded-full border px-3 py-1 text-xs transition ${
+                  !selectedFilters[group.id]
+                    ? "border-orange-500 bg-orange-50 text-orange-500 font-medium"
+                    : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"
                 }`}
-                onClick={() => setActiveCategoryId("all")}
+                onClick={() => selectFilter(group)}
                 type="button"
               >
-                全部商品
+                鍏ㄩ儴
               </button>
-              {initialData.categories.map((category) => (
+              {group.options.filter((o) => o.isActive !== false).map((option) => (
                 <button
-                  aria-pressed={activeCategoryId === category.id}
-                  className={`rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
-                    activeCategoryId === category.id
-                      ? "!border-slate-950 !bg-slate-950 !text-white shadow-sm"
-                      : "border border-white/20 text-white hover:border-white/40 hover:bg-white/10"
+                  key={option.id}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-xs transition ${
+                    selectedFilters[group.id] === option.id
+                      ? "border-orange-500 bg-orange-50 text-orange-500 font-medium"
+                      : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"
                   }`}
-                  key={category.id}
-                  onClick={() => setActiveCategoryId(category.id)}
+                  onClick={() => selectFilter(group, option.id)}
                   type="button"
                 >
-                  {category.name}
+                  {option.label}
                 </button>
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="space-y-5">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm text-slate-500">商品列表</p>
-            <h2 className="text-2xl font-semibold text-slate-950">
-              {activeCategory ? activeCategory.name : "全部商品"}
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              {activeCategory
-                ? activeCategory.description
-                : "支持分类筛选、购物车加入与后台配置联动。"}
-            </p>
-          </div>
-          <span className="w-fit rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600">
-            共 {products.length} 件商品
-          </span>
-        </div>
-
-        {products.length === 0 ? (
-          <div className="rounded-[28px] border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
-            <p className="text-lg font-medium text-slate-900">当前分类还没有商品</p>
-            <p className="mt-2 text-sm text-slate-500">
-              你可以去后台继续配置商品，或切换到其他分类查看。
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {products.map((product) => (
-              <article
-                className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:rounded-[28px] sm:p-6"
-                key={product.id}
-              >
-                <div className="flex h-36 items-end justify-between rounded-[20px] bg-linear-to-br from-slate-100 via-slate-50 to-white p-4 sm:h-48 sm:rounded-[24px] sm:p-5">
-                  <div>
-                    <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
-                      {product.badge || "推荐"}
-                    </span>
-                    <p className="mt-3 text-sm text-slate-500">
-                      {product.inventory > 0 ? `库存 ${product.inventory} 件` : "暂时缺货"}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-slate-950 px-4 py-2 text-xs font-medium text-white">
-                    {formatCurrency(product.price)}
-                  </div>
-                </div>
-
-                <div className="mt-5">
-                  <h3 className="text-lg font-semibold text-slate-950">{product.name}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-500 sm:min-h-12">
-                    {product.description}
-                  </p>
-                </div>
-
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-2xl font-semibold text-slate-950">
-                      {formatCurrency(product.price)}
-                    </p>
-                    {product.originalPrice ? (
-                      <p className="text-sm text-slate-400 line-through">
-                        {formatCurrency(product.originalPrice)}
-                      </p>
-                    ) : null}
-                  </div>
-                  <button
-                    className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-auto"
-                    disabled={product.inventory <= 0}
-                    onClick={() => addItem(product)}
-                    type="button"
-                  >
-                    {product.inventory > 0 ? "加入购物车" : "已售罄"}
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
+        ))}
+        {hasActiveFilters && (
+          <button
+            className="shrink-0 text-xs text-gray-400 underline transition hover:text-red-500"
+            onClick={() => setSelectedFilters({})}
+            type="button"
+          >
+            娓呴櫎绛涢€?          </button>
         )}
-      </section>
+      </div>
+
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          鍏?<span className="font-bold text-gray-800">{products.length}</span> 浠跺晢鍝?          {hasActiveFilters && <span className="ml-1 text-orange-500">锛堝凡绛涢€夛級</span>}
+        </p>
+        <div className="flex items-center gap-1 text-xs text-gray-400">
+          <span>鍟嗗搧榛樿鎸?/span>
+          <span className="font-medium text-orange-500">鎺ㄨ崘</span>
+          <span>鎺掑簭</span>
+        </div>
+      </div>
+
+      {products.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-20 text-gray-400">
+          <span className="text-5xl">馃摝</span>
+          <p className="mt-4 text-base font-medium">鏆傛棤绗﹀悎鏉′欢鐨勫晢鍝?/p>
+          <p className="mt-1 text-sm">璇曡瘯璋冩暣绛涢€夋潯浠?/p>
+          <button
+            className="mt-4 tm-btn-primary px-8 py-2 text-sm"
+            onClick={() => setSelectedFilters({})}
+            type="button"
+          >
+            娓呴櫎绛涢€?          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,19 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --tm-orange: #ff5000;
+  --tm-red: #ff0036;
+  --tm-gold: #ffb800;
+  --tm-bg: #f5f5f5;
+  --tm-surface: #ffffff;
+  --tm-text: #3d3d3d;
+  --tm-muted: #999999;
+  --tm-border: #e8e8e8;
+  --tm-success: #52c41a;
+  --background: #f0f2f5;
+  --foreground: #1a1a1a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html {
@@ -21,11 +32,11 @@ html {
 }
 
 body {
-  margin: 0;
-  min-height: 100vh;
-  background: radial-gradient(circle at top, #ffffff 0%, #f8fafc 42%, #eef2ff 100%);
-  color: var(--foreground);
+  background: var(--tm-bg);
+  color: var(--tm-text);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 *::selection {
@@ -62,4 +73,95 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+.tm-price {
+  color: var(--tm-red);
+  font-weight: 700;
+}
+
+.tm-btn-primary {
+  background: linear-gradient(135deg, #ff7000 0%, #ff4000 100%);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.tm-btn-primary:hover {
+  background: linear-gradient(135deg, #ff8500 0%, #ff5500 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 64, 0, 0.3);
+}
+
+.tm-btn-primary:active {
+  transform: translateY(0);
+}
+
+.tm-badge {
+  background: var(--tm-red);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 2px;
+  line-height: 16px;
+}
+
+.tm-tag {
+  background: #fff5f5;
+  color: var(--tm-red);
+  border: 1px solid #ffcccc;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+
+.tm-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s;
+}
+
+.tm-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.tm-input {
+  border: 1px solid var(--tm-border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.tm-input:focus {
+  border-color: var(--tm-orange);
+  box-shadow: 0 0 0 2px rgba(255, 80, 0, 0.1);
+}
+
+.ant-message .ant-message-notice-content {
+  border-radius: 8px !important;
 }
