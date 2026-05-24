@@ -28,6 +28,30 @@ body {
   font-family: var(--font-sans);
 }
 
+*::selection {
+  background: #0f172a;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+*::-moz-selection {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+input::selection,
+textarea::selection {
+  background: #0f172a;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+input::-moz-selection,
+textarea::-moz-selection {
+  background: #0f172a;
+  color: #ffffff;
+}
+
 a {
   color: inherit;
   text-decoration: none;

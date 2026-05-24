@@ -1,6 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import { isDatabaseConfigured } from "@/lib/database";
+import { prisma } from "@/lib/prisma";
 import type { Category, Product, StoreData } from "@/types/store";
 
 const storeFilePath = path.join(process.cwd(), "data", "store.json");
@@ -103,7 +105,7 @@ async function ensureStoreFile() {
   }
 }
 
-export async function readStoreData(): Promise<StoreData> {
+async function readStoreDataFromFile() {
   await ensureStoreFile();
 
   const raw = await readFile(storeFilePath, "utf8");
@@ -112,7 +114,7 @@ export async function readStoreData(): Promise<StoreData> {
   return normalizeStoreData(parsed);
 }
 
-export async function writeStoreData(input: Partial<StoreData>): Promise<StoreData> {
+async function writeStoreDataToFile(input: Partial<StoreData>) {
   const normalized = normalizeStoreData(input);
 
   await ensureStoreFile();
@@ -120,4 +122,165 @@ export async function writeStoreData(input: Partial<StoreData>): Promise<StoreDa
 `, "utf8");
 
   return normalized;
+}
+
+function mapDatabaseStoreToStoreData(input: {
+  settings: {
+    storeName: string;
+    heroTitle: string;
+    heroSubtitle: string;
+  } | null;
+  categories: Category[];
+  products: Product[];
+}): StoreData {
+  return normalizeStoreData({
+    settings: input.settings ?? fallbackStore.settings,
+    categories: input.categories,
+    products: input.products,
+  });
+}
+
+async function seedDatabaseStore(seedData: StoreData) {
+  await prisma.$transaction(async (tx) => {
+    await tx.orderItem.deleteMany();
+    await tx.order.deleteMany();
+    await tx.product.deleteMany();
+    await tx.category.deleteMany();
+
+    await tx.storeSetting.upsert({
+      where: { id: "store" },
+      create: {
+        id: "store",
+        storeName: seedData.settings.storeName,
+        heroTitle: seedData.settings.heroTitle,
+        heroSubtitle: seedData.settings.heroSubtitle,
+      },
+      update: {
+        storeName: seedData.settings.storeName,
+        heroTitle: seedData.settings.heroTitle,
+        heroSubtitle: seedData.settings.heroSubtitle,
+      },
+    });
+
+    if (seedData.categories.length > 0) {
+      await tx.category.createMany({ data: seedData.categories });
+    }
+
+    if (seedData.products.length > 0) {
+      await tx.product.createMany({
+        data: seedData.products.map((product) => ({
+          id: product.id,
+          name: product.name,
+          categoryId: product.categoryId,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          badge: product.badge,
+          inventory: product.inventory,
+          description: product.description,
+        })),
+      });
+    }
+  });
+}
+
+async function readStoreDataFromDatabase() {
+  const [settings, categories, products] = await Promise.all([
+    prisma.storeSetting.findUnique({ where: { id: "store" } }),
+    prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
+    prisma.product.findMany({ orderBy: { createdAt: "asc" } }),
+  ]);
+
+  if (!settings || categories.length === 0) {
+    const seedData = await readStoreDataFromFile();
+    await seedDatabaseStore(seedData);
+    return seedData;
+  }
+
+  return mapDatabaseStoreToStoreData({
+    settings,
+    categories: categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      description: category.description,
+    })),
+    products: products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      categoryId: product.categoryId,
+      price: product.price,
+      originalPrice: product.originalPrice ?? undefined,
+      badge: product.badge ?? undefined,
+      inventory: product.inventory,
+      description: product.description,
+    })),
+  });
+}
+
+async function writeStoreDataToDatabase(input: Partial<StoreData>) {
+  const normalized = normalizeStoreData(input);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.storeSetting.upsert({
+      where: { id: "store" },
+      create: {
+        id: "store",
+        storeName: normalized.settings.storeName,
+        heroTitle: normalized.settings.heroTitle,
+        heroSubtitle: normalized.settings.heroSubtitle,
+      },
+      update: {
+        storeName: normalized.settings.storeName,
+        heroTitle: normalized.settings.heroTitle,
+        heroSubtitle: normalized.settings.heroSubtitle,
+      },
+    });
+
+    await tx.product.deleteMany();
+    await tx.category.deleteMany();
+
+    if (normalized.categories.length > 0) {
+      await tx.category.createMany({ data: normalized.categories });
+    }
+
+    if (normalized.products.length > 0) {
+      await tx.product.createMany({
+        data: normalized.products.map((product) => ({
+          id: product.id,
+          name: product.name,
+          categoryId: product.categoryId,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          badge: product.badge,
+          inventory: product.inventory,
+          description: product.description,
+        })),
+      });
+    }
+  });
+
+  return normalized;
+}
+
+export async function readStoreData(): Promise<StoreData> {
+  if (!isDatabaseConfigured()) {
+    return readStoreDataFromFile();
+  }
+
+  try {
+    return await readStoreDataFromDatabase();
+  } catch {
+    return readStoreDataFromFile();
+  }
+}
+
+export async function writeStoreData(input: Partial<StoreData>): Promise<StoreData> {
+  if (!isDatabaseConfigured()) {
+    return writeStoreDataToFile(input);
+  }
+
+  try {
+    return await writeStoreDataToDatabase(input);
+  } catch {
+    return writeStoreDataToFile(input);
+  }
 }

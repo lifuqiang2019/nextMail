@@ -3,14 +3,7 @@
 import Link from "next/link";
 
 import { useCart } from "@/components/cart/cart-provider";
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("zh-CN", {
-    style: "currency",
-    currency: "CNY",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+import { formatCurrency } from "@/lib/format";
 
 export function CartSheet() {
   const {
@@ -92,16 +85,20 @@ export function CartSheet() {
                       {item.quantity}
                     </span>
                     <button
-                      className="px-3 py-1 text-slate-600"
+                      className="px-3 py-1 text-slate-600 disabled:cursor-not-allowed disabled:text-slate-300"
+                      disabled={item.quantity >= item.inventory}
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       type="button"
                     >
                       +
                     </button>
                   </div>
-                  <span className="font-semibold text-slate-900">
-                    {formatCurrency(item.price * item.quantity)}
-                  </span>
+                  <div className="text-right">
+                    <p className="font-semibold text-slate-900">
+                      {formatCurrency(item.price * item.quantity)}
+                    </p>
+                    <p className="text-xs text-slate-400">库存 {item.inventory} 件</p>
+                  </div>
                 </div>
               </div>
             ))

@@ -6,10 +6,16 @@ import { readStoreData } from "@/lib/store";
 
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "NextMail Mall",
-  description: "基于 Next.js 构建的电商前后台一体化项目。",
-};
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const store = await readStoreData();
+
+  return {
+    title: store.settings.storeName,
+    description: store.settings.heroSubtitle,
+  };
+}
 
 export default async function RootLayout({
   children,

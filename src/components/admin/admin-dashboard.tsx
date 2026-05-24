@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import type { DataAccessMode } from "@/lib/database";
 import type { Category, Product, StoreData } from "@/types/store";
 
 type SaveStatus = "idle" | "saving" | "success" | "error";
@@ -30,7 +31,19 @@ function createProduct(categoryId: string, index: number): Product {
   };
 }
 
-export function AdminDashboard({ initialData }: { initialData: StoreData }) {
+function getDataModeText(dataAccessMode: DataAccessMode) {
+  return dataAccessMode === "mysql"
+    ? "当前使用 MySQL + Prisma 持久化。"
+    : "当前未配置数据库，使用 data/store.json 回退存储。";
+}
+
+export function AdminDashboard({
+  initialData,
+  dataAccessMode,
+}: {
+  initialData: StoreData;
+  dataAccessMode: DataAccessMode;
+}) {
   const [formData, setFormData] = useState<StoreData>(initialData);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [message, setMessage] = useState("");
@@ -156,7 +169,7 @@ export function AdminDashboard({ initialData }: { initialData: StoreData }) {
           <p className="text-sm uppercase tracking-[0.3em] text-slate-300">Admin Console</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight">商城后台配置</h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-            在同一个 Next 项目中维护店铺信息、分类和商品数据。当前数据持久化在项目根目录下的 data/store.json。
+            在同一个 Next 项目中维护店铺信息、分类和商品数据。{getDataModeText(dataAccessMode)}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">

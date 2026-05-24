@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   useSyncExternalStore,
@@ -34,6 +35,70 @@ let cartItemsCache: CartItem[] = EMPTY_CART;
 
 const CartContext = createContext<CartContextValue | null>(null);
 
+function sanitizeCartSnapshot(input: unknown): CartItem[] {
+  if (!Array.isArray(input)) {
+    return EMPTY_CART;
+  }
+
+  const items: CartItem[] = [];
+
+  input.forEach((item) => {
+    if (!item || typeof item !== "object") {
+      return;
+    }
+
+    const rawItem = item as Partial<CartItem>;
+    const quantity = Math.max(Math.round(Number(rawItem.quantity) || 0), 0);
+    const inventory = Math.max(Math.round(Number(rawItem.inventory) || 0), 0);
+
+    if (
+      typeof rawItem.id !== "string" ||
+      typeof rawItem.name !== "string" ||
+      typeof rawItem.categoryId !== "string" ||
+      !Number.isFinite(Number(rawItem.price)) ||
+      quantity <= 0
+    ) {
+      return;
+    }
+
+    items.push({
+      id: rawItem.id,
+      name: rawItem.name,
+      price: Math.max(Number(rawItem.price), 0),
+      badge: typeof rawItem.badge === "string" ? rawItem.badge : undefined,
+      categoryId: rawItem.categoryId,
+      inventory: inventory > 0 ? inventory : Number.MAX_SAFE_INTEGER,
+      quantity,
+    });
+  });
+
+  return items;
+}
+
+function syncCartWithProducts(items: CartItem[], products: Product[]): CartItem[] {
+  const productMap = new Map(products.map((product) => [product.id, product]));
+
+  return items.flatMap((item) => {
+    const product = productMap.get(item.id);
+
+    if (!product || product.inventory <= 0) {
+      return [];
+    }
+
+    return [
+      {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        badge: product.badge,
+        categoryId: product.categoryId,
+        inventory: product.inventory,
+        quantity: Math.min(item.quantity, product.inventory),
+      } satisfies CartItem,
+    ];
+  });
+}
+
 function readCartSnapshot(): CartItem[] {
   if (typeof window === "undefined") {
     return EMPTY_CART;
@@ -47,7 +112,7 @@ function readCartSnapshot(): CartItem[] {
     }
 
     cartSnapshotCache = cached;
-    cartItemsCache = cached ? (JSON.parse(cached) as CartItem[]) : EMPTY_CART;
+    cartItemsCache = cached ? sanitizeCartSnapshot(JSON.parse(cached)) : EMPTY_CART;
 
     return cartItemsCache;
   } catch {
@@ -107,14 +172,56 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshCart() {
+      try {
+        const response = await fetch("/api/store", { cache: "no-store" });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = (await response.json()) as { products?: Product[] };
+
+        if (cancelled || !Array.isArray(data.products)) {
+          return;
+        }
+
+        commitItems((current) => syncCartWithProducts(current, data.products ?? []));
+      } catch {
+        // Ignore refresh errors and keep the last local snapshot.
+      }
+    }
+
+    void refreshCart();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [commitItems]);
+
   const addItem = useCallback((product: Product) => {
+    if (product.inventory <= 0) {
+      return;
+    }
+
     commitItems((current) => {
       const existingItem = current.find((item) => item.id === product.id);
 
       if (existingItem) {
         return current.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? {
+                ...item,
+                name: product.name,
+                price: product.price,
+                badge: product.badge,
+                categoryId: product.categoryId,
+                inventory: product.inventory,
+                quantity: Math.min(item.quantity + 1, product.inventory),
+              }
             : item,
         );
       }
@@ -127,6 +234,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           price: product.price,
           badge: product.badge,
           categoryId: product.categoryId,
+          inventory: product.inventory,
           quantity: 1,
         },
       ];
@@ -137,12 +245,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
     commitItems((current) => {
-      if (quantity <= 0) {
+      const existingItem = current.find((item) => item.id === productId);
+
+      if (!existingItem) {
+        return current;
+      }
+
+      const nextQuantity = Math.min(
+        Math.max(Math.round(quantity), 0),
+        existingItem.inventory,
+      );
+
+      if (nextQuantity <= 0) {
         return current.filter((item) => item.id !== productId);
       }
 
       return current.map((item) =>
-        item.id === productId ? { ...item, quantity } : item,
+        item.id === productId ? { ...item, quantity: nextQuantity } : item,
       );
     });
   }, [commitItems]);
