@@ -16,19 +16,48 @@ function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const [adding, setAdding] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [dots, setDots] = useState<{ id: number; x: number; y: number }[]>([]);
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // 阻止冒泡
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 记录点击位置
+    const { clientX, clientY } = e;
+    const dotId = Date.now();
+    setDots((prev) => [...prev, { id: dotId, x: clientX, y: clientY }]);
+
     setAdding(true);
     addItem(product);
     message.success({ content: `"${product.name}" 已加入购物车`, duration: 1.5 });
+
+    // 清理动画点
+    setTimeout(() => {
+      setDots((prev) => prev.filter((d) => d.id !== dotId));
+    }, 600);
+
     setTimeout(() => setAdding(false), 800);
   };
 
   const discount = product.originalPrice ? calcDiscount(product.originalPrice, product.price) : null;
 
   return (
-    <div className="tm-card flex flex-col overflow-hidden rounded-xl border border-transparent hover:border-orange-200">
-      <div className="relative aspect-[1/1] bg-gray-50">
+    <div className="tm-card flex flex-col rounded-xl border border-transparent hover:border-orange-200 relative">
+      {dots.map((dot) => (
+        <div
+          key={dot.id}
+          className="flying-dot"
+          style={{
+            left: dot.x - 10,
+            top: dot.y - 10,
+            // 目标位置大致在屏幕右上方（PC）或底部中间（移动）
+            "--tx": "50vw",
+            "--ty": "-50vh",
+          } as React.CSSProperties}
+        />
+      ))}
+      <div className="relative aspect-[1/1] bg-gray-50 rounded-t-xl overflow-hidden">
         {!imgError ? (
           <Image
             alt={product.name}
@@ -120,49 +149,59 @@ export function StoreShell({ initialData }: { initialData: StoreData }) {
     <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8 py-4 md:py-6">
       {contextHolder}
 
-      <div className="mb-4 flex items-center gap-2 overflow-x-auto text-sm text-gray-500 bg-white p-3 rounded-xl shadow-sm hide-scrollbar">
-        <span className="shrink-0 text-gray-400 font-medium">筛选：</span>
-        {filterGroups.map((group) => (
-          <div key={group.id} className="flex items-center gap-1.5 shrink-0">
-            <span className="text-xs text-gray-400">{group.name}：</span>
-            <div className="flex gap-1">
-              <button
-                className={`shrink-0 rounded-full border px-3 py-1 text-xs transition ${
-                  !selectedFilters[group.id]
-                    ? "border-orange-500 bg-orange-50 text-orange-500 font-medium"
-                    : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"
-                }`}
-                onClick={() => selectFilter(group)}
-                type="button"
-              >
-                全部
-              </button>
-              {group.options.filter((o) => o.isActive !== false).map((option) => (
+      <div className="mb-4 bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+        <div className="flex items-center justify-between mb-3 border-b border-gray-50 pb-2">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-gray-800 text-base">商品筛选</span>
+            {hasActiveFilters && (
+              <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">已开启</span>
+            )}
+          </div>
+          {hasActiveFilters && (
+            <button
+              className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 transition"
+              onClick={() => setSelectedFilters({})}
+              type="button"
+            >
+              <span>↺</span> 清除全部
+            </button>
+          )}
+        </div>
+        
+        <div className="flex flex-col gap-3">
+          {filterGroups.map((group) => (
+            <div key={group.id} className="flex items-start gap-2">
+              <span className="text-sm text-gray-500 font-medium shrink-0 mt-1.5 w-16">{group.name}：</span>
+              <div className="flex flex-wrap gap-2">
                 <button
-                  key={option.id}
-                  className={`shrink-0 rounded-full border px-3 py-1 text-xs transition ${
-                    selectedFilters[group.id] === option.id
-                      ? "border-orange-500 bg-orange-50 text-orange-500 font-medium"
-                      : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"
+                  className={`shrink-0 rounded-md px-3 py-1 text-sm transition ${
+                    !selectedFilters[group.id]
+                      ? "bg-[#ff5000] text-white font-medium shadow-sm"
+                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                   }`}
-                  onClick={() => selectFilter(group, option.id)}
+                  onClick={() => selectFilter(group)}
                   type="button"
                 >
-                  {option.label}
+                  全部
                 </button>
-              ))}
+                {group.options.filter((o) => o.isActive !== false).map((option) => (
+                  <button
+                    key={option.id}
+                    className={`shrink-0 rounded-md px-3 py-1 text-sm transition ${
+                      selectedFilters[group.id] === option.id
+                        ? "bg-[#ff5000] text-white font-medium shadow-sm"
+                        : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    }`}
+                    onClick={() => selectFilter(group, option.id)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-        {hasActiveFilters && (
-          <button
-            className="shrink-0 text-xs text-gray-400 underline transition hover:text-red-500"
-            onClick={() => setSelectedFilters({})}
-            type="button"
-          >
-            清除筛选
-          </button>
-        )}
+          ))}
+        </div>
       </div>
 
       <div className="mb-4 flex items-center justify-between">

@@ -161,6 +161,31 @@ select {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+@keyframes fly-to-cart {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(0.3) translate(var(--tx), var(--ty));
+    opacity: 0;
+  }
+}
+
+.flying-dot {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  background-color: #ff5000;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  animation: fly-to-cart 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
 .tm-input {
   border: 1px solid var(--tm-border);
   border-radius: 4px;

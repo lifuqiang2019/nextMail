@@ -109,7 +109,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         },
       ];
     });
-    setIsOpen(true);
+    // 不再自动打开抽屉
+    // setIsOpen(true);
   }, [commitItems]);
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
