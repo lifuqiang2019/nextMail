@@ -1,6 +1,7 @@
 "use client";
 
 import { message } from "antd";
+import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties, MouseEvent } from "react";
 import { useMemo, useState } from "react";
@@ -41,7 +42,7 @@ function ProductCard({ product, isMobile }: { product: Product; isMobile: boolea
   const discount = product.originalPrice ? calcDiscount(product.originalPrice, product.price) : null;
 
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-[22px] border border-white/80 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(15,23,42,0.09)]">
+    <div className="group relative flex flex-col overflow-hidden rounded-[26px] border border-[#edf0f5] bg-white p-2 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_22px_44px_rgba(15,23,42,0.1)]">
       {dots.map((dot) => (
         <div
           key={dot.id}
@@ -54,11 +55,11 @@ function ProductCard({ product, isMobile }: { product: Product; isMobile: boolea
           } as CSSProperties}
         />
       ))}
-      <div className="relative aspect-[1/1] overflow-hidden bg-[#f8fafc]">
+      <div className="relative aspect-[1/1] overflow-hidden rounded-[20px] bg-[#f8fafc]">
         {!imgError ? (
           <Image
             alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             src={product.imageUrl || "https://via.placeholder.com/400x300?text=No+Image"}
@@ -71,40 +72,58 @@ function ProductCard({ product, isMobile }: { product: Product; isMobile: boolea
           </div>
         )}
         {discount && (
-          <div className="absolute left-0 top-0">
-            <div className="tm-badge">{discount}折</div>
+          <div className="absolute left-3 top-3">
+            <div className="rounded-full bg-[#ff2f63] px-2.5 py-1 text-[11px] font-bold text-white shadow-[0_8px_16px_rgba(255,47,99,0.28)]">
+              {discount}折
+            </div>
           </div>
         )}
         {product.badge && (
-          <div className="absolute left-0 top-6">
-            <span className="rounded-l bg-orange-400 px-2 py-0.5 text-xs font-bold text-white">{product.badge}</span>
+          <div className="absolute left-3 top-14">
+            <span className="rounded-full bg-[#fff3e8] px-2.5 py-1 text-[11px] font-semibold text-[#ff7a1a]">
+              {product.badge}
+            </span>
           </div>
         )}
-        <div className="absolute bottom-2 right-2">
-          <span className="rounded-full bg-black/50 px-2 py-0.5 text-xs text-white">库存 {product.inventory}</span>
+        <div className="absolute bottom-3 right-3">
+          <span className="rounded-full bg-black/55 px-2.5 py-1 text-[11px] text-white backdrop-blur">
+            库存 {product.inventory}
+          </span>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-3.5">
-        <p className="line-clamp-2 min-h-11 text-[15px] font-semibold leading-6 text-gray-900">{product.name}</p>
-        <p className="mt-1 text-xs text-gray-400">{product.brand} / {product.colorway}</p>
+      <div className="flex flex-1 flex-col px-2 pb-2 pt-3">
+        <div className="flex items-center gap-2">
+          <span className="max-w-full truncate rounded-full bg-[#f5f7fb] px-2.5 py-1 text-[11px] font-medium text-gray-500">
+            {product.brand}
+          </span>
+          <span className="truncate text-[11px] text-gray-400">{product.colorway}</span>
+        </div>
+        <p className="mt-2 line-clamp-2 min-h-12 text-[16px] font-semibold leading-6 text-gray-900">
+          {product.name}
+        </p>
 
-        <div className="mt-2 flex items-baseline gap-1.5">
+        <div className="mt-3 flex items-baseline gap-2">
           <span className="text-2xl font-bold tracking-tight text-[#ff5a1f]">¥{product.price}</span>
           {product.originalPrice && (
-            <span className="text-xs text-gray-400 line-through">¥{product.originalPrice}</span>
+            <span className="text-sm text-gray-300 line-through">¥{product.originalPrice}</span>
           )}
         </div>
 
-        <p className="mt-2 line-clamp-2 min-h-9 text-xs leading-5 text-gray-400">尺码：{product.sizes.join(" / ")}</p>
+        <div className="mt-3 rounded-2xl bg-[#f8fafc] px-3 py-2.5">
+          <p className="line-clamp-2 min-h-9 text-xs leading-5 text-gray-500">
+            尺码：{product.sizes.join(" / ")}
+          </p>
+        </div>
 
-        <div className="mt-auto pt-3">
+        <div className="mt-auto pt-4">
           <button
-            className="w-full rounded-full bg-gradient-to-r from-[#ff7a1a] to-[#ff5a1f] py-2.5 text-sm font-semibold text-white shadow-[0_10px_18px_rgba(255,90,31,0.22)] transition hover:opacity-95 active:scale-[0.98]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#111827] py-3 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(17,24,39,0.18)] transition hover:bg-[#ff5a1f] active:scale-[0.98]"
             disabled={adding}
             onClick={handleAdd}
             type="button"
           >
+            <ShoppingCart size={16} />
             {adding ? "已加入" : "加入购物车"}
           </button>
         </div>
@@ -143,11 +162,17 @@ export function StoreShell({ initialData, isMobile }: { initialData: StoreData; 
   const hasActiveFilters = Object.keys(selectedFilters).length > 0;
 
   return (
-    <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8 py-4 md:py-8">
+    <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8 py-5 md:py-9">
       {contextHolder}
 
-      <div className={isMobile ? "mb-4 rounded-[24px] border border-white/80 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]" : "mb-6 rounded-[28px] border border-white/80 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)]"}>
-        <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
+      <div
+        className={
+          isMobile
+            ? "mb-5 rounded-[26px] border border-[#edf0f5] bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.06)]"
+            : "mb-8 rounded-[30px] border border-[#edf0f5] bg-white p-6 shadow-[0_20px_40px_rgba(15,23,42,0.06)]"
+        }
+      >
+        <div className="mb-5 flex items-center justify-between border-b border-gray-100 pb-4">
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold text-gray-900">商品筛选</span>
             {hasActiveFilters && (
@@ -165,15 +190,28 @@ export function StoreShell({ initialData, isMobile }: { initialData: StoreData; 
           )}
         </div>
 
-        <div className={isMobile ? "flex flex-col gap-4" : "flex flex-col gap-4"}>
+        <div className="flex flex-col gap-4">
           {filterGroups.map((group) => (
-            <div key={group.id} className={isMobile ? "flex flex-col gap-2" : "flex items-start gap-4"}>
-              <span className={isMobile ? "text-sm font-semibold text-gray-700" : "mt-2 w-20 shrink-0 text-sm font-semibold text-gray-700"}>
+            <div
+              key={group.id}
+              className={
+                isMobile
+                  ? "flex flex-col gap-2 rounded-[22px] bg-[#fafbfc] p-3"
+                  : "flex items-start gap-5 rounded-[22px] bg-[#fafbfc] p-4"
+              }
+            >
+              <span
+                className={
+                  isMobile
+                    ? "text-sm font-semibold text-gray-700"
+                    : "mt-2 w-20 shrink-0 text-sm font-semibold text-gray-700"
+                }
+              >
                 {group.name}
               </span>
               <div className="flex flex-wrap gap-2">
                 <button
-                  className={`shrink-0 rounded-full px-4 py-2 text-sm transition ${
+                  className={`shrink-0 rounded-[14px] px-4 py-2.5 text-sm transition ${
                     !selectedFilters[group.id]
                       ? "bg-gradient-to-r from-[#ff7a1a] to-[#ff5a1f] font-medium text-white shadow-[0_8px_18px_rgba(255,90,31,0.18)]"
                       : "bg-[#f5f7fb] text-gray-600 hover:bg-[#eef2f7]"
@@ -186,7 +224,7 @@ export function StoreShell({ initialData, isMobile }: { initialData: StoreData; 
                 {group.options.filter((o) => o.isActive !== false).map((option) => (
                   <button
                     key={option.id}
-                    className={`shrink-0 rounded-full px-4 py-2 text-sm transition ${
+                    className={`shrink-0 rounded-[14px] px-4 py-2.5 text-sm transition ${
                       selectedFilters[group.id] === option.id
                         ? "bg-gradient-to-r from-[#ff7a1a] to-[#ff5a1f] font-medium text-white shadow-[0_8px_18px_rgba(255,90,31,0.18)]"
                         : "bg-[#f5f7fb] text-gray-600 hover:bg-[#eef2f7]"
@@ -203,12 +241,12 @@ export function StoreShell({ initialData, isMobile }: { initialData: StoreData; 
         </div>
       </div>
 
-      <div className="mb-4 flex items-center justify-between px-1">
+      <div className="mb-5 flex items-center justify-between px-1">
         <p className="text-sm text-gray-500">
           共 <span className="font-bold text-gray-900">{products.length}</span> 件商品
           {hasActiveFilters ? <span className="ml-1 text-[#ff5a1f]">· 已筛选</span> : null}
         </p>
-        <div className="flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs text-gray-400 shadow-[0_6px_16px_rgba(15,23,42,0.04)]">
+        <div className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-xs text-gray-400 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
           <span>默认排序</span>
           <span className="font-medium text-[#ff5a1f]">推荐</span>
         </div>
@@ -228,7 +266,7 @@ export function StoreShell({ initialData, isMobile }: { initialData: StoreData; 
           </button>
         </div>
       ) : (
-        <div className={isMobile ? "grid grid-cols-2 gap-3" : "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"}>
+        <div className={isMobile ? "grid grid-cols-2 gap-4" : "grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"}>
           {products.map((product) => (
             <ProductCard key={product.id} isMobile={isMobile} product={product} />
           ))}

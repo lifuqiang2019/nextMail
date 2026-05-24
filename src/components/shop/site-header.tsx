@@ -131,19 +131,19 @@ export function SiteHeader({
   }
 
   return (
-    <header className="bg-white">
-      <div className="border-b border-[#ececec] bg-[#fafafa] text-xs text-gray-500">
-        <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="border-b border-[#f0f0f0] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
+      <div className="border-b border-[#f2f2f2] bg-[#fafafa] text-xs text-gray-500">
+        <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             {currentUser ? (
-              <span>
+              <span className="whitespace-nowrap">
                 Hi，<span className="font-medium text-gray-800">{currentUser.name}</span>
                 <button className="ml-3 hover:text-[#ff5000]" onClick={logout} type="button">
                   退出
                 </button>
               </span>
             ) : (
-              <span>
+              <span className="whitespace-nowrap">
                 欢迎来到 {storeName}
                 <Link className="ml-3 hover:text-[#ff5000]" href="/auth">
                   请登录
@@ -169,22 +169,22 @@ export function SiteHeader({
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl grid-cols-[220px_minmax(0,1fr)_180px] items-center gap-8 px-4 py-6 sm:px-6 lg:px-8">
-        <Link href="/">
-          <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-[#fff1eb]">
+      <div className="mx-auto grid max-w-7xl grid-cols-[280px_minmax(0,1fr)_132px] items-center gap-10 px-4 py-7 sm:px-6 lg:px-8">
+        <Link className="min-w-0" href="/">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[28px] bg-[#fff2eb] shadow-[inset_0_0_0_1px_rgba(255,90,31,0.08)]">
               <Store className="h-8 w-8 text-[#ff5a1f]" />
             </div>
-            <div>
-              <p className="text-[32px] font-bold leading-none tracking-tight text-gray-900">{storeName}</p>
-              <p className="mt-1 text-sm text-gray-400">精选鞋款 · 服饰 · 潮流搭配</p>
+            <div className="min-w-0">
+              <p className="truncate text-[23px] font-bold leading-tight tracking-tight text-gray-950">{storeName}</p>
+              <p className="mt-1 truncate text-sm text-gray-400">精选鞋款 · 服饰 · 潮流搭配</p>
             </div>
           </div>
         </Link>
 
         <div className="min-w-0">
-          <div className="flex items-center gap-3 rounded-[28px] border-2 border-[#ff5a1f] bg-white p-1 shadow-[0_14px_30px_rgba(255,90,31,0.08)]">
-            <div className="flex flex-1 items-center gap-3 rounded-[22px] px-4 py-3">
+          <div className="flex items-center gap-3 rounded-[30px] border border-[#ffd6c8] bg-[#fffaf7] p-1.5 shadow-[0_18px_34px_rgba(255,90,31,0.08)]">
+            <div className="flex flex-1 items-center gap-3 rounded-[24px] bg-white px-5 py-3.5 shadow-[inset_0_0_0_1px_rgba(15,23,42,0.04)]">
               <Search className="h-5 w-5 shrink-0 text-gray-400" />
               <input
                 className="w-full bg-transparent text-base text-gray-800 outline-none placeholder:text-gray-400"
@@ -195,62 +195,63 @@ export function SiteHeader({
               />
             </div>
             <button
-              className="flex min-w-[112px] items-center justify-center rounded-[22px] bg-gradient-to-r from-[#ff7a1a] to-[#ff5a1f] px-7 py-3 text-base font-semibold text-white"
+              className="flex min-w-[116px] items-center justify-center rounded-[24px] bg-gradient-to-r from-[#ff7a1a] to-[#ff5a1f] px-7 py-3.5 text-base font-semibold text-white shadow-[0_12px_24px_rgba(255,90,31,0.24)] transition hover:translate-y-[-1px]"
               type="button"
             >
               搜索
             </button>
           </div>
-          <div className="mt-3 flex items-center gap-4 text-sm text-gray-400">
-            <span className="text-[#ff5a1f]">热门搜索</span>
-            <span>Nike</span>
-            <span>Air Jordan</span>
-            <span>卫衣</span>
-            <span>跑鞋</span>
+          <div className="mt-3 flex items-center gap-4 pl-3 text-sm text-gray-400">
+            <span className="font-medium text-[#ff5a1f]">热门搜索</span>
+            <span className="transition hover:text-[#ff5a1f]">Nike</span>
+            <span className="transition hover:text-[#ff5a1f]">Air Jordan</span>
+            <span className="transition hover:text-[#ff5a1f]">卫衣</span>
+            <span className="transition hover:text-[#ff5a1f]">跑鞋</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-6">
+        <div className="flex items-center justify-end gap-4">
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <button className="flex flex-col items-center gap-1 text-gray-600 transition hover:text-[#ff5000]" type="button">
+            <button
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f8fafc] text-gray-600 transition hover:bg-[#fff1eb] hover:text-[#ff5000]"
+              type="button"
+            >
               <User size={24} />
-              <span className="max-w-[72px] truncate text-xs">{currentUser ? currentUser.name : "未登录"}</span>
             </button>
           </Dropdown>
 
           <button
-            className="relative flex flex-col items-center gap-1 text-gray-600 transition hover:text-[#ff5000]"
+            className="relative flex h-12 w-12 items-center justify-center rounded-full bg-[#f8fafc] text-gray-600 transition hover:bg-[#fff1eb] hover:text-[#ff5000]"
             onClick={toggleCart}
             type="button"
           >
             <Badge count={itemCount} offset={[6, -2]} size="small">
               <ShoppingCart size={24} className={itemCount > 0 ? "text-[#ff5000]" : ""} />
             </Badge>
-            <span className="text-xs">购物车</span>
           </button>
         </div>
       </div>
 
-      <div className="border-b-2 border-[#ff5a1f] bg-white">
-        <div className="mx-auto flex max-w-7xl items-center gap-8 px-4 sm:px-6 lg:px-8">
-          <div className="flex h-12 w-52 items-center justify-center rounded-t-2xl bg-[#ff5a1f] text-base font-semibold text-white">
+      <div className="border-t border-[#fafafa] border-b border-[#ffe0d4] bg-white">
+        <div className="mx-auto flex max-w-7xl items-center gap-10 px-4 sm:px-6 lg:px-8">
+          <div className="flex h-13 w-52 items-center justify-center rounded-t-[18px] bg-[#ff5a1f] text-base font-semibold text-white shadow-[0_8px_20px_rgba(255,90,31,0.18)]">
             全部商品分类
           </div>
-          <nav className="flex h-12 items-center gap-8 text-base">
+          <nav className="flex h-13 items-center gap-8 text-[15px]">
             <Link
-              className={pathname === "/" ? "font-semibold text-[#ff5a1f]" : "text-gray-700 hover:text-[#ff5a1f]"}
+              className={pathname === "/" ? "font-semibold text-[#ff5a1f]" : "text-gray-700 transition hover:text-[#ff5a1f]"}
               href="/"
             >
               首页
             </Link>
             <Link
-              className={pathname === "/account" ? "font-semibold text-[#ff5a1f]" : "text-gray-700 hover:text-[#ff5a1f]"}
+              className={pathname === "/account" ? "font-semibold text-[#ff5a1f]" : "text-gray-700 transition hover:text-[#ff5a1f]"}
               href="/account"
             >
               个人中心
             </Link>
             <Link
-              className={pathname === "/orders" ? "font-semibold text-[#ff5a1f]" : "text-gray-700 hover:text-[#ff5a1f]"}
+              className={pathname === "/orders" ? "font-semibold text-[#ff5a1f]" : "text-gray-700 transition hover:text-[#ff5a1f]"}
               href="/orders"
             >
               我的订单
