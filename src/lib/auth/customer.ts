@@ -11,6 +11,15 @@ import {
 } from "@/lib/auth/session";
 import type { CustomerProfile } from "@/types/store";
 
+export function isRecoverableCustomerAuthError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const fullMessage = `${error.name}\n${error.message}\n${String((error as { cause?: unknown }).cause ?? "")}`;
+  return /DriverAdapterError|pool timeout|max_connections_per_hour|failed to retrieve a connection/i.test(fullMessage);
+}
+
 export async function createCustomerSession(userId: string) {
   const token = createSessionToken();
   const expiresAt = createSessionExpiry();
@@ -30,13 +39,19 @@ export async function createCustomerSession(userId: string) {
 export async function destroyCustomerSession() {
   const token = await getCookieToken(CUSTOMER_SESSION_COOKIE);
 
-  if (token) {
-    await prisma.customerSession.deleteMany({
-      where: { token },
-    });
+  try {
+    if (token) {
+      await prisma.customerSession.deleteMany({
+        where: { token },
+      });
+    }
+  } catch (error) {
+    if (!isRecoverableCustomerAuthError(error)) {
+      throw error;
+    }
+  } finally {
+    await clearAuthCookie(CUSTOMER_SESSION_COOKIE);
   }
-
-  await clearAuthCookie(CUSTOMER_SESSION_COOKIE);
 }
 
 export async function getCurrentCustomerProfile(): Promise<CustomerProfile | null> {
@@ -45,21 +60,29 @@ export async function getCurrentCustomerProfile(): Promise<CustomerProfile | nul
     return null;
   }
 
-  const session = await prisma.customerSession.findUnique({
-    where: { token },
-    include: { user: true },
-  });
+  try {
+    const session = await prisma.customerSession.findUnique({
+      where: { token },
+      include: { user: true },
+    });
 
-  if (!session || session.expiresAt < new Date() || !session.user.isActive) {
-    await destroyCustomerSession();
-    return null;
+    if (!session || session.expiresAt < new Date() || !session.user.isActive) {
+      await destroyCustomerSession();
+      return null;
+    }
+
+    return {
+      id: session.user.id,
+      name: session.user.name,
+      email: session.user.email,
+    };
+  } catch (error) {
+    if (isRecoverableCustomerAuthError(error)) {
+      return null;
+    }
+
+    throw error;
   }
-
-  return {
-    id: session.user.id,
-    name: session.user.name,
-    email: session.user.email,
-  };
 }
 
 export async function requireCustomerProfile() {

@@ -1,14 +1,16 @@
-﻿import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
 import { PrismaClient } from "@/generated/prisma/client";
+import { getDatabaseName, getDatabaseUrl } from "@/lib/env";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
 };
 
-const adapter = new PrismaMariaDb(process.env.DATABASE_URL || "", {
-  database: "u330586698_shoemall",
-});
+const databaseUrl = getDatabaseUrl();
+const databaseName = getDatabaseName();
+
+const adapter = new PrismaMariaDb(databaseUrl, { database: databaseName });
 
 export const prisma =
   globalForPrisma.prisma ??

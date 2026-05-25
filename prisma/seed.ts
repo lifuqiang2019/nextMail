@@ -4,11 +4,13 @@ import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import bcrypt from "bcryptjs";
 
 import { PrismaClient } from "../src/generated/prisma/client";
+import { getDatabaseName, getDatabaseUrl } from "../src/lib/env";
 import { fallbackStore } from "../src/lib/store-defaults";
 
-const adapter = new PrismaMariaDb(process.env.DATABASE_URL || "", {
-  database: "u330586698_shoemall",
-});
+const databaseUrl = getDatabaseUrl();
+const databaseName = getDatabaseName();
+
+const adapter = new PrismaMariaDb(databaseUrl, { database: databaseName });
 
 const prisma = new PrismaClient({ adapter });
 

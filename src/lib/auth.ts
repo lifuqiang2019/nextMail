@@ -79,18 +79,24 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   try {
     const verified = await jwtVerify(token, getAuthSecret());
     const userId = verified.payload.sub;
+    const email = typeof verified.payload.email === "string" ? verified.payload.email : null;
+    const name = typeof verified.payload.name === "string" ? verified.payload.name : null;
 
-    if (!userId) {
+    if (!userId || !email || !name) {
       return null;
     }
 
-    const user = await findSessionUserById(userId);
+    try {
+      const user = await findSessionUserById(userId);
 
-    if (!user) {
-      return null;
+      if (!user) {
+        return null;
+      }
+
+      return user;
+    } catch {
+      return { id: userId, email, name };
     }
-
-    return user;
   } catch {
     return null;
   }

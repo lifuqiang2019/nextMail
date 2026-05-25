@@ -184,7 +184,7 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
 
             {!databaseConfigured ? (
               <div className="alert alert--warning">
-                当前还没有配置 `DATABASE_URL`，现在只能浏览商品和购物车，暂时无法真正提交订单。
+                当前还没有配置 `NEXTMAIL_DATABASE_URL`（或 `DATABASE_URL`），现在只能浏览商品和购物车，暂时无法真正提交订单。
               </div>
             ) : isLoading ? (
               <div className="alert alert--info">

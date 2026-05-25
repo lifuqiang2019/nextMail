@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getDatabaseUrl } from "@/lib/env";
 import type {
   CheckoutFormData,
   Order,
@@ -22,7 +23,7 @@ type LoginUserRecord = {
 const DEV_AUTH_SECRET = "nextmail-dev-secret-change-me";
 
 export function isDatabaseConfigured() {
-  return Boolean(process.env.DATABASE_URL);
+  return Boolean(getDatabaseUrl());
 }
 
 export function hasAuthSecret() {

@@ -24,7 +24,7 @@ const createOrderSchema = z.object({
 export async function POST(request: Request) {
   if (!isDatabaseConfigured()) {
     return Response.json(
-      { message: "当前未配置 DATABASE_URL，暂时无法创建订单。" },
+      { message: "当前未配置数据库连接串（NEXTMAIL_DATABASE_URL / DATABASE_URL），暂时无法创建订单。" },
       { status: 503 },
     );
   }
@@ -53,6 +53,14 @@ export async function POST(request: Request) {
     }
 
     if (error instanceof Error) {
+      if (
+        /max_connections_per_hour|too many connections|can't reach database|econnrefused|etimedout|timeout|connect/i.test(
+          error.message,
+        )
+      ) {
+        return Response.json({ message: "数据库连接繁忙，请稍后重试。" }, { status: 503 });
+      }
+
       return Response.json({ message: error.message }, { status: 400 });
     }
 

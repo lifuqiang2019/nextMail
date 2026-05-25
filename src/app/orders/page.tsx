@@ -134,7 +134,7 @@ export default async function OrdersPage() {
           <p className="orders-notice__kicker">Orders</p>
           <h1 className="orders-notice__title">我的订单</h1>
           <p className="orders-notice__desc">
-            当前还没有配置 MySQL 连接串，订单功能代码已经接好，填好 `DATABASE_URL` 后即可使用。
+            当前还没有配置 MySQL 连接串，订单功能代码已经接好，填好 `NEXTMAIL_DATABASE_URL`（或 `DATABASE_URL`）后即可使用。
           </p>
         </section>
       </div>
@@ -158,7 +158,27 @@ export default async function OrdersPage() {
     );
   }
 
-  const orders = await readOrdersByUserId(user.id);
+  let orders: Order[] = [];
+
+  try {
+    orders = await readOrdersByUserId(user.id);
+  } catch {
+    return (
+      <div className="tm-shell orders-page">
+        <section className="orders-notice">
+          <p className="orders-notice__kicker">Orders</p>
+          <h1 className="orders-notice__title">我的订单</h1>
+          <p className="orders-notice__desc">
+            已登录账号: {user.email}。当前数据库连接繁忙，暂时无法读取订单记录，请稍后重试。
+          </p>
+          <Link className="orders-action mt-5" href="/">
+            返回首页
+          </Link>
+        </section>
+      </div>
+    );
+  }
+
   const totalSpent = orders.reduce((sum, order) => sum + order.totalAmount, 0);
   const latestOrder = orders[0];
 
