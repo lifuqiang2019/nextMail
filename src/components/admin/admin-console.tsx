@@ -373,19 +373,21 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
             </CardSection>
           ) : null}
 
-          <Modal destroyOnHidden footer={null} onCancel={() => setCategoryModalOpen(false)} open={categoryModalOpen} title={editingCategoryId ? "编辑分类" : "新增分类"}>
-            <Form form={categoryForm} layout="vertical" onFinish={submitCategory}>
+          <Modal centered destroyOnHidden footer={null} onCancel={() => setCategoryModalOpen(false)} open={categoryModalOpen} rootClassName="tm-admin-modal" title={editingCategoryId ? "编辑分类" : "新增分类"}>
+            <Form className="tm-admin-modal__form" form={categoryForm} layout="vertical" onFinish={submitCategory}>
               <Form.Item label="分类名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
               <Form.Item label="Slug" name="slug"><Input /></Form.Item>
               <Form.Item label="描述" name="description" rules={[{ required: true }]}><Input.TextArea rows={3} /></Form.Item>
               <Form.Item initialValue={1} label="排序" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
               <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
-              <Button htmlType="submit" type="primary">保存分类</Button>
+              <div className="tm-admin-modal__actions">
+                <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">保存分类</Button>
+              </div>
             </Form>
           </Modal>
 
-          <Modal destroyOnHidden footer={null} onCancel={() => setFilterModalOpen(false)} open={filterModalOpen} title={editingFilterId ? "编辑过滤组" : "新增过滤组"} width={760}>
-            <Form form={filterForm} layout="vertical" onFinish={submitFilter}>
+          <Modal centered destroyOnHidden footer={null} onCancel={() => setFilterModalOpen(false)} open={filterModalOpen} rootClassName="tm-admin-modal" title={editingFilterId ? "编辑过滤组" : "新增过滤组"} width={760}>
+            <Form className="tm-admin-modal__form" form={filterForm} layout="vertical" onFinish={submitFilter}>
               <Form.Item label="过滤组名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
               <Form.Item label="Slug" name="slug"><Input /></Form.Item>
               <Form.Item label="描述" name="description"><Input.TextArea rows={2} /></Form.Item>
@@ -393,10 +395,13 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
               <Form.List name="options">
                 {(fields, { add, remove }) => (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between"><Typography.Text strong>过滤选项</Typography.Text><Button onClick={() => add({ isActive: true, sortOrder: fields.length + 1 })}>新增选项</Button></div>
+                  <div className="tm-admin-modal__section space-y-4">
+                    <div className="tm-admin-modal__section-head">
+                      <Typography.Text strong>过滤选项</Typography.Text>
+                      <Button onClick={() => add({ isActive: true, sortOrder: fields.length + 1 })}>新增选项</Button>
+                    </div>
                     {fields.map((field, index) => (
-                      <Card key={field.key} size="small" title={`选项 ${index + 1}`} extra={<Button danger type="link" onClick={() => remove(field.name)}>删除</Button>}>
+                      <Card className="tm-admin-modal__option-card" key={field.key} size="small" title={`选项 ${index + 1}`} extra={<Button danger type="link" onClick={() => remove(field.name)}>删除</Button>}>
                         <Form.Item hidden name={[field.name, "id"]}><Input /></Form.Item>
                         <Form.Item label="显示文案" name={[field.name, "label"]} rules={[{ required: true }]}><Input /></Form.Item>
                         <Form.Item label="值" name={[field.name, "value"]} rules={[{ required: true }]}><Input /></Form.Item>
@@ -407,13 +412,15 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
                   </div>
                 )}
               </Form.List>
-              <div className="mt-4"><Button htmlType="submit" type="primary">保存过滤组</Button></div>
+              <div className="tm-admin-modal__actions">
+                <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">保存过滤组</Button>
+              </div>
             </Form>
           </Modal>
 
-          <Modal destroyOnHidden footer={null} onCancel={() => setProductModalOpen(false)} open={productModalOpen} title={editingProductId ? "编辑商品" : "新增商品"} width={860}>
-            <Form form={productForm} layout="vertical" onFinish={submitProduct}>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Modal centered destroyOnHidden footer={null} onCancel={() => setProductModalOpen(false)} open={productModalOpen} rootClassName="tm-admin-modal" title={editingProductId ? "编辑商品" : "新增商品"} width={860}>
+            <Form className="tm-admin-modal__form" form={productForm} layout="vertical" onFinish={submitProduct}>
+              <div className="tm-admin-modal__grid grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Form.Item label="商品名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
                 <Form.Item label="品牌" name="brand" rules={[{ required: true }]}><Input /></Form.Item>
                 <Form.Item label="Slug" name="slug"><Input /></Form.Item>
@@ -431,19 +438,23 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               <Form.Item label="过滤条件绑定" name="filterOptionIds"><Select mode="multiple" options={flatFilterOptions} placeholder="选择该商品所属的过滤条件" /></Form.Item>
               <Form.Item initialValue={false} label="推荐商品" name="featured" valuePropName="checked"><Switch /></Form.Item>
               <Form.Item label="描述" name="description" rules={[{ required: true }]}><Input.TextArea rows={4} /></Form.Item>
-              <Button htmlType="submit" type="primary">保存商品</Button>
+              <div className="tm-admin-modal__actions">
+                <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">保存商品</Button>
+              </div>
             </Form>
           </Modal>
 
-          <Modal destroyOnHidden footer={null} onCancel={() => setAdminModalOpen(false)} open={adminModalOpen} title="管理员账号">
-            <Form form={adminForm} layout="vertical" onFinish={submitAdmin}>
+          <Modal centered destroyOnHidden footer={null} onCancel={() => setAdminModalOpen(false)} open={adminModalOpen} rootClassName="tm-admin-modal" title="管理员账号">
+            <Form className="tm-admin-modal__form" form={adminForm} layout="vertical" onFinish={submitAdmin}>
               <Form.Item hidden name="id"><Input /></Form.Item>
               <Form.Item label="账号" name="username" rules={[{ required: true }]}><Input /></Form.Item>
               <Form.Item label="显示名" name="displayName" rules={[{ required: true }]}><Input /></Form.Item>
               <Form.Item label="邮箱" name="email"><Input /></Form.Item>
               <Form.Item label="密码（编辑时留空表示不改）" name="password"><Input.Password /></Form.Item>
               <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
-              <Button htmlType="submit" type="primary">保存管理员</Button>
+              <div className="tm-admin-modal__actions">
+                <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">保存管理员</Button>
+              </div>
             </Form>
           </Modal>
         </Layout.Content>

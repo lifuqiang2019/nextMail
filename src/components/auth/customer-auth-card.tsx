@@ -5,7 +5,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
 
-export function CustomerAuthCard() {
+type CustomerAuthCardProps = {
+  successRedirect?: string;
+  title?: string;
+  description?: string;
+};
+
+export function CustomerAuthCard({
+  successRedirect = "/",
+  title,
+  description,
+}: CustomerAuthCardProps = {}) {
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
@@ -28,7 +38,7 @@ export function CustomerAuthCard() {
     }
 
     message.success(mode === "login" ? "登录成功，欢迎回来！" : "注册成功，欢迎加入！");
-    router.push("/");
+    router.push(successRedirect);
     router.refresh();
     setLoading(false);
   };
@@ -38,10 +48,10 @@ export function CustomerAuthCard() {
       <header className="auth-header">
         <p className="auth-header__kicker">ACCOUNT</p>
         <h1 className="auth-header__title">
-          欢迎登录 {process.env.NEXT_PUBLIC_STORE_NAME || "商城"}
+          {title || `欢迎登录 ${process.env.NEXT_PUBLIC_STORE_NAME || "商城"}`}
         </h1>
         <p className="auth-header__desc">
-          登录后可同步购物车、查看订单记录，并继续完成你的下单流程。
+          {description || "登录后可同步购物车、查看订单记录，并继续完成你的下单流程。"}
         </p>
       </header>
 

@@ -90,9 +90,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = useCallback((product: Product) => {
     commitItems((current) => {
+      const maxInventory = Math.max(product.inventory, 0);
+      if (maxInventory === 0) {
+        return current;
+      }
+
       const existingItem = current.find((item) => item.id === product.id);
       if (existingItem) {
-        return current.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
+        return current.map((item) =>
+          item.id === product.id
+            ? { ...item, inventory: maxInventory, quantity: Math.min(item.quantity + 1, maxInventory) }
+            : item,
+        );
       }
 
       return [
@@ -115,10 +124,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
     commitItems((current) => {
-      if (quantity <= 0) {
-        return current.filter((item) => item.id !== productId);
-      }
-      return current.map((item) => (item.id === productId ? { ...item, quantity } : item));
+      return current.flatMap((item) => {
+        if (item.id !== productId) {
+          return [item];
+        }
+
+        const maxInventory = Math.max(item.inventory, 0);
+        if (maxInventory === 0 || quantity <= 0) {
+          return [];
+        }
+
+        return [{ ...item, quantity: Math.min(quantity, maxInventory) }];
+      });
     });
   }, [commitItems]);
 

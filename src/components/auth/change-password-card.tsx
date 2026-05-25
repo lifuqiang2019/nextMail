@@ -150,7 +150,7 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
               <div className="orders-empty">
                 <p className="orders-empty__title">暂无订单记录</p>
                 <p className="orders-empty__desc">去首页挑选商品后，就可以在这里快速查看最近订单。</p>
-                <Link href="/" className="orders-empty__action">
+                <Link href="/" className="orders-action">
                   去购物
                 </Link>
               </div>
