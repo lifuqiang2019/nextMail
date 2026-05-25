@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  App,
   Button,
   Card,
   Form,
@@ -17,6 +16,7 @@ import {
   Table,
   Tag,
   Typography,
+  message,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -27,8 +27,8 @@ import {
   TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import type {
   AdminProfile,
@@ -51,8 +51,6 @@ type ProductFormValues = Product & { sizesInput?: string };
 type FilterGroupFormValues = FilterGroup;
 
 export function AdminConsole({ admin, initialData }: { admin: AdminProfile; initialData: AdminDashboardData }) {
-  const { message } = App.useApp();
-  const router = useRouter();
   const [activeKey, setActiveKey] = useState<ModuleKey>("products");
   const [data, setData] = useState(initialData);
   const [categoryForm] = Form.useForm<Category>();
@@ -222,8 +220,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
 
   const logout = async () => {
     await fetch("/api/admin/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-    router.refresh();
+    window.location.assign("/admin/login");
   };
 
   const flatFilterOptions = useMemo(
@@ -320,58 +317,345 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
   ];
 
   const menuItems = [
-    { key: "products", icon: <ShoppingOutlined />, label: "商品 CRUD" },
-    { key: "categories", icon: <AppstoreOutlined />, label: "分类 CRUD" },
+    { key: "products", icon: <ShoppingOutlined />, label: "商品管理" },
+    { key: "categories", icon: <AppstoreOutlined />, label: "分类管理" },
     { key: "filters", icon: <FilterOutlined />, label: "过滤条件" },
-    { key: "customers", icon: <UserOutlined />, label: "前台用户" },
+    { key: "customers", icon: <UserOutlined />, label: "会员用户" },
     { key: "admins", icon: <TeamOutlined />, label: "后台账号" },
     { key: "settings", icon: <SettingOutlined />, label: "店铺配置" },
   ];
 
   const settingsInitial = useMemo(() => data.store.settings, [data.store.settings]);
+  const moduleMeta: Record<ModuleKey, { title: string; description: string; detail: string }> = {
+    products: {
+      title: "商品管理",
+      description: "集中维护商品信息、库存、价格和过滤条件，后台改完前台会直接同步展示。",
+      detail: `共 ${data.store.products.length} 个商品，其中 ${data.store.products.filter((item) => item.status === "ACTIVE").length} 个处于上架状态。`,
+    },
+    categories: {
+      title: "分类管理",
+      description: "调整分类名称、排序和启用状态，影响首页筛选和后台商品归类。",
+      detail: `当前共有 ${data.store.categories.length} 个分类，已启用 ${data.store.categories.filter((item) => item.isActive).length} 个。`,
+    },
+    filters: {
+      title: "过滤组管理",
+      description: "维护颜色、尺码等筛选维度，商品列表和筛选逻辑会依赖这里的配置。",
+      detail: `共有 ${data.store.filterGroups.length} 个过滤组，合计 ${data.store.filterGroups.reduce((sum, group) => sum + group.options.length, 0)} 个选项。`,
+    },
+    customers: {
+      title: "前台会员",
+      description: "查看前台注册用户和状态，便于核对账号开通情况。",
+      detail: `目前共有 ${data.customers.length} 位会员，其中 ${data.customers.filter((item) => item.isActive).length} 位为正常状态。`,
+    },
+    admins: {
+      title: "后台账号",
+      description: "管理后台可登录账号，控制运营人员的访问权限和启用状态。",
+      detail: `当前已有 ${data.admins.length} 个后台账号，启用中 ${data.admins.filter((item) => item.isActive).length} 个。`,
+    },
+    settings: {
+      title: "店铺配置",
+      description: "统一维护商城展示文案、联系方式和下单说明，减少到处改文案的成本。",
+      detail: `当前店铺名称为「${data.store.settings.storeName}」，首页和下单页都会读取这里的配置。`,
+    },
+  };
+
+  const dashboardStats = useMemo(
+    () => [
+      {
+        label: "商品总数",
+        value: data.store.products.length,
+        helper: `${data.store.products.filter((item) => item.status === "ACTIVE").length} 个上架中`,
+        icon: <ShoppingOutlined />,
+        tone: "bg-sky-50 text-sky-600",
+      },
+      {
+        label: "分类 / 过滤",
+        value: `${data.store.categories.length} / ${data.store.filterGroups.length}`,
+        helper: `${data.store.filterGroups.reduce((sum, group) => sum + group.options.length, 0)} 个筛选项`,
+        icon: <AppstoreOutlined />,
+        tone: "bg-violet-50 text-violet-600",
+      },
+      {
+        label: "会员数量",
+        value: data.customers.length,
+        helper: `${data.customers.filter((item) => item.isActive).length} 个正常账号`,
+        icon: <UserOutlined />,
+        tone: "bg-emerald-50 text-emerald-600",
+      },
+      {
+        label: "后台账号",
+        value: data.admins.length,
+        helper: `${data.admins.filter((item) => item.isActive).length} 个启用中`,
+        icon: <TeamOutlined />,
+        tone: "bg-amber-50 text-amber-600",
+      },
+    ],
+    [data],
+  );
+
+  const currentModule = moduleMeta[activeKey];
+  const currentMenuItem = menuItems.find((item) => item.key === activeKey);
 
   return (
-    <App>
-      <Layout className="min-h-[calc(100vh-81px)] bg-transparent">
-        <Layout.Sider breakpoint="lg" collapsedWidth="0" className="bg-white" theme="light" width={250}>
-          <div className="border-b border-slate-200 px-5 py-5">
-            <Typography.Title level={4} style={{ marginBottom: 4 }}>后台管理</Typography.Title>
-            <Typography.Text type="secondary">{admin.displayName} ({admin.username})</Typography.Text>
-            <div className="mt-4"><Button onClick={logout}>退出后台</Button></div>
+    <Layout className="tm-admin-shell min-h-screen bg-[#f8fafc]">
+        <Layout.Sider
+          breakpoint="lg"
+          collapsedWidth="0"
+          className="!bg-transparent p-3"
+          theme="light"
+          width={288}
+        >
+          <div className="tm-admin-sidebar flex h-full flex-col overflow-hidden rounded-[30px] px-4 py-5 shadow-sm">
+            <div className="border-b border-slate-200 px-2 pb-5">
+              <div className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium tracking-[0.2em] text-slate-500">
+                NEXTMAIL ADMIN
+              </div>
+              <Typography.Title level={3} style={{ margin: "16px 0 6px", color: "#0f172a" }}>
+                后台管理台
+              </Typography.Title>
+              <Typography.Paragraph style={{ margin: 0, color: "#64748b" }}>
+                商品、筛选、用户和店铺配置都集中在这里维护。
+              </Typography.Paragraph>
+            </div>
+
+            <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="text-xs uppercase tracking-[0.22em] text-slate-500">当前登录</div>
+              <div className="mt-3 text-lg font-semibold text-slate-900">{admin.displayName}</div>
+              <div className="text-sm text-slate-500">{admin.username}</div>
+              <Button className="mt-4 h-11 w-full rounded-full border-slate-200 bg-white text-slate-600 shadow-none hover:!border-slate-300 hover:!bg-slate-50 hover:!text-slate-900" onClick={logout}>
+                退出后台
+              </Button>
+            </div>
+
+            <div className="mt-6 flex-1 overflow-y-auto">
+              <div className="px-2 pb-3 text-xs font-medium uppercase tracking-[0.2em] text-slate-500">功能导航</div>
+              <Menu
+                className="tm-admin-menu"
+                items={menuItems}
+                onClick={(event) => setActiveKey(event.key as ModuleKey)}
+                selectedKeys={[activeKey]}
+                theme="light"
+                style={{ borderInlineEnd: 0, background: "transparent" }}
+              />
+            </div>
+
+            <div className="mt-4 rounded-[22px] border border-orange-100 bg-orange-50/50 px-4 py-4 text-sm">
+              <div className="font-medium text-orange-900">当前聚焦</div>
+              <div className="mt-1 leading-6 text-orange-800/80">{currentModule.detail}</div>
+            </div>
           </div>
-          <Menu items={menuItems} onClick={(event) => setActiveKey(event.key as ModuleKey)} selectedKeys={[activeKey]} style={{ borderInlineEnd: 0, paddingTop: 12 }} />
         </Layout.Sider>
-        <Layout.Content className="p-4 sm:p-6 lg:p-8">
-          {activeKey === "products" ? (
-            <CardSection title="商品 CRUD" extra={<Button type="primary" onClick={() => { setEditingProductId(null); productForm.resetFields(); setProductModalOpen(true); }}>新增商品</Button>}><Table columns={productColumns} dataSource={data.store.products} rowKey="id" scroll={{ x: 1000 }} /></CardSection>
-          ) : null}
-          {activeKey === "categories" ? (
-            <CardSection title="分类 CRUD" extra={<Button type="primary" onClick={() => { setEditingCategoryId(null); categoryForm.resetFields(); setCategoryModalOpen(true); }}>新增分类</Button>}><Table columns={categoryColumns} dataSource={data.store.categories} rowKey="id" scroll={{ x: 800 }} /></CardSection>
-          ) : null}
-          {activeKey === "filters" ? (
-            <CardSection title="过滤条件 CRUD" extra={<Button type="primary" onClick={() => { setEditingFilterId(null); filterForm.resetFields(); filterForm.setFieldValue("options", []); setFilterModalOpen(true); }}>新增过滤组</Button>}><Table columns={filterColumns} dataSource={data.store.filterGroups} rowKey="id" scroll={{ x: 800 }} /></CardSection>
-          ) : null}
-          {activeKey === "customers" ? (
-            <CardSection title="前台会员列表"><Table columns={customerColumns} dataSource={data.customers} rowKey="id" scroll={{ x: 800 }} /></CardSection>
-          ) : null}
-          {activeKey === "admins" ? (
-            <CardSection title="后台账号管理" extra={<Button type="primary" onClick={() => { adminForm.resetFields(); setAdminModalOpen(true); }}>新增管理员</Button>}><Table columns={adminColumns} dataSource={data.admins} rowKey="id" scroll={{ x: 800 }} /></CardSection>
-          ) : null}
-          {activeKey === "settings" ? (
-            <CardSection title="店铺配置">
-              <Form initialValues={settingsInitial} form={settingsForm} layout="vertical" onFinish={saveSettings}>
-                <Form.Item label="店铺名称" name="storeName" rules={[{ required: true }]}><Input /></Form.Item>
-                <Form.Item label="首页标题" name="heroTitle" rules={[{ required: true }]}><Input /></Form.Item>
-                <Form.Item label="首页副标题" name="heroSubtitle" rules={[{ required: true }]}><Input.TextArea rows={4} /></Form.Item>
-                <Form.Item label="公告文案" name="heroNotice"><Input.TextArea rows={3} /></Form.Item>
-                <Form.Item label="联系电话" name="supportPhone"><Input /></Form.Item>
-                <Form.Item label="联系邮箱" name="supportEmail"><Input /></Form.Item>
-                <Form.Item label="购买说明（下单页显示）" name="purchaseGuide"><Input.TextArea rows={4} /></Form.Item>
-                <Form.Item label="统一订单链接（所有人可见）" name="orderLink"><Input /></Form.Item>
-                <Button htmlType="submit" type="primary">保存配置</Button>
-              </Form>
-            </CardSection>
-          ) : null}
+        <Layout.Content className="min-w-0 p-4 sm:p-5 lg:p-6">
+          <div className="mx-auto w-full max-w-[1560px] space-y-5">
+            <div className="tm-admin-hero grid gap-4 overflow-hidden rounded-[32px] border border-slate-200 px-5 py-5 shadow-sm sm:px-6 sm:py-6 2xl:grid-cols-[minmax(0,1.5fr)_minmax(360px,0.9fr)]">
+              <div className="space-y-5">
+                <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-3.5 py-1.5 text-sm font-medium text-orange-700 shadow-sm">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                    {currentMenuItem?.icon}
+                  </span>
+                  {currentMenuItem?.label}
+                </div>
+                <div className="space-y-3">
+                  <Typography.Title level={2} style={{ margin: 0, color: "#0f172a" }}>
+                    {currentModule.title}
+                  </Typography.Title>
+                  <Typography.Paragraph style={{ margin: 0, color: "#475569", fontSize: 16, maxWidth: 820 }}>
+                    {currentModule.description}
+                  </Typography.Paragraph>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <div className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600">
+                    店铺名称: <span className="font-semibold text-slate-900">{data.store.settings.storeName}</span>
+                  </div>
+                  <div className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600">
+                    当前管理员: <span className="font-semibold text-slate-900">{admin.displayName}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="text-sm font-medium text-slate-500">当前状态</div>
+                  <div className="mt-3 text-lg font-semibold leading-8 text-slate-950">{currentModule.detail}</div>
+                  <div className="mt-4 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">
+                    数据已同步到当前模块
+                  </div>
+                </div>
+                <div className="rounded-[26px] border border-orange-100 bg-orange-50 p-5">
+                  <div className="text-sm font-medium text-orange-800/80">运营提醒</div>
+                  <div className="mt-3 text-lg font-semibold leading-8 text-orange-950">
+                    修改配置后，前台页面会直接读取最新数据，适合做日常运营维护。
+                  </div>
+                  <div className="mt-4 text-sm text-orange-800/80">建议优先维护商品、分类和筛选项的一致性。</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {dashboardStats.map((item) => (
+                <div
+                  key={item.label}
+                  className="tm-admin-stat-card rounded-[28px] border border-slate-200 bg-white px-5 py-5 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl text-lg ${item.tone}`}>
+                      {item.icon}
+                    </div>
+                    <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+                      实时概览
+                    </div>
+                  </div>
+                  <div className="mt-6 text-sm font-medium text-slate-500">{item.label}</div>
+                  <div className="mt-2 text-[32px] font-semibold leading-none text-slate-950">
+                    {item.value}
+                  </div>
+                  <div className="mt-3 text-sm text-slate-500">{item.helper}</div>
+                </div>
+              ))}
+            </div>
+
+            {activeKey === "products" ? (
+              <CardSection
+                title="商品管理"
+                description="商品列表支持直接编辑价格、库存、分类和过滤条件，适合日常运营快速维护。"
+                extra={
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setEditingProductId(null);
+                      productForm.resetFields();
+                      setProductModalOpen(true);
+                    }}
+                  >
+                    新增商品
+                  </Button>
+                }
+              >
+                <Table
+                  className="tm-admin-data-table"
+                  columns={productColumns}
+                  dataSource={data.store.products}
+                  pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
+                  rowKey="id"
+                  scroll={{ x: 1000 }}
+                />
+              </CardSection>
+            ) : null}
+            {activeKey === "categories" ? (
+              <CardSection
+                title="分类管理"
+                description="分类会同步影响前台导航和商品归类，建议按展示顺序维护。"
+                extra={
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setEditingCategoryId(null);
+                      categoryForm.resetFields();
+                      setCategoryModalOpen(true);
+                    }}
+                  >
+                    新增分类
+                  </Button>
+                }
+              >
+                <Table
+                  className="tm-admin-data-table"
+                  columns={categoryColumns}
+                  dataSource={data.store.categories}
+                  pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
+                  rowKey="id"
+                  scroll={{ x: 800 }}
+                />
+              </CardSection>
+            ) : null}
+            {activeKey === "filters" ? (
+              <CardSection
+                title="过滤条件"
+                description="过滤组选项会参与前台筛选和商品绑定，适合集中配置颜色、尺码等维度。"
+                extra={
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setEditingFilterId(null);
+                      filterForm.resetFields();
+                      filterForm.setFieldValue("options", []);
+                      setFilterModalOpen(true);
+                    }}
+                  >
+                    新增过滤组
+                  </Button>
+                }
+              >
+                <Table
+                  className="tm-admin-data-table"
+                  columns={filterColumns}
+                  dataSource={data.store.filterGroups}
+                  pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
+                  rowKey="id"
+                  scroll={{ x: 800 }}
+                />
+              </CardSection>
+            ) : null}
+            {activeKey === "customers" ? (
+              <CardSection
+                title="前台会员列表"
+                description="这里展示前台注册会员信息，方便核对账号状态和注册时间。"
+              >
+                <Table
+                  className="tm-admin-data-table"
+                  columns={customerColumns}
+                  dataSource={data.customers}
+                  pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
+                  rowKey="id"
+                  scroll={{ x: 800 }}
+                />
+              </CardSection>
+            ) : null}
+            {activeKey === "admins" ? (
+              <CardSection
+                title="后台账号管理"
+                description="后台账号用于运营和维护店铺内容，建议保持最小化授权。"
+                extra={
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      adminForm.resetFields();
+                      setAdminModalOpen(true);
+                    }}
+                  >
+                    新增管理员
+                  </Button>
+                }
+              >
+                <Table
+                  className="tm-admin-data-table"
+                  columns={adminColumns}
+                  dataSource={data.admins}
+                  pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
+                  rowKey="id"
+                  scroll={{ x: 800 }}
+                />
+              </CardSection>
+            ) : null}
+            {activeKey === "settings" ? (
+              <CardSection
+                title="店铺配置"
+                description="配置会直接影响首页展示、下单说明和联系方式，适合统一维护。"
+              >
+                <Form initialValues={settingsInitial} form={settingsForm} layout="vertical" onFinish={saveSettings}>
+                  <Form.Item label="店铺名称" name="storeName" rules={[{ required: true }]}><Input /></Form.Item>
+                  <Form.Item label="首页标题" name="heroTitle" rules={[{ required: true }]}><Input /></Form.Item>
+                  <Form.Item label="首页副标题" name="heroSubtitle" rules={[{ required: true }]}><Input.TextArea rows={4} /></Form.Item>
+                  <Form.Item label="公告文案" name="heroNotice"><Input.TextArea rows={3} /></Form.Item>
+                  <Form.Item label="联系电话" name="supportPhone"><Input /></Form.Item>
+                  <Form.Item label="联系邮箱" name="supportEmail"><Input /></Form.Item>
+                  <Form.Item label="购买说明（下单页显示）" name="purchaseGuide"><Input.TextArea rows={4} /></Form.Item>
+                  <Form.Item label="统一订单链接（所有人可见）" name="orderLink"><Input /></Form.Item>
+                  <Button htmlType="submit" type="primary">保存配置</Button>
+                </Form>
+              </CardSection>
+            ) : null}
+          </div>
 
           <Modal centered destroyOnHidden footer={null} onCancel={() => setCategoryModalOpen(false)} open={categoryModalOpen} rootClassName="tm-admin-modal" title={editingCategoryId ? "编辑分类" : "新增分类"}>
             <Form className="tm-admin-modal__form" form={categoryForm} layout="vertical" onFinish={submitCategory}>
@@ -459,15 +743,31 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
           </Modal>
         </Layout.Content>
       </Layout>
-    </App>
   );
 }
 
-function CardSection({ title, extra, children }: { title: string; extra?: React.ReactNode; children: React.ReactNode }) {
+function CardSection({
+  title,
+  description,
+  extra,
+  children,
+}: {
+  title: string;
+  description?: string;
+  extra?: ReactNode;
+  children: ReactNode;
+}) {
   return (
-    <div className="rounded-3xl bg-white p-4 shadow-sm sm:p-6">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Typography.Title level={3} style={{ margin: 0 }}>{title}</Typography.Title>
+    <div className="tm-admin-data-card overflow-hidden rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-1">
+          <Typography.Title level={3} style={{ margin: 0, color: "#0f172a" }}>{title}</Typography.Title>
+          {description ? (
+            <Typography.Paragraph style={{ margin: 0, color: "#64748b" }}>
+              {description}
+            </Typography.Paragraph>
+          ) : null}
+        </div>
         {extra}
       </div>
       {children}

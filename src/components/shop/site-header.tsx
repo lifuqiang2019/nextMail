@@ -5,7 +5,7 @@ import type { MenuProps } from "antd";
 import { LogOut, Search, ShoppingBag, ShoppingCart, Store, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 
 import { useCart } from "@/components/cart/cart-provider";
 import type { CustomerProfile } from "@/types/store";
@@ -23,16 +23,13 @@ export function SiteHeader({
   const searchParams = useSearchParams();
   const router = useRouter();
   const { itemCount, toggleCart } = useCart();
-  const [searchValue, setSearchValue] = useState(searchParams?.get("query") || "");
   const [loggingOut, setLoggingOut] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const isCartPage = pathname === "/cart";
-
-  useEffect(() => {
-    setSearchValue(searchParams?.get("query") || "");
-  }, [searchParams]);
+  const queryFromUrl = searchParams?.get("query") ?? "";
 
   const submitSearch = () => {
-    const keyword = searchValue.trim();
+    const keyword = (searchInputRef.current?.value ?? queryFromUrl).trim();
     const href = keyword ? `/?query=${encodeURIComponent(keyword)}` : "/";
     router.push(href);
   };
@@ -107,8 +104,9 @@ export function SiteHeader({
                   className="header-search__input"
                   placeholder="搜索商品、品牌、风格"
                   type="text"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
+                  defaultValue={queryFromUrl}
+                  key={queryFromUrl}
+                  ref={searchInputRef}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
                       event.preventDefault();
@@ -177,8 +175,9 @@ export function SiteHeader({
             className="site-header--desktop__search-input"
             placeholder="搜索商品、品牌、系列、关键词"
             type="text"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            defaultValue={queryFromUrl}
+            key={queryFromUrl}
+            ref={searchInputRef}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault();

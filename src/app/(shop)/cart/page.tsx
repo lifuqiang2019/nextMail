@@ -8,3 +8,4 @@ export default async function CartPage() {
   const store = await readStoreData();
   return <CheckoutShell databaseConfigured={isDatabaseConfigured()} settings={store.settings} />;
 }
+

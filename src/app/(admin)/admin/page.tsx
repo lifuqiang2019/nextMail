@@ -9,3 +9,4 @@ export default async function AdminPage() {
 
   return <AdminConsole admin={admin} initialData={JSON.parse(JSON.stringify(data))} />;
 }
+

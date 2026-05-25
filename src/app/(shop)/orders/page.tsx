@@ -66,9 +66,7 @@ function OrderCard({ order }: { order: Order }) {
           </div>
         </div>
         <div className="orders-card__summary">
-          <span className={`orders-card__status ${statusMeta.className}`}>
-            {statusMeta.label}
-          </span>
+          <span className={`orders-card__status ${statusMeta.className}`}>{statusMeta.label}</span>
           <div className="orders-card__total">
             <p className="orders-card__total-label">Total</p>
             <p className="orders-card__total-value">{formatCurrency(order.totalAmount)}</p>
@@ -134,7 +132,8 @@ export default async function OrdersPage() {
           <p className="orders-notice__kicker">Orders</p>
           <h1 className="orders-notice__title">我的订单</h1>
           <p className="orders-notice__desc">
-            当前还没有配置 MySQL 连接串，订单功能代码已经接好，填好 `NEXTMAIL_DATABASE_URL`（或 `DATABASE_URL`）后即可使用。
+            当前还没有配置 MySQL 连接串，订单功能代码已经接好，填好 `NEXTMAIL_DATABASE_URL`（或
+            `DATABASE_URL`）后即可使用。
           </p>
         </section>
       </div>
@@ -147,9 +146,7 @@ export default async function OrdersPage() {
         <section className="orders-notice">
           <p className="orders-notice__kicker">Orders</p>
           <h1 className="orders-notice__title">我的订单</h1>
-          <p className="orders-notice__desc">
-            请先登录，再查看你自己的订单记录。
-          </p>
+          <p className="orders-notice__desc">请先登录，再查看你自己的订单记录。</p>
           <Link className="orders-action mt-5" href="/login">
             去登录
           </Link>
@@ -226,3 +223,4 @@ export default async function OrdersPage() {
     </div>
   );
 }
+

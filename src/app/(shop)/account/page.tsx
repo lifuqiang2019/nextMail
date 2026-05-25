@@ -1,6 +1,6 @@
 import { ChangePasswordCard } from "@/components/auth/change-password-card";
-import { isDatabaseConfigured, readOrdersByUserId } from "@/lib/database";
 import { requireCustomerProfile } from "@/lib/auth/customer";
+import { isDatabaseConfigured, readOrdersByUserId } from "@/lib/database";
 
 export const dynamic = "force-dynamic";
 
@@ -10,3 +10,4 @@ export default async function AccountPage() {
 
   return <ChangePasswordCard orders={orders} user={user} />;
 }
+

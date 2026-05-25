@@ -670,6 +670,137 @@ button, a, input, textarea, select {
 }
 .tm-auth-card .ant-input::placeholder { color: #b8b8b8; }
 
+.tm-admin-shell {
+  background:
+    radial-gradient(circle at top left, rgba(191, 219, 254, 0.34), transparent 24%),
+    radial-gradient(circle at top right, rgba(196, 181, 253, 0.22), transparent 18%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 42%, #eef2ff 100%);
+}
+
+.tm-admin-sidebar {
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+}
+
+.tm-admin-menu.ant-menu {
+  border-inline-end: 0 !important;
+  background: transparent !important;
+  color: #475569;
+}
+
+.tm-admin-menu.ant-menu .ant-menu-item {
+  height: 50px;
+  margin: 0 0 8px;
+  border-radius: 12px;
+  line-height: 50px;
+  color: #475569;
+}
+
+.tm-admin-menu.ant-menu .ant-menu-item .ant-menu-title-content {
+  font-weight: 600;
+}
+
+.tm-admin-menu.ant-menu .ant-menu-item .anticon {
+  font-size: 16px;
+}
+
+.tm-admin-menu.ant-menu .ant-menu-item:hover {
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+}
+
+.tm-admin-menu.ant-menu .ant-menu-item-selected {
+  color: #ff6b35 !important;
+  background: #fff4ed !important;
+  font-weight: 700;
+}
+
+.tm-admin-menu.ant-menu .ant-menu-item-selected::after {
+  border-inline-end: none !important;
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 24px;
+  background: #ff6b35;
+  border-radius: 0 4px 4px 0;
+}
+
+.tm-admin-hero {
+  background: linear-gradient(135deg, #ffffff 0%, #fffbf8 100%);
+  border-left: 6px solid #ff6b35;
+}
+
+.tm-admin-data-card,
+.tm-admin-stat-card {
+  transition: all 0.2s ease;
+}
+
+.tm-admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(255, 107, 53, 0.08);
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.tm-admin-data-table .ant-table {
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.tm-admin-data-table .ant-table-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.tm-admin-data-table .ant-table-thead > tr > th {
+  border-bottom: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tm-admin-data-table .ant-table-tbody > tr > td {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.tm-admin-data-table .ant-table-tbody > tr:hover > td {
+  background: #fffcf9 !important;
+}
+
+.tm-admin-data-table .ant-btn-link {
+  height: auto;
+  padding-inline: 0;
+  font-weight: 600;
+  color: #ff6b35;
+}
+
+.tm-admin-data-table .ant-btn-link:hover {
+  color: #e55520;
+}
+
+.tm-admin-data-table .ant-tag {
+  border-radius: 6px;
+  padding-inline: 10px;
+  font-weight: 600;
+  border: none;
+}
+
+.tm-admin-data-table .ant-pagination {
+  margin: 18px 0 0 !important;
+}
+
+.tm-admin-data-table .ant-pagination .ant-pagination-item,
+.tm-admin-data-table .ant-pagination .ant-pagination-prev,
+.tm-admin-data-table .ant-pagination .ant-pagination-next {
+  border-radius: 12px;
+}
+
 .tm-admin-modal .ant-modal-mask {
   backdrop-filter: blur(8px);
   background: rgba(15, 23, 42, 0.5) !important;
@@ -849,12 +980,24 @@ button, a, input, textarea, select {
   border-radius: 9999px;
   padding: 0 24px;
   font-weight: 600;
-  background: linear-gradient(135deg, #0f172a 0%, #22314a 100%);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+  background: linear-gradient(135deg, #ff6b35 0%, #e55520 100%);
+  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.25);
 }
 
 .tm-admin-modal__submit.ant-btn-primary:hover {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+  background: linear-gradient(135deg, #e55520 0%, #d14917 100%) !important;
+}
+
+/* Override Antd primary buttons in Admin Shell */
+.tm-admin-shell .ant-btn-primary {
+  background: #ff6b35;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+  border: none;
+  border-radius: 8px;
+}
+
+.tm-admin-shell .ant-btn-primary:hover {
+  background: #e55520 !important;
 }
 
 .tm-admin-modal__form .ant-switch {
@@ -866,6 +1009,19 @@ button, a, input, textarea, select {
 }
 
 @media (max-width: 767px) {
+  .tm-admin-shell .ant-layout-sider {
+    padding: 0 !important;
+  }
+
+  .tm-admin-sidebar {
+    border-radius: 0;
+    min-height: auto;
+  }
+
+  .tm-admin-data-table .ant-table-container {
+    border-radius: 18px;
+  }
+
   .tm-admin-modal .ant-modal {
     max-width: calc(100vw - 20px);
     margin: 12px auto;
