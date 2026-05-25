@@ -1,5 +1,5 @@
 import { config as loadEnv } from "dotenv";
-import mariadb from "mariadb";
+import * as mariadb from "mariadb";
 
 loadEnv({ path: ".env.local", override: false });
 loadEnv({ path: ".env.production.local", override: false });

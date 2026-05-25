@@ -243,7 +243,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     {
       title: "操作",
       render: (_, record) => (
-        <Space>
+        <Space wrap>
           <Button type="link" onClick={() => { setEditingCategoryId(record.id); categoryForm.setFieldsValue(record); setCategoryModalOpen(true); }}>编辑</Button>
           <Popconfirm title="确认删除该分类？" onConfirm={() => removeCategory(record.id)}>
             <Button danger type="link">删除</Button>
@@ -261,7 +261,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     {
       title: "操作",
       render: (_, record) => (
-        <Space>
+        <Space wrap>
           <Button type="link" onClick={() => { setEditingFilterId(record.id); filterForm.setFieldsValue(record); setFilterModalOpen(true); }}>编辑</Button>
           <Popconfirm title="确认删除该过滤组？" onConfirm={() => removeFilter(record.id)}>
             <Button danger type="link">删除</Button>
@@ -291,7 +291,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     {
       title: "操作",
       render: (_, record) => (
-        <Space>
+        <Space wrap>
           <Button type="link" onClick={() => { setEditingProductId(record.id); productForm.setFieldsValue({ ...record, sizesInput: record.sizes.join(",") }); setProductModalOpen(true); }}>编辑</Button>
           <Popconfirm title="确认删除该商品？" onConfirm={() => removeProduct(record.id)}>
             <Button danger type="link">删除</Button>
@@ -359,53 +359,18 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     },
   };
 
-  const dashboardStats = useMemo(
-    () => [
-      {
-        label: "商品总数",
-        value: data.store.products.length,
-        helper: `${data.store.products.filter((item) => item.status === "ACTIVE").length} 个上架中`,
-        icon: <ShoppingOutlined />,
-        tone: "bg-sky-50 text-sky-600",
-      },
-      {
-        label: "分类 / 过滤",
-        value: `${data.store.categories.length} / ${data.store.filterGroups.length}`,
-        helper: `${data.store.filterGroups.reduce((sum, group) => sum + group.options.length, 0)} 个筛选项`,
-        icon: <AppstoreOutlined />,
-        tone: "bg-violet-50 text-violet-600",
-      },
-      {
-        label: "会员数量",
-        value: data.customers.length,
-        helper: `${data.customers.filter((item) => item.isActive).length} 个正常账号`,
-        icon: <UserOutlined />,
-        tone: "bg-emerald-50 text-emerald-600",
-      },
-      {
-        label: "后台账号",
-        value: data.admins.length,
-        helper: `${data.admins.filter((item) => item.isActive).length} 个启用中`,
-        icon: <TeamOutlined />,
-        tone: "bg-amber-50 text-amber-600",
-      },
-    ],
-    [data],
-  );
-
   const currentModule = moduleMeta[activeKey];
-  const currentMenuItem = menuItems.find((item) => item.key === activeKey);
 
   return (
-    <Layout className="tm-admin-shell min-h-screen bg-[#f8fafc]">
+    <Layout className="tm-admin-shell min-h-screen w-full bg-[#f8fafc]">
         <Layout.Sider
           breakpoint="lg"
           collapsedWidth="0"
-          className="!bg-transparent p-3"
+          className="!bg-transparent p-0 lg:p-4"
           theme="light"
           width={288}
         >
-          <div className="tm-admin-sidebar flex h-full flex-col overflow-hidden rounded-[30px] px-4 py-5 shadow-sm">
+          <div className="tm-admin-sidebar flex h-full min-h-screen flex-col px-5 py-6 sm:px-6 lg:border lg:border-slate-200 lg:bg-white lg:p-8 lg:shadow-sm">
             <div className="border-b border-slate-200 px-2 pb-5">
               <div className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium tracking-[0.2em] text-slate-500">
                 NEXTMAIL ADMIN
@@ -418,11 +383,11 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               </Typography.Paragraph>
             </div>
 
-            <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+            <div className="mt-6 border border-slate-200 bg-slate-50 p-5">
               <div className="text-xs uppercase tracking-[0.22em] text-slate-500">当前登录</div>
               <div className="mt-3 text-lg font-semibold text-slate-900">{admin.displayName}</div>
               <div className="text-sm text-slate-500">{admin.username}</div>
-              <Button className="mt-4 h-11 w-full rounded-full border-slate-200 bg-white text-slate-600 shadow-none hover:!border-slate-300 hover:!bg-slate-50 hover:!text-slate-900" onClick={logout}>
+              <Button className="mt-4 h-11 w-full border-slate-200 bg-white text-slate-600 shadow-none hover:!border-slate-300 hover:!bg-slate-50 hover:!text-slate-900" onClick={logout}>
                 退出后台
               </Button>
             </div>
@@ -439,81 +404,42 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               />
             </div>
 
-            <div className="mt-4 rounded-[22px] border border-orange-100 bg-orange-50/50 px-4 py-4 text-sm">
+            <div className="mt-5 border border-orange-100 bg-orange-50/50 p-5 text-sm">
               <div className="font-medium text-orange-900">当前聚焦</div>
               <div className="mt-1 leading-6 text-orange-800/80">{currentModule.detail}</div>
             </div>
           </div>
         </Layout.Sider>
-        <Layout.Content className="min-w-0 p-4 sm:p-5 lg:p-6">
-          <div className="mx-auto w-full max-w-[1560px] space-y-5">
-            <div className="tm-admin-hero grid gap-4 overflow-hidden rounded-[32px] border border-slate-200 px-5 py-5 shadow-sm sm:px-6 sm:py-6 2xl:grid-cols-[minmax(0,1.5fr)_minmax(360px,0.9fr)]">
-              <div className="space-y-5">
-                <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-3.5 py-1.5 text-sm font-medium text-orange-700 shadow-sm">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-600">
-                    {currentMenuItem?.icon}
-                  </span>
-                  {currentMenuItem?.label}
-                </div>
-                <div className="space-y-3">
-                  <Typography.Title level={2} style={{ margin: 0, color: "#0f172a" }}>
+        <Layout.Content className="min-w-0 flex-1 p-0">
+          <div className="flex min-h-screen w-full flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-8 xl:px-10">
+            <div className="tm-admin-hero border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium tracking-[0.2em] text-slate-500">
+                    ACTIVE MODULE
+                  </div>
+                  <Typography.Title level={2} style={{ margin: "14px 0 8px", color: "#0f172a" }}>
                     {currentModule.title}
                   </Typography.Title>
-                  <Typography.Paragraph style={{ margin: 0, color: "#475569", fontSize: 16, maxWidth: 820 }}>
+                  <Typography.Paragraph style={{ margin: 0, maxWidth: 780, color: "#64748b" }}>
                     {currentModule.description}
                   </Typography.Paragraph>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  <div className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600">
-                    店铺名称: <span className="font-semibold text-slate-900">{data.store.settings.storeName}</span>
+                <div className="grid gap-4 sm:grid-cols-2 xl:min-w-[460px]">
+                  <div className="border border-slate-200 bg-slate-50 p-5">
+                    <div className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">当前管理员</div>
+                    <div className="mt-2 text-lg font-semibold text-slate-900">{admin.displayName}</div>
+                    <div className="text-sm text-slate-500">{admin.username}</div>
                   </div>
-                  <div className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm text-slate-600">
-                    当前管理员: <span className="font-semibold text-slate-900">{admin.displayName}</span>
+                  <div className="border border-orange-100 bg-orange-50/60 p-5">
+                    <div className="text-xs font-medium uppercase tracking-[0.18em] text-orange-700">模块概览</div>
+                    <div className="mt-2 text-sm leading-6 text-orange-900/80">{currentModule.detail}</div>
                   </div>
-                </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="text-sm font-medium text-slate-500">当前状态</div>
-                  <div className="mt-3 text-lg font-semibold leading-8 text-slate-950">{currentModule.detail}</div>
-                  <div className="mt-4 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">
-                    数据已同步到当前模块
-                  </div>
-                </div>
-                <div className="rounded-[26px] border border-orange-100 bg-orange-50 p-5">
-                  <div className="text-sm font-medium text-orange-800/80">运营提醒</div>
-                  <div className="mt-3 text-lg font-semibold leading-8 text-orange-950">
-                    修改配置后，前台页面会直接读取最新数据，适合做日常运营维护。
-                  </div>
-                  <div className="mt-4 text-sm text-orange-800/80">建议优先维护商品、分类和筛选项的一致性。</div>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {dashboardStats.map((item) => (
-                <div
-                  key={item.label}
-                  className="tm-admin-stat-card rounded-[28px] border border-slate-200 bg-white px-5 py-5 shadow-sm"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl text-lg ${item.tone}`}>
-                      {item.icon}
-                    </div>
-                    <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
-                      实时概览
-                    </div>
-                  </div>
-                  <div className="mt-6 text-sm font-medium text-slate-500">{item.label}</div>
-                  <div className="mt-2 text-[32px] font-semibold leading-none text-slate-950">
-                    {item.value}
-                  </div>
-                  <div className="mt-3 text-sm text-slate-500">{item.helper}</div>
-                </div>
-              ))}
-            </div>
-
+            <div className="w-full space-y-6">
             {activeKey === "products" ? (
               <CardSection
                 title="商品管理"
@@ -655,6 +581,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
                 </Form>
               </CardSection>
             ) : null}
+            </div>
           </div>
 
           <Modal centered destroyOnHidden footer={null} onCancel={() => setCategoryModalOpen(false)} open={categoryModalOpen} rootClassName="tm-admin-modal" title={editingCategoryId ? "编辑分类" : "新增分类"}>
@@ -758,8 +685,8 @@ function CardSection({
   children: ReactNode;
 }) {
   return (
-    <div className="tm-admin-data-card overflow-hidden rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+    <div className="tm-admin-data-card border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-1">
           <Typography.Title level={3} style={{ margin: 0, color: "#0f172a" }}>{title}</Typography.Title>
           {description ? (
