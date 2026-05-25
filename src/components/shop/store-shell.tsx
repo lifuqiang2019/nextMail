@@ -153,32 +153,48 @@ export function StoreShell({ initialData, isMobile }: { initialData: StoreData; 
 
   const hasActiveFilters = Object.keys(selectedFilters).length > 0;
 
+  const activeFilterCount = Object.keys(selectedFilters).length;
+
   return (
-    <div className={`tm-shell store-page`}>
+    <div className={`tm-shell store-page${isMobile ? "" : " store-page--desktop"}`}>
       {contextHolder}
 
-      {/* 筛选区域 */}
-      <section className="filter-section">
-        {!isMobile && hasActiveFilters ? (
-          <header className="filter-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <h2 className="filter-title">商品筛选</h2>
-              <span style={{
-                borderRadius: 9999,
-                background: '#fff5ee',
-                padding: '3px 10px',
-                fontSize: 11,
-                fontWeight: 500,
-                color: '#ff6b35'
-              }}>已筛选</span>
+      {!isMobile ? (
+        <section className="store-hero">
+          <div className="store-hero__content">
+            <p className="store-hero__kicker">NEW SEASON</p>
+            <h1 className="store-hero__title">{initialData.settings.heroTitle}</h1>
+            <p className="store-hero__subtitle">{initialData.settings.heroSubtitle}</p>
+            {initialData.settings.heroNotice ? (
+              <p className="store-hero__notice">{initialData.settings.heroNotice}</p>
+            ) : null}
+          </div>
+          <div className="store-hero__stats">
+            <div className="store-hero__stat">
+              <span className="store-hero__stat-value">{initialData.products.length}</span>
+              <span className="store-hero__stat-label">在售商品</span>
             </div>
-            <button
-              className="filter-clear-btn"
-              onClick={() => setSelectedFilters({})}
-              type="button"
-            >
-              <span>↺</span> 清除全部
-            </button>
+            <div className="store-hero__stat">
+              <span className="store-hero__stat-value">{filterGroups.length}</span>
+              <span className="store-hero__stat-label">筛选维度</span>
+            </div>
+            <div className="store-hero__stat">
+              <span className="store-hero__stat-value">{products.length}</span>
+              <span className="store-hero__stat-label">当前展示</span>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <div className={isMobile ? undefined : "store-layout"}>
+      {/* 筛选区域 */}
+      <section className={`filter-section${isMobile ? "" : " filter-section--sidebar"}`}>
+        {!isMobile ? (
+          <header className="filter-header filter-header--sidebar">
+            <h2 className="filter-title">商品筛选</h2>
+            {hasActiveFilters ? (
+              <span className="filter-active-badge">已选 {activeFilterCount} 项</span>
+            ) : null}
           </header>
         ) : null}
 
@@ -210,6 +226,28 @@ export function StoreShell({ initialData, isMobile }: { initialData: StoreData; 
         </div>
       </section>
 
+      <div className={isMobile ? undefined : "store-main"}>
+      {!isMobile ? (
+        <div className="store-toolbar">
+          <div>
+            <h2 className="store-toolbar__title">全部商品</h2>
+            <p className="store-toolbar__desc">
+              共 {products.length} 件
+              {activeFilterCount > 0 ? ` · 已选 ${activeFilterCount} 项筛选` : ""}
+            </p>
+          </div>
+          {hasActiveFilters ? (
+            <button
+              className="filter-clear-btn store-toolbar__clear"
+              onClick={() => setSelectedFilters({})}
+              type="button"
+            >
+              <span>↺</span> 清除筛选
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       {/* 商品列表 */}
       {products.length === 0 ? (
         <div className="empty-state">
@@ -234,6 +272,8 @@ export function StoreShell({ initialData, isMobile }: { initialData: StoreData; 
           ))}
         </div>
       )}
+      </div>
+      </div>
     </div>
   );
 }

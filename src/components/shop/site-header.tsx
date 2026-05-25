@@ -113,24 +113,62 @@ export function SiteHeader({
   }
 
   return (
-    <header className="border-b border-[#e8e8e8] bg-white">
-      {/* Logo 居中 + 购物车图标在右侧 */}
-      <div className="tm-shell flex items-center justify-between py-5">
-        <div className="w-[120px]" />
-        
-        <Link className="flex items-center justify-center gap-3" href="/">
-          <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#fff1eb]">
-            <Store className="h-6 w-6 text-[#ff6b35]" />
+    <header className="site-header site-header--desktop">
+      <div className="tm-shell site-header--desktop__bar">
+        <Link className="site-header--desktop__brand" href="/">
+          <div className="site-header--desktop__logo">
+            <Store strokeWidth={1.8} />
           </div>
           <div>
-            <p className="text-[20px] font-semibold text-[#1a1a1a]">{storeName}</p>
-            <p className="mt-0.5 text-sm text-[#8f8f8f]">精选鞋款 · 服饰 · 潮流搭配</p>
+            <p className="site-header--desktop__name">{storeName}</p>
+            <p className="site-header--desktop__slogan">精选鞋款 · 服饰 · 潮流搭配</p>
           </div>
         </Link>
 
-        <div className="flex items-center justify-end gap-3 w-[120px]">
+        <nav className="site-header--desktop__nav">
+          <Link
+            className={`site-header--desktop__nav-link${pathname === "/" ? " site-header--desktop__nav-link--active" : ""}`}
+            href="/"
+          >
+            首页
+          </Link>
+          <Link
+            className={`site-header--desktop__nav-link${pathname === "/account" ? " site-header--desktop__nav-link--active" : ""}`}
+            href="/account"
+          >
+            个人中心
+          </Link>
+          <Link
+            className={`site-header--desktop__nav-link${pathname === "/orders" ? " site-header--desktop__nav-link--active" : ""}`}
+            href="/orders"
+          >
+            我的订单
+          </Link>
+          <Link
+            className={`site-header--desktop__nav-link${pathname === "/cart" ? " site-header--desktop__nav-link--active" : ""}`}
+            href="/cart"
+          >
+            购物车
+          </Link>
+        </nav>
+
+        <div className="site-header--desktop__search">
+          <Search className="site-header--desktop__search-icon" strokeWidth={1.8} />
+          <input
+            className="site-header--desktop__search-input"
+            placeholder="搜索商品、品牌、系列、关键词"
+            type="text"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+          />
+          <button className="site-header--desktop__search-btn" type="button">
+            搜索
+          </button>
+        </div>
+
+        <div className="site-header--desktop__actions">
           <button
-            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[#e8e8e8] bg-white text-[#8f8f8f] transition hover:border-[#ffd8c8] hover:bg-[#fff1eb] hover:text-[#ff6b35]"
+            className="site-header--desktop__cart-btn"
             onClick={toggleCart}
             type="button"
           >
@@ -138,58 +176,12 @@ export function SiteHeader({
               <ShoppingCart size={20} strokeWidth={1.7} />
             </Badge>
           </button>
-        </div>
-      </div>
-
-      {/* 搜索栏居中 */}
-      <div className="border-t border-[#e8e8e8] bg-white">
-        <div className="tm-shell flex items-center justify-center py-4">
-          <div className="w-full max-w-[600px]">
-            <div className="flex items-center gap-2 rounded-[12px] bg-[#fafafa] p-1.5">
-              <div className="flex flex-1 items-center gap-2 px-3">
-                <Search className="h-5 w-5 shrink-0 text-[#8f8f8f]" />
-                <input
-                  className="w-full bg-transparent text-base text-[#1a1a1a] outline-none placeholder:text-[#b8b8b8]"
-                  placeholder="搜索商品、品牌、系列、关键词"
-                  type="text"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                />
-              </div>
-              <button
-                className="flex min-w-[100px] items-center justify-center rounded-[10px] bg-[#ff6b35] px-5 py-2.5 text-base font-medium text-white shadow-[0_2px_8px_rgba(255,107,53,0.25)] transition hover:translate-y-[-1px]"
-                type="button"
-              >
-                搜索
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 导航栏 - 去掉"分类"，只保留首页、个人中心、我的订单 */}
-      <div className="border-t border-[#e8e8e8] bg-white">
-        <div className="tm-shell flex items-center justify-center gap-8">
-          <nav className="flex h-[48px] items-center gap-7 text-[15px]">
-            <Link
-              className={pathname === "/" ? "font-semibold text-[#ff6b35]" : "text-[#4a4a4a] transition hover:text-[#ff6b35]"}
-              href="/"
-            >
-              首页
-            </Link>
-            <Link
-              className={pathname === "/account" ? "font-semibold text-[#ff6b35]" : "text-[#4a4a4a] transition hover:text-[#ff6b35]"}
-              href="/account"
-            >
-              个人中心
-            </Link>
-            <Link
-              className={pathname === "/orders" ? "font-semibold text-[#ff6b35]" : "text-[#4a4a4a] transition hover:text-[#ff6b35]"}
-              href="/orders"
-            >
-              我的订单
-            </Link>
-          </nav>
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={["click"]}>
+            <button className="site-header--desktop__user-btn" type="button">
+              <User size={18} strokeWidth={1.8} />
+              <span>{currentUser ? currentUser.name : "登录"}</span>
+            </button>
+          </Dropdown>
         </div>
       </div>
     </header>

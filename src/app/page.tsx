@@ -8,7 +8,7 @@ export default async function HomePage() {
   const [store, isMobile] = await Promise.all([readStoreData(), detectIsMobile()]);
 
   return (
-    <div className={isMobile ? "pb-2 pt-2" : "pb-4 pt-5 lg:pt-6"}>
+    <div className={isMobile ? "pb-2 pt-2" : "home-page--desktop"}>
       <StoreShell initialData={store} isMobile={isMobile} />
     </div>
   );

@@ -19,6 +19,7 @@
   --tm-success: #2ecc71;
   --tm-shell-gutter: 20px;
   --tm-shell-max: 1200px;
+  --tm-shell-max-wide: 1360px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -1593,95 +1594,600 @@ button, a, input, textarea, select {
 }
 
 /* ========================================
+   PC 顶栏 (Desktop Header)
+======================================= */
+.site-header--desktop {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--tm-border-light);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.site-header--desktop__bar {
+  display: grid;
+  grid-template-columns: auto 1fr minmax(280px, 420px) auto;
+  align-items: center;
+  gap: 28px;
+  padding: 14px 0;
+}
+
+.site-header--desktop__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.site-header--desktop__logo {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tm-orange);
+  flex-shrink: 0;
+}
+
+.site-header--desktop__name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--tm-text);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.site-header--desktop__slogan {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--tm-muted);
+  white-space: nowrap;
+}
+
+.site-header--desktop__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: center;
+}
+
+.site-header--desktop__nav-link {
+  position: relative;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tm-text-secondary);
+  border-radius: 9999px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.site-header--desktop__nav-link:hover {
+  color: var(--tm-orange);
+  background: #fff8f5;
+}
+
+.site-header--desktop__nav-link--active {
+  color: var(--tm-orange);
+  background: #fff1eb;
+  font-weight: 600;
+}
+
+.site-header--desktop__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 14px;
+  background: #f3f4f6;
+  padding: 6px 8px 6px 14px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.site-header--desktop__search:focus-within {
+  background: white;
+  border-color: #ffd8c8;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.site-header--desktop__search-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--tm-muted);
+  flex-shrink: 0;
+}
+
+.site-header--desktop__search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--tm-text);
+}
+
+.site-header--desktop__search-input::placeholder {
+  color: #b8b8b8;
+}
+
+.site-header--desktop__search-btn {
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--tm-orange);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.22);
+}
+
+.site-header--desktop__search-btn:hover {
+  background: var(--tm-orange-dark);
+}
+
+.site-header--desktop__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.site-header--desktop__cart-btn,
+.site-header--desktop__user-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--tm-border);
+  background: white;
+  color: var(--tm-text-secondary);
+  cursor: pointer;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.site-header--desktop__cart-btn {
+  width: 42px;
+  padding: 0;
+}
+
+.site-header--desktop__cart-btn:hover,
+.site-header--desktop__user-btn:hover {
+  border-color: #ffd8c8;
+  background: #fff8f5;
+  color: var(--tm-orange);
+}
+
+/* ========================================
+   PC 首页布局 (Desktop Store)
+======================================= */
+.main--desktop {
+  padding-bottom: 0;
+}
+
+.home-page--desktop {
+  padding-top: 8px;
+  padding-bottom: 0;
+}
+
+.store-page--desktop {
+  padding-top: 0;
+  padding-bottom: 48px;
+}
+
+.store-hero {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 28px;
+  padding: 36px 40px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 107, 53, 0.18) 0%, transparent 42%),
+    linear-gradient(135deg, #1f1f1f 0%, #2d2d2d 55%, #3a3a3a 100%);
+  color: white;
+  box-shadow: var(--shadow-medium);
+  overflow: hidden;
+}
+
+.store-hero__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.store-hero__kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.store-hero__title {
+  margin-top: 12px;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.store-hero__subtitle {
+  margin-top: 14px;
+  max-width: 640px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.store-hero__notice {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  background: rgba(255, 107, 53, 0.2);
+  border: 1px solid rgba(255, 167, 130, 0.35);
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #ffd8c8;
+}
+
+.store-hero__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(96px, 1fr));
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.store-hero__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.store-hero__stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffb89a;
+  line-height: 1;
+}
+
+.store-hero__stat-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.store-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.filter-section--sidebar {
+  position: sticky;
+  top: 88px;
+  margin-bottom: 0;
+  padding: 22px 20px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+.filter-header--sidebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.filter-header--sidebar .filter-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tm-text);
+}
+
+.filter-active-badge {
+  border-radius: 9999px;
+  background: #fff5ee;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tm-orange);
+  white-space: nowrap;
+}
+
+.filter-section--sidebar .filter-options {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.filter-section--sidebar .filter-group:last-child {
+  padding-bottom: 0;
+}
+
+.store-main {
+  min-width: 0;
+}
+
+.store-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 18px 22px;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid var(--tm-border-light);
+  box-shadow: var(--shadow-soft);
+}
+
+.store-toolbar__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--tm-text);
+  letter-spacing: -0.02em;
+}
+
+.store-toolbar__desc {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--tm-muted);
+}
+
+.store-toolbar__clear {
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 9999px;
+  border: 1px solid #ffe0d4;
+  background: #fff8f5;
+  color: var(--tm-orange);
+}
+
+/* ========================================
    PC端(桌面端)样式优化 (Desktop Optimization)
 ======================================= */
 
-/* PC端基础容器优化 */
 @media (min-width: 1024px) {
-  .tm-shell {
-    padding-top: 32px;
-    padding-bottom: 40px;
+  :root {
+    --tm-shell-max: 1280px;
+    --tm-shell-gutter: 28px;
   }
-  
-  /* 商城主页 */
+
+  body {
+    font-size: 15px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(255, 107, 53, 0.06) 0%, transparent 28%),
+      var(--tm-bg);
+  }
+
   .store-page {
-    padding-top: 32px;
-    padding-bottom: 100px;
+    padding-bottom: 56px;
   }
-  
-  /* 筛选区域 */
-  .filter-section {
+
+  .filter-section:not(.filter-section--sidebar) {
     padding: 24px;
     margin-bottom: 28px;
   }
-  
+
   .filter-group {
     gap: 14px;
     padding-bottom: 18px;
   }
-  
+
   .filter-label {
     font-size: 14px;
+    font-weight: 600;
+    color: var(--tm-text-secondary);
   }
-  
+
   .filter-options {
     gap: 10px;
   }
-  
+
   .filter-btn {
     padding: 9px 20px;
     font-size: 14px;
     border-radius: 22px;
   }
-  
-  /* 商品卡片 */
+
+  .product-grid {
+    gap: 22px;
+  }
+
   .product-card {
     border-radius: 16px;
   }
-  
+
+  .product-card:hover {
+    transform: translateY(-6px);
+  }
+
   .product-card__image {
     border-radius: 16px 16px 0 0;
+    aspect-ratio: 1;
   }
-  
+
   .product-card__info {
     padding: 14px 18px 18px;
   }
-  
-  .product-card__name {
-    font-size: 14px;
-    min-height: 42px;
+
+  .product-card__brand {
+    font-size: 12px;
   }
-  
+
+  .product-card__name {
+    font-size: 15px;
+    min-height: 44px;
+    line-height: 1.45;
+  }
+
   .product-card__price-current {
     font-size: 22px;
   }
-  
+
+  .product-card__sizes {
+    font-size: 12px;
+    color: #aaa;
+  }
+
   .btn-cart {
-    padding: 10px 24px;
+    padding: 10px 0;
     font-size: 13px;
+  }
+
+  .empty-state {
+    padding: 100px 24px;
+    border-radius: 16px;
+    background: white;
+    border: 1px solid var(--tm-border-light);
+  }
+
+  h1, h2, h3 {
+    letter-spacing: -0.01em;
+  }
+
+  .tm-card,
+  .cart-section,
+  .checkout-form,
+  .order-summary,
+  .info-card,
+  .profile-card,
+  .menu-list,
+  .orders-section,
+  .password-form {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   }
 }
 
 @media (min-width: 1280px) {
-  .tm-shell {
-    max-width: 1280px;
+  :root {
+    --tm-shell-max: var(--tm-shell-max-wide);
   }
-  
-  .store-page {
-    padding-top: 40px;
+
+  .site-header--desktop__bar {
+    gap: 36px;
   }
-  
-  .filter-section {
-    padding: 28px 32px;
+
+  .store-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 32px;
   }
-  
+
+  .store-hero {
+    padding: 42px 48px;
+    margin-bottom: 32px;
+  }
+
   .product-grid {
-    gap: 28px;
+    gap: 26px;
   }
-  
+
   .product-card__info {
     padding: 16px 20px 20px;
   }
+
+  .filter-section--sidebar {
+    padding: 24px 22px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .store-page--desktop .store-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .store-page--desktop .filter-section--sidebar {
+    position: static;
+  }
+
+  .store-page--desktop .store-hero {
+    flex-direction: column;
+    padding: 28px 24px;
+  }
+
+  .store-page--desktop .store-hero__stats {
+    width: 100%;
+  }
+}
+
+.site-footer--desktop {
+  margin-top: 48px;
+  border-top: 1px solid var(--tm-border);
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fb 100%);
+}
+
+.site-footer--desktop__inner {
+  padding: 48px 0 32px;
+}
+
+.site-footer--desktop__grid {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .site-footer--desktop__grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+  }
+}
+
+.site-footer--desktop__grid h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tm-text);
+}
+
+.site-footer--desktop__grid p {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--tm-muted);
+}
+
+.site-footer--desktop__copy {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--tm-border-light);
+  text-align: center;
+  font-size: 13px;
+  color: #aaa;
+}
+
+@media (min-width: 1024px) and (max-width: 1180px) {
+  .site-header--desktop__bar {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "brand actions actions"
+      "search search search";
+    gap: 12px 16px;
+  }
+
+  .site-header--desktop__brand { grid-area: brand; }
+  .site-header--desktop__nav { display: none; }
+  .site-header--desktop__search {
+    grid-area: search;
+    width: 100%;
+  }
+  .site-header--desktop__actions { grid-area: actions; justify-self: end; }
 }
 
 /* 购物车页面 PC 端优化 */

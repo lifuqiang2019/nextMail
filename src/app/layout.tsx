@@ -33,15 +33,15 @@ export default async function RootLayout({
         <AntdRegistry>
           <AppProviders>
             <SiteHeader currentUser={currentUser} isMobile={isMobile} storeName={store.settings.storeName} />
-            <main className={isMobile ? "pb-20" : "pb-4"}>{children}</main>
+            <main className={isMobile ? "pb-20" : "main--desktop"}>{children}</main>
             {isMobile ? (
               <footer className="tm-shell pb-24 pt-10 text-center text-xs text-gray-400">
                 <p>© 2026 {store.settings.storeName}</p>
               </footer>
             ) : (
-              <footer className="mt-14 border-t border-gray-200/80 bg-white/92">
-                <div className="tm-shell py-12">
-                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <footer className="site-footer--desktop">
+                <div className="tm-shell site-footer--desktop__inner">
+                  <div className="site-footer--desktop__grid">
                     <div>
                       <h4 className="font-bold text-gray-900">关于我们</h4>
                       <p className="mt-3 text-sm leading-7 text-gray-500">专注潮流鞋款与服饰，覆盖多个国际品牌，提供便捷的在线购买体验。</p>
@@ -70,7 +70,7 @@ export default async function RootLayout({
                       </div>
                     </div>
                   </div>
-                  <div className="mt-8 border-t border-gray-100 pt-6 text-center text-sm text-gray-400">
+                  <div className="site-footer--desktop__copy">
                     <p>© 2026 {store.settings.storeName} 版权所有</p>
                   </div>
                 </div>
