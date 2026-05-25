@@ -24,6 +24,13 @@ export function SiteHeader({
   const { itemCount, toggleCart } = useCart();
   const [searchValue, setSearchValue] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
+  const isCartPage = pathname === "/cart";
+
+  const submitSearch = () => {
+    const keyword = searchValue.trim();
+    const href = keyword ? `/?query=${encodeURIComponent(keyword)}` : "/";
+    router.push(href);
+  };
 
   const logout = async () => {
     setLoggingOut(true);
@@ -97,10 +104,17 @@ export function SiteHeader({
                   type="text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      submitSearch();
+                    }
+                  }}
                 />
               </div>
               <button
                 className="header-search__btn"
+                onClick={submitSearch}
                 type="button"
               >
                 搜索
@@ -160,16 +174,23 @@ export function SiteHeader({
             type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                submitSearch();
+              }
+            }}
           />
-          <button className="site-header--desktop__search-btn" type="button">
+          <button className="site-header--desktop__search-btn" onClick={submitSearch} type="button">
             搜索
           </button>
         </div>
 
         <div className="site-header--desktop__actions">
           <button
-            className="site-header--desktop__cart-btn"
-            onClick={toggleCart}
+            aria-disabled={isCartPage}
+            className={`site-header--desktop__cart-btn${isCartPage ? " site-header--desktop__cart-btn--disabled" : ""}`}
+            onClick={isCartPage ? undefined : toggleCart}
             type="button"
           >
             <Badge count={itemCount} offset={[4, -2]} size="small" className="[&_.ant-badge-count]:bg-[#ff3b3b]">

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 
 import { AppProviders } from "@/components/providers/app-providers";
-import { CartSidebar } from "@/components/cart/cart-sidebar";
 import { SiteHeader } from "@/components/shop/site-header";
 import { BottomNav } from "@/components/shop/bottom-nav";
 import { getCurrentCustomerProfile } from "@/lib/auth/customer";
@@ -77,7 +76,6 @@ export default async function RootLayout({
               </footer>
             )}
             {isMobile ? <BottomNav /> : null}
-            <CartSidebar />
           </AppProviders>
         </AntdRegistry>
       </body>

@@ -1,16 +1,41 @@
 "use client";
 
-import { Card, Form, Input, Button, message } from "antd";
+import { Button, Form, Input, message } from "antd";
 import { useState } from "react";
-import { Lock, ShoppingBag, Package, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-import type { CustomerProfile } from "@/types/store";
+import { formatCurrency } from "@/lib/format";
+import type { CustomerProfile, Order } from "@/types/store";
 
-export function ChangePasswordCard({ user }: { user: CustomerProfile }) {
+function getOrderStatusLabel(status: string) {
+  switch (status.toUpperCase()) {
+    case "PENDING":
+      return "待处理";
+    case "PAID":
+      return "已支付";
+    case "SHIPPED":
+      return "已发货";
+    case "COMPLETED":
+      return "已完成";
+    case "CANCELLED":
+      return "已取消";
+    default:
+      return status;
+  }
+}
+
+function formatOrderTime(value: string) {
+  return new Date(value).toLocaleDateString("zh-CN");
+}
+
+export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; orders: Order[] }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const recentOrders = orders.slice(0, 3);
+  const pendingCount = orders.filter((order) => ["PENDING", "PAID"].includes(order.status.toUpperCase())).length;
+  const shippedCount = orders.filter((order) => order.status.toUpperCase() === "SHIPPED").length;
+  const completedCount = orders.filter((order) => order.status.toUpperCase() === "COMPLETED").length;
 
   const submit = async (values: { currentPassword: string; newPassword: string }) => {
     setLoading(true);
@@ -61,15 +86,15 @@ export function ChangePasswordCard({ user }: { user: CustomerProfile }) {
 
             <div className="profile-stats">
               <div>
-                <div className="profile-stat__value">0</div>
-                <div className="profile-stat__label">待付款</div>
+                <div className="profile-stat__value">{pendingCount}</div>
+                <div className="profile-stat__label">待处理</div>
               </div>
               <div>
-                <div className="profile-stat__value">0</div>
+                <div className="profile-stat__value">{shippedCount}</div>
                 <div className="profile-stat__label">待发货</div>
               </div>
               <div>
-                <div className="profile-stat__value">0</div>
+                <div className="profile-stat__value">{completedCount}</div>
                 <div className="profile-stat__label">已完成</div>
               </div>
             </div>
@@ -86,7 +111,11 @@ export function ChangePasswordCard({ user }: { user: CustomerProfile }) {
               <span className="menu-item__arrow">›</span>
             </Link>
 
-            <div className="menu-item" onClick={() => document.getElementById('password-section')?.scrollIntoView({ behavior: 'smooth' })}>
+            <button
+              className="menu-item w-full text-left"
+              onClick={() => document.getElementById("password-section")?.scrollIntoView({ behavior: "smooth" })}
+              type="button"
+            >
               <div className="menu-item__left">
                 <span className="menu-item__icon menu-item__icon--password">
                   🔐
@@ -94,9 +123,9 @@ export function ChangePasswordCard({ user }: { user: CustomerProfile }) {
                 <span className="menu-item__text">修改密码</span>
               </div>
               <span className="menu-item__arrow">›</span>
-            </div>
+            </button>
 
-            <div className="menu-item" onClick={handleLogout}>
+            <button className="menu-item w-full text-left" onClick={handleLogout} type="button">
               <div className="menu-item__left">
                 <span className="menu-item__icon menu-item__icon--logout">
                   🚪
@@ -104,7 +133,7 @@ export function ChangePasswordCard({ user }: { user: CustomerProfile }) {
                 <span className="menu-item__text">退出登录</span>
               </div>
               <span className="menu-item__arrow">›</span>
-            </div>
+            </button>
           </nav>
         </aside>
 
@@ -117,11 +146,50 @@ export function ChangePasswordCard({ user }: { user: CustomerProfile }) {
               </Link>
             </header>
 
-            <div className="empty-orders">
-              <div className="empty-orders__icon">📋</div>
-              <p className="empty-orders__text">暂无订单记录</p>
-              <Link href="/" className="btn-cart inline-block">去购物</Link>
-            </div>
+            {recentOrders.length === 0 ? (
+              <div className="orders-empty">
+                <p className="orders-empty__title">暂无订单记录</p>
+                <p className="orders-empty__desc">去首页挑选商品后，就可以在这里快速查看最近订单。</p>
+                <Link href="/" className="orders-empty__action">
+                  去购物
+                </Link>
+              </div>
+            ) : (
+              <div className="account-orders-preview">
+                {recentOrders.map((order) => (
+                  <article className="account-orders-preview__item" key={order.id}>
+                    <div className="account-orders-preview__top">
+                      <div className="min-w-0">
+                        <p className="account-orders-preview__id">{order.id}</p>
+                        <p className="account-orders-preview__time">{formatOrderTime(order.createdAt)}</p>
+                      </div>
+                      <span className="tm-tag">{getOrderStatusLabel(order.status)}</span>
+                    </div>
+
+                    <div className="account-orders-preview__items">
+                      {order.items.slice(0, 2).map((item) => (
+                        <div className="orders-line" key={item.id}>
+                          <div className="orders-line__info">
+                            <p className="orders-line__name">{item.productName}</p>
+                            <p className="orders-line__meta">
+                              单价 {formatCurrency(item.productPrice)} · 数量 {item.quantity}
+                            </p>
+                          </div>
+                          <p className="orders-line__total">{formatCurrency(item.lineTotal)}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="account-orders-preview__footer">
+                      <p className="account-orders-preview__amount">{formatCurrency(order.totalAmount)}</p>
+                      <Link href="/orders" className="orders-section__link">
+                        查看详情 ›
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
 
           <section id="password-section" className="password-form">

@@ -113,7 +113,7 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
 
       <div className="cart-breadcrumb">
         <Link href="/">首页</Link>
-        <span>/</span>
+        <span className="separator">/</span>
         <span className="current">购物车</span>
       </div>
 
@@ -145,12 +145,22 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
                         <div className="qty-selector">
                           <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</button>
                           <span className="qty-selector__value">{item.quantity}</span>
-                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                          <button
+                            disabled={item.quantity >= item.inventory}
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            type="button"
+                          >
+                            +
+                          </button>
                         </div>
-                        <span className="cart-item__total">{formatCurrency(item.price * item.quantity)}</span>
+                        <div className="text-right">
+                          <span className="cart-item__total">{formatCurrency(item.price * item.quantity)}</span>
+                          <p className="mt-1 text-xs text-slate-400">库存 {item.inventory} 件</p>
+                        </div>
                       </div>
                     </div>
                     <button
+                      aria-label={`删除${item.name}`}
                       className="cart-item__delete"
                       type="button"
                       onClick={() => removeItem(item.id)}
@@ -288,8 +298,8 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
               <span>运费</span>
               <span className="order-summary__shipping">下单后确认</span>
             </div>
-            <div className="order-summary__divider"></div>
-            <div className="order-summary__total-row">
+            <div className="order-summary__divider" />
+            <div className="order-summary__row order-summary__row--total">
               <span className="order-summary__total-label">合计</span>
               <span className="order-summary__total-value">{formatCurrency(subtotal)}</span>
             </div>
@@ -303,7 +313,7 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
             <ul className="info-card__list">
               <li>1. 请先确认购物车商品和数量无误</li>
               <li>2. 填写完整的收货信息后提交订单</li>
-              <li>3. 提交成功后可在"我的订单"查看记录</li>
+              <li>3. 提交成功后可在&quot;我的订单&quot;查看记录</li>
               <li>4. 如库存不足，系统会明确提示失败原因</li>
             </ul>
           </div>
@@ -317,19 +327,19 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
 
             <div className="info-card__links">
               {settings.supportPhone ? (
-                <a href={`tel:${settings.supportPhone}`} className="info-link info-link--phone">
+                <a href={`tel:${settings.supportPhone}`} className="info-link info-link--orange">
                   <Phone size={17} />
                   <span>{settings.supportPhone}</span>
                 </a>
               ) : null}
               {settings.supportEmail ? (
-                <a href={`mailto:${settings.supportEmail}`} className="info-link info-link--email">
+                <a href={`mailto:${settings.supportEmail}`} className="info-link info-link--blue">
                   <Mail size={17} />
                   <span>{settings.supportEmail}</span>
                 </a>
               ) : null}
               {settings.orderLink ? (
-                <a href={settings.orderLink} rel="noreferrer" target="_blank" className="info-link info-link--external">
+                <a href={settings.orderLink} rel="noreferrer" target="_blank" className="info-link info-link--gray">
                   <span>{settings.orderLink}</span>
                   <ExternalLink className="shrink-0" size={13} />
                 </a>

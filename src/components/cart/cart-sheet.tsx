@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 import { useCart } from "@/components/cart/cart-provider";
 import { formatCurrency } from "@/lib/format";
@@ -15,6 +17,17 @@ export function CartSheet() {
     subtotal,
     updateQuantity,
   } = useCart();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname === "/cart" && isOpen) {
+      closeCart();
+    }
+  }, [closeCart, isOpen, pathname]);
+
+  if (pathname === "/cart") {
+    return null;
+  }
 
   return (
     <>

@@ -3,8 +3,110 @@ import Link from "next/link";
 import { getSessionUser } from "@/lib/auth";
 import { isDatabaseConfigured, readOrdersByUserId } from "@/lib/database";
 import { formatCurrency } from "@/lib/format";
+import type { Order } from "@/types/store";
 
 export const dynamic = "force-dynamic";
+
+function getOrderStatusMeta(status: string) {
+  const normalizedStatus = status.toUpperCase();
+
+  switch (normalizedStatus) {
+    case "PENDING":
+      return {
+        label: "待处理",
+        className: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200",
+      };
+    case "PAID":
+      return {
+        label: "已支付",
+        className: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
+      };
+    case "SHIPPED":
+      return {
+        label: "已发货",
+        className: "bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200",
+      };
+    case "COMPLETED":
+      return {
+        label: "已完成",
+        className: "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200",
+      };
+    case "CANCELLED":
+      return {
+        label: "已取消",
+        className: "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-200",
+      };
+    default:
+      return {
+        label: status,
+        className: "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200",
+      };
+  }
+}
+
+function formatOrderTime(value: string) {
+  return new Date(value).toLocaleString("zh-CN", {
+    hour12: false,
+  });
+}
+
+function OrderCard({ order }: { order: Order }) {
+  const statusMeta = getOrderStatusMeta(order.status);
+
+  return (
+    <article className="orders-card">
+      <div className="orders-card__top">
+        <div className="orders-card__meta">
+          <p className="orders-card__kicker">Order</p>
+          <h2 className="orders-card__id">{order.id}</h2>
+          <p className="orders-card__time">下单时间: {formatOrderTime(order.createdAt)}</p>
+        </div>
+        <div className="orders-card__summary">
+          <span className={`orders-card__status ${statusMeta.className}`}>
+            {statusMeta.label}
+          </span>
+          <div className="orders-card__total">
+            <p className="orders-card__total-label">Total</p>
+            <p className="orders-card__total-value">{formatCurrency(order.totalAmount)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="orders-card__content">
+        <div className="orders-card__items">
+          {order.items.map((item) => (
+            <div className="orders-line" key={item.id}>
+              <div className="orders-line__info">
+                <p className="orders-line__name">{item.productName}</p>
+                <p className="orders-line__meta">
+                  单价 {formatCurrency(item.productPrice)} · 数量 {item.quantity}
+                </p>
+              </div>
+              <p className="orders-line__total">{formatCurrency(item.lineTotal)}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="orders-card__aside">
+          <section className="orders-block orders-block--muted">
+            <p className="orders-block__title">收货信息</p>
+            <div className="orders-block__body">
+              <p>收货人: {order.receiverName}</p>
+              <p>电话: {order.receiverPhone}</p>
+              <p>邮箱: {order.receiverEmail}</p>
+              <p>地址: {order.receiverAddress}</p>
+            </div>
+          </section>
+
+          <section className="orders-block">
+            <p className="orders-block__title">订单备注</p>
+            <p className="orders-block__body">{order.note || "暂无备注"}</p>
+          </section>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export default async function OrdersPage() {
   const user = await getSessionUser();
@@ -42,88 +144,51 @@ export default async function OrdersPage() {
   }
 
   const orders = await readOrdersByUserId(user.id);
+  const totalSpent = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const latestOrder = orders[0];
 
   return (
-    <div className="tm-shell flex flex-col gap-6 py-8 lg:gap-8 lg:py-14">
-      <section className="rounded-[32px] bg-slate-950 px-6 py-8 text-white shadow-[0_22px_50px_rgba(15,23,42,0.18)] sm:px-8">
-        <p className="tm-kicker text-slate-300">Orders</p>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">我的订单</h1>
-        <p className="mt-3 text-sm leading-7 text-slate-300 sm:text-base">
-          已登录账号: {user.email}
-        </p>
+    <div className="tm-shell orders-page">
+      <section className="orders-hero">
+        <div className="orders-hero__inner">
+          <div className="orders-hero__content">
+            <p className="tm-kicker text-slate-300">Orders</p>
+            <h1 className="orders-hero__title">我的订单</h1>
+            <p className="orders-hero__desc">已登录账号: {user.email}</p>
+          </div>
+          <div className="orders-stats">
+            <div className="orders-stat">
+              <p className="orders-stat__label">订单数</p>
+              <p className="orders-stat__value">{orders.length}</p>
+            </div>
+            <div className="orders-stat">
+              <p className="orders-stat__label">累计金额</p>
+              <p className="orders-stat__value">{formatCurrency(totalSpent)}</p>
+            </div>
+            <div className="orders-stat">
+              <p className="orders-stat__label">最近下单</p>
+              <p className="orders-stat__value orders-stat__value--time">
+                {latestOrder ? formatOrderTime(latestOrder.createdAt) : "暂无记录"}
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="space-y-5">
+      <section className="orders-list">
         {orders.length === 0 ? (
-          <div className="tm-panel border-dashed p-8 text-center">
-            <p className="text-lg font-medium text-slate-900">你还没有订单</p>
-            <p className="mt-2 text-sm text-slate-500">去首页挑选商品后，在购物车页面完成下单。</p>
+          <div className="orders-empty">
+            <p className="orders-empty__title">你还没有订单</p>
+            <p className="orders-empty__desc">去首页挑选商品后，在购物车页面完成下单。</p>
             <Link
-              className="mt-5 inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+              className="orders-empty__action"
               href="/"
             >
               去逛商城
             </Link>
           </div>
         ) : (
-          orders.map((order) => (
-            <article
-              className="tm-panel p-6 sm:p-7"
-              key={order.id}
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="text-sm text-slate-500">订单号</p>
-                  <h2 className="mt-1 break-all text-xl font-semibold text-slate-950">{order.id}</h2>
-                  <p className="mt-2 text-sm text-slate-500">
-                    下单时间: {new Date(order.createdAt).toLocaleString("zh-CN")}
-                  </p>
-                </div>
-                <div className="rounded-[22px] bg-slate-100 px-4 py-3 text-left sm:text-right">
-                  <p className="text-sm text-slate-500">订单状态</p>
-                  <p className="mt-1 text-sm font-medium text-slate-900">{order.status}</p>
-                  <p className="mt-2 text-xl font-semibold text-slate-950">
-                    {formatCurrency(order.totalAmount)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-                <div className="space-y-3">
-                  {order.items.map((item: {
-                    id: string;
-                    productName: string;
-                    productPrice: number;
-                    quantity: number;
-                    lineTotal: number;
-                  }) => (
-                    <div className="tm-muted-panel flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between" key={item.id}>
-                      <div>
-                        <p className="font-medium text-slate-900">{item.productName}</p>
-                        <p className="mt-1 text-sm text-slate-500">
-                          {formatCurrency(item.productPrice)} x {item.quantity}
-                        </p>
-                      </div>
-                      <span className="text-left text-sm font-semibold text-slate-900 sm:text-right">
-                        {formatCurrency(item.lineTotal)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="rounded-[24px] bg-slate-50 p-5">
-                  <p className="text-sm text-slate-500">收货信息</p>
-                  <div className="mt-3 space-y-2 text-sm text-slate-700">
-                    <p>收货人: {order.receiverName}</p>
-                    <p>电话: {order.receiverPhone}</p>
-                    <p>邮箱: {order.receiverEmail}</p>
-                    <p>地址: {order.receiverAddress}</p>
-                    <p>备注: {order.note || "无"}</p>
-                  </div>
-                </div>
-              </div>
-            </article>
-          ))
+          orders.map((order) => <OrderCard key={order.id} order={order} />)
         )}
       </section>
     </div>
