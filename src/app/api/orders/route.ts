@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { getSessionUser } from "@/lib/auth";
+import { getCurrentCustomerProfile } from "@/lib/auth/customer";
 import { createOrderRecord, isDatabaseConfigured } from "@/lib/database";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const currentUser = await getSessionUser();
+  const currentUser = await getCurrentCustomerProfile();
 
   if (!currentUser) {
     return Response.json({ message: "请先登录后再下单。" }, { status: 401 });

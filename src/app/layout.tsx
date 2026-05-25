@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 
@@ -31,7 +32,9 @@ export default async function RootLayout({
       <body className="min-h-full bg-[#f6f7fb] text-gray-800">
         <AntdRegistry>
           <AppProviders>
-            <SiteHeader currentUser={currentUser} isMobile={isMobile} storeName={store.settings.storeName} />
+            <Suspense fallback={<div className="h-14 w-full bg-white border-b border-[#f0f0f0]" />}>
+              <SiteHeader currentUser={currentUser} isMobile={isMobile} storeName={store.settings.storeName} />
+            </Suspense>
             <main className={isMobile ? "pb-20" : "main--desktop"}>{children}</main>
             {isMobile ? (
               <footer className="tm-shell pb-24 pt-10 text-center text-xs text-gray-400">

@@ -124,19 +124,39 @@ function ProductCard({ product, isMobile }: { product: Product; isMobile: boolea
   );
 }
 
-export function StoreShell({ initialData, isMobile }: { initialData: StoreData; isMobile: boolean }) {
+export function StoreShell({
+  initialData,
+  isMobile,
+  searchQuery = "",
+}: {
+  initialData: StoreData;
+  isMobile: boolean;
+  searchQuery?: string;
+}) {
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
   const [, contextHolder] = message.useMessage();
 
   const products = useMemo(() => {
     return initialData.products.filter((product) => {
+      // 1. 关键词筛选
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matchName = product.name.toLowerCase().includes(q);
+        const matchBrand = product.brand.toLowerCase().includes(q);
+        const matchDesc = product.description?.toLowerCase().includes(q);
+        if (!matchName && !matchBrand && !matchDesc) {
+          return false;
+        }
+      }
+
+      // 2. 分类组筛选
       return initialData.filterGroups.every((group) => {
         const selectedOptionId = selectedFilters[group.id];
         if (!selectedOptionId) return true;
         return product.filterOptionIds.includes(selectedOptionId);
       });
     });
-  }, [selectedFilters, initialData.filterGroups, initialData.products]);
+  }, [selectedFilters, initialData.filterGroups, initialData.products, searchQuery]);
 
   const filterGroups = initialData.filterGroups.filter((g) => g.isActive !== false);
 

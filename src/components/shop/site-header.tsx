@@ -4,8 +4,8 @@ import { Badge, Dropdown } from "antd";
 import type { MenuProps } from "antd";
 import { LogOut, Search, ShoppingBag, ShoppingCart, Store, User } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { useCart } from "@/components/cart/cart-provider";
 import type { CustomerProfile } from "@/types/store";
@@ -20,11 +20,16 @@ export function SiteHeader({
   isMobile: boolean;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { itemCount, toggleCart } = useCart();
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue, setSearchValue] = useState(searchParams?.get("query") || "");
   const [loggingOut, setLoggingOut] = useState(false);
   const isCartPage = pathname === "/cart";
+
+  useEffect(() => {
+    setSearchValue(searchParams?.get("query") || "");
+  }, [searchParams]);
 
   const submitSearch = () => {
     const keyword = searchValue.trim();

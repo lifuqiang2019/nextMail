@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { getSessionUser } from "@/lib/auth";
+import { getCurrentCustomerProfile } from "@/lib/auth/customer";
 import { isDatabaseConfigured, readOrdersByUserId } from "@/lib/database";
 import { formatCurrency } from "@/lib/format";
 import type { Order } from "@/types/store";
@@ -125,7 +125,7 @@ function OrderCard({ order }: { order: Order }) {
 }
 
 export default async function OrdersPage() {
-  const user = await getSessionUser();
+  const user = await getCurrentCustomerProfile();
 
   if (!isDatabaseConfigured()) {
     return (
