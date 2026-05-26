@@ -5,8 +5,10 @@ import { Button, message } from "antd";
 import { ExternalLink, Mail, MapPinned, MessageCircle, Phone } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 import { useCart } from "@/components/cart/cart-provider";
+import { useLocale } from "@/components/providers/locale-provider";
 import { useAuth } from "@/components/providers/auth-provider";
 import { formatCurrency } from "@/lib/format";
 import type { CheckoutFormData, StoreSettings } from "@/types/store";
@@ -27,6 +29,8 @@ const EMPTY_FORM: CheckoutFormState = {
 };
 
 export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellProps) {
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const { items, subtotal, updateQuantity, removeItem, clearCart } = useCart();
@@ -49,23 +53,23 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
     event.preventDefault();
 
     if (!databaseConfigured) {
-      messageApi.error("当前未配置数据库，暂时无法提交订单。");
+      messageApi.error(t("checkout.messageDbNotConfigured"));
       return;
     }
 
     if (isLoading) {
-      messageApi.info("正在确认登录状态，请稍后再试。");
+      messageApi.info(t("checkout.messageCheckingLogin"));
       return;
     }
 
     if (!user) {
-      messageApi.error("请先登录后再下单。");
+      messageApi.error(t("checkout.messageLoginRequired"));
       router.push("/auth");
       return;
     }
 
     if (items.length === 0) {
-      messageApi.warning("购物车为空，先去挑选商品吧。");
+      messageApi.warning(t("checkout.messageEmptyCart"));
       return;
     }
 
@@ -93,15 +97,15 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
       const data = (await response.json()) as { message?: string; orderId?: string };
 
       if (!response.ok) {
-        throw new Error(data.message || "下单失败，请稍后重试。");
+        throw new Error(data.message || t("checkout.messageOrderFailed"));
       }
 
       clearCart();
-      messageApi.success({ content: "下单成功，正在跳转订单页。", duration: 1.5 });
+      messageApi.success({ content: t("checkout.messageOrderSuccess"), duration: 1.5 });
       router.push("/orders");
       router.refresh();
     } catch (error) {
-      messageApi.error(error instanceof Error ? error.message : "下单失败，请稍后重试。");
+      messageApi.error(error instanceof Error ? error.message : t("checkout.messageOrderFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -112,23 +116,27 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
       {contextHolder}
 
       <div className="cart-breadcrumb">
-        <Link href="/">首页</Link>
+        <Link href="/">{t("common.home")}</Link>
         <span className="separator">/</span>
-        <span className="current">购物车</span>
+        <span className="current">{t("checkout.breadcrumbCurrent")}</span>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-6">
         <div className="space-y-4">
           <section className="cart-section">
             <header className="cart-section__header">
-              购物车商品（共 {items.reduce((s, i) => s + i.quantity, 0)} 件）
+              {t("checkout.cartItemsHeader", {
+                count: items.reduce((s, i) => s + i.quantity, 0),
+              })}
             </header>
-            
+
             {items.length === 0 ? (
               <div className="empty-state">
                 <span className="text-4xl mb-3">🛒</span>
-                <p className="empty-state__title">购物车是空的</p>
-                <Link href="/" className="btn-cart inline-block">去逛逛</Link>
+                <p className="empty-state__title">{t("checkout.cartEmptyTitle")}</p>
+                <Link href="/" className="btn-cart inline-block">
+                  {t("checkout.browseNow")}
+                </Link>
               </div>
             ) : (
               <div className="space-y-2">
@@ -140,7 +148,9 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
                     />
                     <div className="cart-item__info">
                       <h3 className="cart-item__name">{item.name}</h3>
-                      <p className="cart-item__price">{formatCurrency(item.price)} / 件</p>
+                      <p className="cart-item__price">
+                        {formatCurrency(item.price, locale)} {t("checkout.perItem")}
+                      </p>
                       <div className="cart-item__bottom">
                         <div className="qty-selector">
                           <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</button>
@@ -154,13 +164,17 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
                           </button>
                         </div>
                         <div className="text-right">
-                          <span className="cart-item__total">{formatCurrency(item.price * item.quantity)}</span>
-                          <p className="mt-1 text-xs text-slate-400">库存 {item.inventory} 件</p>
+                          <span className="cart-item__total">
+                            {formatCurrency(item.price * item.quantity, locale)}
+                          </span>
+                          <p className="mt-1 text-xs text-slate-400">
+                            {t("checkout.stockCount", { count: item.inventory })}
+                          </p>
                         </div>
                       </div>
                     </div>
                     <button
-                      aria-label={`删除${item.name}`}
+                      aria-label={t("checkout.receiverDeleteAria", { name: item.name })}
                       className="cart-item__delete"
                       type="button"
                       onClick={() => removeItem(item.id)}
@@ -176,51 +190,53 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
           <section className="checkout-form">
             <header className="checkout-form__header">
               <p className="checkout-form__kicker">Checkout</p>
-              <h2 className="checkout-form__title">填写收货信息</h2>
+              <h2 className="checkout-form__title">{t("checkout.shippingTitle")}</h2>
               <p className="checkout-form__desc">
-                下单后会自动生成订单记录，你可以在订单页查看自己的订单。
+                {t("checkout.shippingDesc")}
               </p>
             </header>
 
             {!databaseConfigured ? (
               <div className="alert alert--warning">
-                当前还没有配置 `NEXTMAIL_DATABASE_URL`（或 `DATABASE_URL`），现在只能浏览商品和购物车，暂时无法真正提交订单。
+                {t("checkout.dbNotConfigured")}
               </div>
             ) : isLoading ? (
               <div className="alert alert--info">
-                正在确认登录状态...
+                {t("checkout.checkingLogin")}
               </div>
             ) : !user ? (
               <div className="alert alert--default">
-                <p>提交订单前需要先登录账号，登录后会自动带出你的联系邮箱。</p>
-                <Link href="/auth" className="btn-cart mt-3">去登录</Link>
+                <p>{t("checkout.loginRequiredDesc")}</p>
+                <Link href="/auth" className="btn-cart mt-3">
+                  {t("checkout.goLogin")}
+                </Link>
               </div>
             ) : (
               <div className="alert alert--success">
-                当前已登录：{user.email}
+                {t("checkout.loggedInAs", { email: user.email })}
               </div>
             )}
 
             <form onSubmit={submitOrder}>
               <div className="grid gap-3.5 sm:grid-cols-2">
                 <label className="block space-y-1.5">
-                  <span className="auth-form-label">收货人</span>
+                  <span className="auth-form-label">{t("checkout.receiverName")}</span>
                   <input
                     className="checkout-input"
                     disabled={!databaseConfigured || isSubmitting}
                     onChange={(event) => updateField("receiverName", event.target.value)}
-                    placeholder="请输入收货人姓名"
+                    placeholder={t("checkout.receiverNamePlaceholder")}
                     required
                     value={formData.receiverName ?? user?.name ?? ""}
                   />
                 </label>
                 <label className="block space-y-1.5">
-                  <span className="auth-form-label">联系电话</span>
+                  <span className="auth-form-label">{t("checkout.receiverPhone")}</span>
                   <input
                     className="checkout-input"
                     disabled={!databaseConfigured || isSubmitting}
                     onChange={(event) => updateField("receiverPhone", event.target.value)}
-                    placeholder="请输入手机号或联系电话"
+                    placeholder={t("checkout.receiverPhonePlaceholder")}
                     required
                     value={formData.receiverPhone}
                   />
@@ -228,12 +244,12 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
               </div>
 
               <label className="block space-y-1.5">
-                <span className="auth-form-label">联系邮箱</span>
+                <span className="auth-form-label">{t("checkout.receiverEmail")}</span>
                 <input
                   className="checkout-input"
                   disabled={!databaseConfigured || isSubmitting}
                   onChange={(event) => updateField("receiverEmail", event.target.value)}
-                  placeholder="请输入联系邮箱"
+                  placeholder={t("checkout.receiverEmailPlaceholder")}
                   required
                   type="email"
                   value={formData.receiverEmail ?? user?.email ?? ""}
@@ -241,25 +257,25 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
               </label>
 
               <label className="block space-y-1.5">
-                <span className="auth-form-label">收货地址</span>
+                <span className="auth-form-label">{t("checkout.receiverAddress")}</span>
                 <textarea
                   className="checkout-input min-h-24"
                   disabled={!databaseConfigured || isSubmitting}
                   onChange={(event) => updateField("receiverAddress", event.target.value)}
-                  placeholder="请输入详细收货地址"
+                  placeholder={t("checkout.receiverAddressPlaceholder")}
                   required
                   value={formData.receiverAddress}
                 />
               </label>
 
               <label className="block space-y-1.5">
-                <span className="auth-form-label">订单备注</span>
+                <span className="auth-form-label">{t("checkout.note")}</span>
                 <textarea
                   className="checkout-input min-h-22"
                   disabled={!databaseConfigured || isSubmitting}
                   maxLength={200}
                   onChange={(event) => updateField("note", event.target.value)}
-                  placeholder="如有配送时间、颜色尺码补充说明，可写在这里"
+                  placeholder={t("checkout.notePlaceholder")}
                   value={formData.note}
                 />
               </label>
@@ -274,14 +290,14 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
                 type="primary"
               >
                 {!databaseConfigured
-                  ? "当前不可下单"
+                  ? t("checkout.submitUnavailable")
                   : isLoading
-                    ? "确认登录状态中..."
+                    ? t("checkout.submitChecking")
                     : !user
-                      ? "请先登录后下单"
+                      ? t("checkout.submitLoginRequired")
                       : items.length === 0
-                        ? "购物车是空的"
-                        : "提交订单"}
+                        ? t("checkout.submitEmptyCart")
+                        : t("checkout.submitOrder")}
               </Button>
             </form>
           </section>
@@ -289,39 +305,39 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <div className="order-summary">
-            <header className="order-summary__header">订单摘要</header>
+            <header className="order-summary__header">{t("checkout.orderSummary")}</header>
             <div className="order-summary__row">
-              <span>商品总价</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>{t("common.productSubtotal")}</span>
+              <span>{formatCurrency(subtotal, locale)}</span>
             </div>
             <div className="order-summary__row">
-              <span>运费</span>
-              <span className="order-summary__shipping">下单后确认</span>
+              <span>{t("common.shippingFee")}</span>
+              <span className="order-summary__shipping">{t("common.shippingPending")}</span>
             </div>
             <div className="order-summary__divider" />
             <div className="order-summary__row order-summary__row--total">
-              <span className="order-summary__total-label">合计</span>
-              <span className="order-summary__total-value">{formatCurrency(subtotal)}</span>
+              <span className="order-summary__total-label">{t("common.total")}</span>
+              <span className="order-summary__total-value">{formatCurrency(subtotal, locale)}</span>
             </div>
           </div>
 
           <div className="info-card info-card--guide">
             <header className="info-card__header">
               <MessageCircle size={17} />
-              <h3>购买说明</h3>
+              <h3>{t("checkout.purchaseGuide")}</h3>
             </header>
             <ul className="info-card__list">
-              <li>1. 请先确认购物车商品和数量无误</li>
-              <li>2. 填写完整的收货信息后提交订单</li>
-              <li>3. 提交成功后可在&quot;我的订单&quot;查看记录</li>
-              <li>4. 如库存不足，系统会明确提示失败原因</li>
+              <li>{t("checkout.guide1")}</li>
+              <li>{t("checkout.guide2")}</li>
+              <li>{t("checkout.guide3")}</li>
+              <li>{t("checkout.guide4")}</li>
             </ul>
           </div>
 
           <div className="info-card info-card--contact">
             <header className="info-card__header">
               <MapPinned size={17} />
-              <h3>商家联系信息</h3>
+              <h3>{t("checkout.merchantContact")}</h3>
             </header>
             <p className="info-card__desc">{settings.purchaseGuide}</p>
 

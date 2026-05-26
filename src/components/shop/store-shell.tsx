@@ -5,16 +5,33 @@ import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties, MouseEvent } from "react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
+import { useLocale } from "@/components/providers/locale-provider";
 import { useCart } from "@/components/cart/cart-provider";
+import { formatCurrency } from "@/lib/format";
 import type { FilterGroup, Product, StoreData } from "@/types/store";
 
-function calcDiscount(original: number, current: number) {
+function calcDiscountMeta(original: number, current: number) {
   if (!original || original <= current) return null;
-  return Math.round((1 - current / original) * 10);
+
+  return {
+    rate: Math.round((current / original) * 10),
+    percentOff: Math.round((1 - current / original) * 100),
+  };
 }
 
-function ProductCard({ product, isMobile }: { product: Product; isMobile: boolean }) {
+function ProductCard({
+  product,
+  isMobile,
+  prioritizeImage = false,
+}: {
+  product: Product;
+  isMobile: boolean;
+  prioritizeImage?: boolean;
+}) {
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   const { addItem } = useCart();
   const [adding, setAdding] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -30,7 +47,7 @@ function ProductCard({ product, isMobile }: { product: Product; isMobile: boolea
 
     setAdding(true);
     addItem(product);
-    message.success({ content: `"${product.name}" 已加入购物车`, duration: 1.5 });
+    message.success({ content: t("store.addSuccess", { name: product.name }), duration: 1.5 });
 
     setTimeout(() => {
       setDots((prev) => prev.filter((d) => d.id !== dotId));
@@ -39,7 +56,7 @@ function ProductCard({ product, isMobile }: { product: Product; isMobile: boolea
     setTimeout(() => setAdding(false), 800);
   };
 
-  const discount = product.originalPrice ? calcDiscount(product.originalPrice, product.price) : null;
+  const discount = product.originalPrice ? calcDiscountMeta(product.originalPrice, product.price) : null;
 
   return (
     <div className="product-card">
@@ -63,6 +80,8 @@ function ProductCard({ product, isMobile }: { product: Product; isMobile: boolea
           <Image
             alt={product.name}
             fill
+            fetchPriority={prioritizeImage ? "high" : undefined}
+            loading={prioritizeImage ? "eager" : undefined}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             src={product.imageUrl || "https://via.placeholder.com/400x300?text=No+Image"}
             style={{ objectFit: "cover" }}
@@ -70,43 +89,47 @@ function ProductCard({ product, isMobile }: { product: Product; isMobile: boolea
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[#d0d0d0] text-sm">
-            暂无图片
+            {t("store.noImage")}
           </div>
         )}
-        
-        {/* 折扣标签 */}
+
         {discount && (
-          <div style={{ position: 'absolute', left: 10, top: 10 }}>
-            <span className="tag-discount">{discount}折</span>
+          <div style={{ position: "absolute", left: 10, top: 10 }}>
+            <span className="tag-discount">
+              {locale === "zh-CN"
+                ? t("store.discountRate", { rate: discount.rate })
+                : t("store.discountOff", { percent: discount.percentOff })}
+            </span>
           </div>
         )}
-        
-        {/* 徽章标签 */}
+
         {product.badge && (
-          <div style={{ position: 'absolute', left: 10, top: 40 }}>
+          <div style={{ position: "absolute", left: 10, top: 40 }}>
             <span className="tag-badge">{product.badge}</span>
           </div>
         )}
-        
-        {/* 库存标签 */}
-        <div style={{ position: 'absolute', right: 10, bottom: 10 }}>
-          <span className="tag-stock">库存 {product.inventory}</span>
+
+        <div style={{ position: "absolute", right: 10, bottom: 10 }}>
+          <span className="tag-stock">{t("store.inventory", { count: product.inventory })}</span>
         </div>
       </div>
 
-      {/* 商品信息区域 */}
       <div className="product-card__info">
-        <p className="product-card__brand">{product.brand} / {product.colorway}</p>
+        <p className="product-card__brand">
+          {product.brand} / {product.colorway}
+        </p>
         <p className="product-card__name">{product.name}</p>
 
         <div className="product-card__price">
-          <span className="product-card__price-current">¥{product.price}</span>
+          <span className="product-card__price-current">{formatCurrency(product.price, locale)}</span>
           {product.originalPrice && (
-            <span className="product-card__price-original">¥{product.originalPrice}</span>
+            <span className="product-card__price-original">
+              {formatCurrency(product.originalPrice, locale)}
+            </span>
           )}
         </div>
 
-        <p className="product-card__sizes">尺码：{product.sizes.join(" / ")}</p>
+        <p className="product-card__sizes">{t("store.sizes", { sizes: product.sizes.join(" / ") })}</p>
 
         <div className="product-card__action">
           <button
@@ -116,7 +139,7 @@ function ProductCard({ product, isMobile }: { product: Product; isMobile: boolea
             type="button"
           >
             <ShoppingCart size={14} strokeWidth={2} />
-            {adding ? "已加入" : "加入购物车"}
+            {adding ? t("store.added") : t("store.addToCart")}
           </button>
         </div>
       </div>
@@ -133,8 +156,10 @@ export function StoreShell({
   isMobile: boolean;
   searchQuery?: string;
 }) {
+  const { t } = useTranslation();
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
   const [, contextHolder] = message.useMessage();
+  const eagerImageCount = isMobile ? 0 : 4;
 
   const products = useMemo(() => {
     return initialData.products.filter((product) => {
@@ -192,107 +217,112 @@ export function StoreShell({
           <div className="store-hero__stats">
             <div className="store-hero__stat">
               <span className="store-hero__stat-value">{initialData.products.length}</span>
-              <span className="store-hero__stat-label">在售商品</span>
+              <span className="store-hero__stat-label">{t("store.productsOnSale")}</span>
             </div>
             <div className="store-hero__stat">
               <span className="store-hero__stat-value">{filterGroups.length}</span>
-              <span className="store-hero__stat-label">筛选维度</span>
+              <span className="store-hero__stat-label">{t("store.filterDimensions")}</span>
             </div>
             <div className="store-hero__stat">
               <span className="store-hero__stat-value">{products.length}</span>
-              <span className="store-hero__stat-label">当前展示</span>
+              <span className="store-hero__stat-label">{t("store.currentDisplay")}</span>
             </div>
           </div>
         </section>
       ) : null}
 
       <div className={isMobile ? undefined : "store-layout"}>
-      {/* 筛选区域 */}
-      <section className={`filter-section${isMobile ? "" : " filter-section--sidebar"}`}>
-        {!isMobile ? (
-          <header className="filter-header filter-header--sidebar">
-            <h2 className="filter-title">商品筛选</h2>
-            {hasActiveFilters ? (
-              <span className="filter-active-badge">已选 {activeFilterCount} 项</span>
-            ) : null}
-          </header>
-        ) : null}
+        <section className={`filter-section${isMobile ? "" : " filter-section--sidebar"}`}>
+          {!isMobile ? (
+            <header className="filter-header filter-header--sidebar">
+              <h2 className="filter-title">{t("store.filterTitle")}</h2>
+              {hasActiveFilters ? (
+                <span className="filter-active-badge">{t("store.selectedCount", { count: activeFilterCount })}</span>
+              ) : null}
+            </header>
+          ) : null}
 
-        <div>
-          {filterGroups.map((group) => (
-            <div key={group.id} className="filter-group">
-              <h3 className="filter-label">{group.name}</h3>
-              <div className="filter-options">
-                <button
-                  className={`filter-btn${!selectedFilters[group.id] ? ' filter-btn--active' : ''}`}
-                  onClick={() => selectFilter(group)}
-                  type="button"
-                >
-                  全部
-                </button>
-                {group.options.filter((o) => o.isActive !== false).map((option) => (
+          <div>
+            {filterGroups.map((group) => (
+              <div key={group.id} className="filter-group">
+                <h3 className="filter-label">{group.name}</h3>
+                <div className="filter-options">
                   <button
-                    key={option.id}
-                    className={`filter-btn${selectedFilters[group.id] === option.id ? ' filter-btn--active' : ''}`}
-                    onClick={() => selectFilter(group, option.id)}
+                    className={`filter-btn${!selectedFilters[group.id] ? " filter-btn--active" : ""}`}
+                    onClick={() => selectFilter(group)}
                     type="button"
                   >
-                    {option.label}
+                    {t("store.allProducts")}
                   </button>
-                ))}
+                  {group.options.filter((o) => o.isActive !== false).map((option) => (
+                    <button
+                      key={option.id}
+                      className={`filter-btn${selectedFilters[group.id] === option.id ? " filter-btn--active" : ""}`}
+                      onClick={() => selectFilter(group, option.id)}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className={isMobile ? undefined : "store-main"}>
+          {!isMobile ? (
+            <div className="store-toolbar">
+              <div>
+                <h2 className="store-toolbar__title">{t("store.toolbarTitle")}</h2>
+                <p className="store-toolbar__desc">
+                  {t("store.toolbarDesc", { count: products.length })}
+                  {activeFilterCount > 0
+                    ? t("store.toolbarSelectedSuffix", { count: activeFilterCount })
+                    : ""}
+                </p>
+              </div>
+              {hasActiveFilters ? (
+                <button
+                  className="filter-clear-btn store-toolbar__clear"
+                  onClick={() => setSelectedFilters({})}
+                  type="button"
+                >
+                  <span>↺</span> {t("common.clearFilters")}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {products.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state__icon">🛒</div>
+              <p className="empty-state__title">{t("store.emptyTitle")}</p>
+              <p className="empty-state__desc">{t("store.emptyDesc")}</p>
+              <div className="empty-state__action">
+                <button
+                  className="tm-btn-primary"
+                  onClick={() => setSelectedFilters({})}
+                  style={{ padding: "10px 28px" }}
+                  type="button"
+                >
+                  {t("common.clearFilters")}
+                </button>
               </div>
             </div>
-          ))}
+          ) : (
+            <div className="product-grid">
+              {products.map((product, index) => (
+                <ProductCard
+                  key={product.id}
+                  isMobile={isMobile}
+                  prioritizeImage={index < eagerImageCount}
+                  product={product}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      </section>
-
-      <div className={isMobile ? undefined : "store-main"}>
-      {!isMobile ? (
-        <div className="store-toolbar">
-          <div>
-            <h2 className="store-toolbar__title">全部商品</h2>
-            <p className="store-toolbar__desc">
-              共 {products.length} 件
-              {activeFilterCount > 0 ? ` · 已选 ${activeFilterCount} 项筛选` : ""}
-            </p>
-          </div>
-          {hasActiveFilters ? (
-            <button
-              className="filter-clear-btn store-toolbar__clear"
-              onClick={() => setSelectedFilters({})}
-              type="button"
-            >
-              <span>↺</span> 清除筛选
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {/* 商品列表 */}
-      {products.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state__icon">🛒</div>
-          <p className="empty-state__title">暂无符合条件的商品</p>
-          <p className="empty-state__desc">试试调整筛选条件，或者清空当前筛选后查看全部商品。</p>
-          <div className="empty-state__action">
-            <button
-              className="tm-btn-primary"
-              onClick={() => setSelectedFilters({})}
-              style={{ padding: '10px 28px' }}
-              type="button"
-            >
-              清除筛选
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="product-grid">
-          {products.map((product) => (
-            <ProductCard key={product.id} isMobile={isMobile} product={product} />
-          ))}
-        </div>
-      )}
-      </div>
       </div>
     </div>
   );

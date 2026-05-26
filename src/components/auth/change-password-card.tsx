@@ -4,32 +4,32 @@ import { Button, Form, Input, message } from "antd";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
-import { formatCurrency } from "@/lib/format";
+import { useLocale } from "@/components/providers/locale-provider";
+import { formatDate, formatCurrency } from "@/lib/format";
 import type { CustomerProfile, Order } from "@/types/store";
 
-function getOrderStatusLabel(status: string) {
+function getOrderStatusLabel(status: string, t: (key: string) => string) {
   switch (status.toUpperCase()) {
     case "PENDING":
-      return "待处理";
+      return t("status.pending");
     case "PAID":
-      return "已支付";
+      return t("status.paid");
     case "SHIPPED":
-      return "已发货";
+      return t("status.shipped");
     case "COMPLETED":
-      return "已完成";
+      return t("status.completed");
     case "CANCELLED":
-      return "已取消";
+      return t("status.cancelled");
     default:
       return status;
   }
 }
 
-function formatOrderTime(value: string) {
-  return new Date(value).toLocaleDateString("zh-CN");
-}
-
 export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; orders: Order[] }) {
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const recentOrders = orders.slice(0, 3);
@@ -46,11 +46,11 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
     });
     const data = await response.json();
     if (!response.ok) {
-      message.error(data.message || "修改失败");
+      message.error(data.message || t("account.changePasswordFailed"));
       setLoading(false);
       return;
     }
-    message.success("密码修改成功！");
+    message.success(t("account.changePasswordSuccess"));
     setLoading(false);
   };
 
@@ -60,15 +60,15 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
       router.push("/");
       router.refresh();
     } catch {
-      message.error("退出失败");
+      message.error(t("account.logoutFailed"));
     }
   };
 
   return (
     <div className="account-page">
       <header className="account-header">
-        <h1 className="account-header__title">账号中心</h1>
-        <p className="account-header__desc">管理个人信息与安全设置</p>
+        <h1 className="account-header__title">{t("account.title")}</h1>
+        <p className="account-header__desc">{t("account.desc")}</p>
       </header>
 
       <div className="account-grid">
@@ -87,15 +87,15 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
             <div className="profile-stats">
               <div>
                 <div className="profile-stat__value">{pendingCount}</div>
-                <div className="profile-stat__label">待处理</div>
+                <div className="profile-stat__label">{t("account.pending")}</div>
               </div>
               <div>
                 <div className="profile-stat__value">{shippedCount}</div>
-                <div className="profile-stat__label">待发货</div>
+                <div className="profile-stat__label">{t("account.shipped")}</div>
               </div>
               <div>
                 <div className="profile-stat__value">{completedCount}</div>
-                <div className="profile-stat__label">已完成</div>
+                <div className="profile-stat__label">{t("account.completed")}</div>
               </div>
             </div>
           </div>
@@ -106,7 +106,7 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
                 <span className="menu-item__icon menu-item__icon--order">
                   📦
                 </span>
-                <span className="menu-item__text">我的订单</span>
+                <span className="menu-item__text">{t("account.myOrders")}</span>
               </div>
               <span className="menu-item__arrow">›</span>
             </Link>
@@ -120,7 +120,7 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
                 <span className="menu-item__icon menu-item__icon--password">
                   🔐
                 </span>
-                <span className="menu-item__text">修改密码</span>
+                <span className="menu-item__text">{t("account.changePassword")}</span>
               </div>
               <span className="menu-item__arrow">›</span>
             </button>
@@ -130,7 +130,7 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
                 <span className="menu-item__icon menu-item__icon--logout">
                   🚪
                 </span>
-                <span className="menu-item__text">退出登录</span>
+                <span className="menu-item__text">{t("common.logout")}</span>
               </div>
               <span className="menu-item__arrow">›</span>
             </button>
@@ -140,18 +140,18 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
         <main>
           <section className="orders-section">
             <header className="orders-section__header">
-              <h2 className="orders-section__title">最近订单</h2>
+              <h2 className="orders-section__title">{t("account.recentOrders")}</h2>
               <Link href="/orders" className="orders-section__link">
-                查看全部 ›
+                {t("account.viewAll")}
               </Link>
             </header>
 
             {recentOrders.length === 0 ? (
               <div className="orders-empty">
-                <p className="orders-empty__title">暂无订单记录</p>
-                <p className="orders-empty__desc">去首页挑选商品后，就可以在这里快速查看最近订单。</p>
+                <p className="orders-empty__title">{t("account.noOrders")}</p>
+                <p className="orders-empty__desc">{t("account.noOrdersDesc")}</p>
                 <Link href="/" className="orders-action">
-                  去购物
+                  {t("account.goShopping")}
                 </Link>
               </div>
             ) : (
@@ -161,9 +161,9 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
                     <div className="account-orders-preview__top">
                       <div className="min-w-0">
                         <p className="account-orders-preview__id">{order.id}</p>
-                        <p className="account-orders-preview__time">{formatOrderTime(order.createdAt)}</p>
+                        <p className="account-orders-preview__time">{formatDate(order.createdAt, locale)}</p>
                       </div>
-                      <span className="tm-tag">{getOrderStatusLabel(order.status)}</span>
+                      <span className="tm-tag">{getOrderStatusLabel(order.status, t)}</span>
                     </div>
 
                     <div className="account-orders-preview__items">
@@ -172,18 +172,23 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
                           <div className="orders-line__info">
                             <p className="orders-line__name">{item.productName}</p>
                             <p className="orders-line__meta">
-                              单价 {formatCurrency(item.productPrice)} · 数量 {item.quantity}
+                              {t("account.unitPriceQuantity", {
+                                price: formatCurrency(item.productPrice, locale),
+                                quantity: item.quantity,
+                              })}
                             </p>
                           </div>
-                          <p className="orders-line__total">{formatCurrency(item.lineTotal)}</p>
+                          <p className="orders-line__total">{formatCurrency(item.lineTotal, locale)}</p>
                         </div>
                       ))}
                     </div>
 
                     <div className="account-orders-preview__footer">
-                      <p className="account-orders-preview__amount">{formatCurrency(order.totalAmount)}</p>
+                      <p className="account-orders-preview__amount">
+                        {formatCurrency(order.totalAmount, locale)}
+                      </p>
                       <Link href="/orders" className="orders-section__link">
-                        查看详情 ›
+                        {t("account.viewDetails")}
                       </Link>
                     </div>
                   </article>
@@ -193,41 +198,41 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
           </section>
 
           <section id="password-section" className="password-form">
-            <h2 className="password-form__title">🔐 修改密码</h2>
-            
+            <h2 className="password-form__title">{t("account.passwordSectionTitle")}</h2>
+
             <Form layout="vertical" onFinish={submit} size="large">
               <Form.Item
-                label={<span className="auth-form-label">当前密码</span>}
+                label={<span className="auth-form-label">{t("account.currentPassword")}</span>}
                 name="currentPassword"
-                rules={[{ required: true, message: "请输入当前密码" }]}
+                rules={[{ required: true, message: t("account.currentPasswordRequired") }]}
               >
-                <Input.Password 
-                  placeholder="请输入当前密码"
+                <Input.Password
+                  placeholder={t("account.currentPasswordPlaceholder")}
                   className="checkout-input"
                 />
               </Form.Item>
-              
+
               <Form.Item
-                label={<span className="auth-form-label">新密码（至少 6 位）</span>}
+                label={<span className="auth-form-label">{t("account.newPasswordLabel")}</span>}
                 name="newPassword"
                 rules={[
-                  { required: true, message: "请输入新密码" }, 
-                  { min: 6, message: "密码至少 6 位" }
+                  { required: true, message: t("account.newPasswordRequired") },
+                  { min: 6, message: t("auth.passwordMin") },
                 ]}
               >
-                <Input.Password 
-                  placeholder="请输入新密码"
+                <Input.Password
+                  placeholder={t("account.newPasswordPlaceholder")}
                   className="checkout-input"
                 />
               </Form.Item>
-              
+
               <Button
                 className="auth-submit-btn"
                 htmlType="submit"
                 loading={loading}
                 type="primary"
               >
-                保存新密码
+                {t("account.saveNewPassword")}
               </Button>
             </Form>
           </section>

@@ -5,11 +5,15 @@ import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 
 import { useCart } from "@/components/cart/cart-provider";
+import { useLocale } from "@/components/providers/locale-provider";
 import { formatCurrency } from "@/lib/format";
 
 export function CartSheet() {
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   const {
     clearCart,
     closeCart,
@@ -66,7 +70,7 @@ export function CartSheet() {
         onClick={closeCart}
       />
       <aside
-        aria-label="购物车抽屉"
+        aria-label={t("cartSheet.ariaLabel")}
         aria-modal="true"
         className="fixed top-0 right-0 z-50 flex h-full w-full max-w-[460px] flex-col overflow-hidden border-l border-slate-200/80 bg-[linear-gradient(180deg,#f8fafc_0%,#ffffff_100%)] shadow-[0_26px_60px_rgba(15,23,42,0.28)]"
         role="dialog"
@@ -81,16 +85,18 @@ export function CartSheet() {
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
                   Shopping Bag
                 </p>
-                <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">购物车</h2>
+                <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">
+                  {t("cartSheet.title")}
+                </h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
                   {itemCount > 0
-                    ? `已加入 ${skuCount} 款商品，共 ${itemCount} 件，可在这里修改或结算。`
-                    : "先挑几件喜欢的商品，加入购物车后会在这里统一确认。"}
+                    ? t("cartSheet.filledDesc", { skuCount, itemCount })
+                    : t("cartSheet.emptyDesc")}
                 </p>
               </div>
             </div>
             <button
-              aria-label="关闭购物车"
+              aria-label={t("cartSheet.closeAria")}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
               onClick={closeCart}
               type="button"
@@ -101,16 +107,24 @@ export function CartSheet() {
 
           <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             <div className="rounded-none border border-slate-200/60 bg-white/50 px-3 py-3.5 shadow-sm backdrop-blur-sm">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">款数</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                {t("cartSheet.skuCount")}
+              </p>
               <p className="mt-1.5 text-xl font-black text-slate-950">{skuCount}</p>
             </div>
             <div className="rounded-none border border-slate-200/60 bg-white/50 px-3 py-3.5 shadow-sm backdrop-blur-sm">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">件数</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                {t("cartSheet.itemCount")}
+              </p>
               <p className="mt-1.5 text-xl font-black text-slate-950">{itemCount}</p>
             </div>
             <div className="col-span-2 rounded-none border border-orange-200/80 bg-orange-50/80 px-3 py-3.5 shadow-sm sm:col-span-1">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-400">预估小计</p>
-              <p className="mt-1.5 text-base font-black text-orange-600">{formatCurrency(subtotal)}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-400">
+                {t("cartSheet.estimatedSubtotal")}
+              </p>
+              <p className="mt-1.5 text-base font-black text-orange-600">
+                {formatCurrency(subtotal, locale)}
+              </p>
             </div>
           </div>
 
@@ -122,7 +136,7 @@ export function CartSheet() {
                 onClick={clearCart}
                 type="button"
               >
-                清空购物车
+                {t("cartSheet.clearCart")}
               </button>
             </div>
           ) : null}
@@ -134,9 +148,11 @@ export function CartSheet() {
               <div className="flex h-20 w-20 items-center justify-center rounded-none bg-slate-50 text-slate-400 shadow-inner">
                 <ShoppingBag size={32} strokeWidth={1.5} />
               </div>
-              <h3 className="mt-6 text-xl font-black tracking-tight text-slate-950">购物车空空如也</h3>
+              <h3 className="mt-6 text-xl font-black tracking-tight text-slate-950">
+                {t("cartSheet.emptyTitle")}
+              </h3>
               <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-slate-400">
-                这里的商品还在等待你的挑选。<br />加入喜欢的款式，开启你的购物之旅吧。
+                {t("cartSheet.emptyPrompt")}
               </p>
               <div className="mt-6 flex w-full flex-col gap-3">
                 <Link
@@ -144,14 +160,14 @@ export function CartSheet() {
                   href="/"
                   onClick={closeCart}
                 >
-                  去逛商城
+                  {t("common.browseStore")}
                 </Link>
                 <button
                   className="rounded-none border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
                   onClick={closeCart}
                   type="button"
                 >
-                  先关闭抽屉
+                  {t("cartSheet.closeDrawer")}
                 </button>
               </div>
             </div>
@@ -160,11 +176,15 @@ export function CartSheet() {
               <div className="sticky top-0 z-10 rounded-none border border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-950">已选商品</p>
-                    <p className="mt-1 text-xs leading-5 text-slate-600">可以直接在这里增减数量或移除商品。</p>
+                    <p className="text-sm font-semibold text-slate-950">{t("cartSheet.selectedItems")}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">
+                      {t("cartSheet.selectedItemsDesc")}
+                    </p>
                   </div>
                   <div className="rounded-none bg-slate-100 px-3 py-2 text-left sm:text-right">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">总件数</p>
+                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+                      {t("cartSheet.totalCount")}
+                    </p>
                     <p className="mt-1 text-sm font-bold text-slate-950">{itemCount}</p>
                   </div>
                 </div>
@@ -192,7 +212,7 @@ export function CartSheet() {
                           </h3>
                           <div className="mt-2.5 flex flex-wrap items-center gap-2">
                             <span className="inline-flex items-center rounded-none bg-slate-50 px-2 py-1 text-[11px] font-bold text-slate-500 ring-1 ring-inset ring-slate-200/50">
-                              {formatCurrency(item.price)}
+                              {formatCurrency(item.price, locale)}
                             </span>
                             <span className="inline-flex items-center rounded-none bg-slate-50 px-2 py-1 text-[11px] font-bold text-slate-500 ring-1 ring-inset ring-slate-200/50">
                               x {item.quantity}
@@ -204,7 +224,7 @@ export function CartSheet() {
                             ) : null}
                             {item.inventory <= 3 ? (
                               <span className="inline-flex items-center rounded-none bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700">
-                                库存紧张
+                                {t("cartSheet.inventoryLow")}
                               </span>
                             ) : null}
                           </div>
@@ -215,7 +235,7 @@ export function CartSheet() {
                           type="button"
                         >
                           <Trash2 size={14} />
-                          删除
+                          {t("common.delete")}
                         </button>
                       </div>
 
@@ -243,15 +263,17 @@ export function CartSheet() {
                             </button>
                           </div>
                           <p className="mt-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                            {item.inventory <= 3 ? `仅剩 ${item.inventory} 件` : `库存充足`}
+                            {item.inventory <= 3
+                              ? t("cartSheet.inventoryOnlyLeft", { count: item.inventory })
+                              : t("cartSheet.inventoryAvailable")}
                           </p>
                         </div>
                         <div className="rounded-none bg-slate-50 px-3 py-2 text-left sm:bg-transparent sm:px-0 sm:py-0 sm:text-right">
                           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-                            小计
+                            {t("cartSheet.lineSubtotal")}
                           </p>
                           <p className="mt-1 text-xl font-black tracking-tight text-slate-950">
-                            {formatCurrency(item.price * item.quantity)}
+                            {formatCurrency(item.price * item.quantity, locale)}
                           </p>
                         </div>
                       </div>
@@ -269,20 +291,24 @@ export function CartSheet() {
         >
           <div className="rounded-none border border-white/10 bg-[linear-gradient(135deg,#0f172a_0%,#1e293b_100%)] p-5 text-white shadow-[0_20px_40px_rgba(15,23,42,0.25)]">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-              <span>商品小计</span>
-              <span className="text-slate-200">{formatCurrency(subtotal)}</span>
+              <span>{t("cartSheet.productSubtotal")}</span>
+              <span className="text-slate-200">{formatCurrency(subtotal, locale)}</span>
             </div>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-orange-400/80">应付预览</p>
-                <p className="mt-1 text-3xl font-black tracking-tight text-white">{formatCurrency(subtotal)}</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-orange-400/80">
+                  {t("cartSheet.payablePreview")}
+                </p>
+                <p className="mt-1 text-3xl font-black tracking-tight text-white">
+                  {formatCurrency(subtotal, locale)}
+                </p>
               </div>
               <span className="inline-flex w-fit rounded-none border border-white/10 bg-white/10 px-3 py-1.5 text-[11px] font-bold text-slate-300 backdrop-blur-md">
-                {skuCount} 款 · {itemCount} 件
+                {skuCount} · {itemCount}
               </span>
             </div>
             <div className="mt-4 rounded-none border border-white/5 bg-white/5 px-3.5 py-3 text-[11px] leading-relaxed text-slate-400">
-              <span className="font-bold text-slate-300">说明：</span>运费与优惠将在结算页计算，当前仅为商品总额。
+              {t("cartSheet.summaryNote")}
             </div>
           </div>
 
@@ -292,7 +318,7 @@ export function CartSheet() {
               href="/cart"
               onClick={closeCart}
             >
-              去结算页
+              {t("cartSheet.goCheckout")}
               <ArrowRight size={16} />
             </Link>
             <button
@@ -301,7 +327,7 @@ export function CartSheet() {
               onClick={clearCart}
               type="button"
             >
-              清空当前购物车
+              {t("cartSheet.clearCurrentCart")}
             </button>
           </div>
         </div>

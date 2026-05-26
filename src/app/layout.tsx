@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 
+import { getRequestLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ShoeMall Pro - 潮流球鞋商城",
-  description: "覆盖篮球鞋、复古跑鞋与潮流穿搭，支持前台登录与后台管理。",
+  title: "ShoeMall Pro",
+  description: "Trendy sneaker storefront with customer checkout and admin management.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getRequestLocale();
+
   return (
-    <html lang="zh-CN" className="h-full antialiased" data-scroll-behavior="smooth">
+    <html lang={locale} className="h-full antialiased" data-scroll-behavior="smooth">
       <body className="min-h-full bg-[#f6f7fb] text-gray-800">
         <AntdRegistry>{children}</AntdRegistry>
       </body>
