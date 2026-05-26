@@ -11,6 +11,17 @@ import {
 } from "@/lib/auth/session";
 import type { AdminProfile } from "@/types/store";
 
+export function isRecoverableAdminAuthError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const fullMessage = `${error.name}\n${error.message}\n${String((error as { cause?: unknown }).cause ?? "")}`;
+  return /DriverAdapterError|pool timeout|max_connections_per_hour|failed to retrieve a connection|does not exist|doesn't exist|P2021/i.test(
+    fullMessage,
+  );
+}
+
 export async function createAdminSession(userId: string) {
   const token = createSessionToken();
   const expiresAt = createSessionExpiry();
@@ -40,9 +51,15 @@ async function deleteAdminSessionRecord(token: string | undefined) {
 export async function destroyAdminSession() {
   const token = await getCookieToken(ADMIN_SESSION_COOKIE);
 
-  await deleteAdminSessionRecord(token);
-
-  await clearAuthCookie(ADMIN_SESSION_COOKIE);
+  try {
+    await deleteAdminSessionRecord(token);
+  } catch (error) {
+    if (!isRecoverableAdminAuthError(error)) {
+      throw error;
+    }
+  } finally {
+    await clearAuthCookie(ADMIN_SESSION_COOKIE);
+  }
 }
 
 export async function getCurrentAdminProfile(): Promise<AdminProfile | null> {
@@ -51,23 +68,31 @@ export async function getCurrentAdminProfile(): Promise<AdminProfile | null> {
     return null;
   }
 
-  const session = await prisma.adminSession.findUnique({
-    where: { token },
-    include: { user: true },
-  });
+  try {
+    const session = await prisma.adminSession.findUnique({
+      where: { token },
+      include: { user: true },
+    });
 
-  if (!session || session.expiresAt < new Date() || !session.user.isActive) {
-    // Reading auth state during page render must stay read-only for cookies.
-    await deleteAdminSessionRecord(token);
-    return null;
+    if (!session || session.expiresAt < new Date() || !session.user.isActive) {
+      // Reading auth state during page render must stay read-only for cookies.
+      await deleteAdminSessionRecord(token);
+      return null;
+    }
+
+    return {
+      id: session.user.id,
+      username: session.user.username,
+      displayName: session.user.displayName,
+      email: session.user.email,
+    };
+  } catch (error) {
+    if (isRecoverableAdminAuthError(error)) {
+      return null;
+    }
+
+    throw error;
   }
-
-  return {
-    id: session.user.id,
-    username: session.user.username,
-    displayName: session.user.displayName,
-    email: session.user.email,
-  };
 }
 
 export async function requireAdminProfile() {

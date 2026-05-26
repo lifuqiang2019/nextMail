@@ -5,8 +5,8 @@ import { readAdminDashboardData } from "@/lib/store";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [admin, data] = await Promise.all([requireAdminProfile(), readAdminDashboardData()]);
+  const admin = await requireAdminProfile();
+  const data = await readAdminDashboardData();
 
   return <AdminConsole admin={admin} initialData={JSON.parse(JSON.stringify(data))} />;
 }
-
