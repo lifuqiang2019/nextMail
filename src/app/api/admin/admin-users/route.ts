@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   if (!body.username || !body.displayName || !body.password) {
-    return NextResponse.json({ message: "请填写账号、显示名和密码" }, { status: 400 });
+    return NextResponse.json({ message: "Please provide username, display name, and password." }, { status: 400 });
   }
 
   const admin = await prisma.adminUser.create({

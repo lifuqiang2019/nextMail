@@ -15,11 +15,11 @@ export function AdminLoginCard() {
     });
     const data = await response.json();
     if (!response.ok) {
-      message.error(data.message || "登录失败");
+      message.error(data.message || "Sign-in failed");
       setLoading(false);
       return;
     }
-    message.success("管理员登录成功");
+    message.success("Admin signed in successfully");
     window.location.assign("/admin");
   };
 
@@ -27,19 +27,19 @@ export function AdminLoginCard() {
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <Card styles={{ body: { padding: 32 } }}>
-          <Typography.Title level={2}>后台登录</Typography.Title>
+          <Typography.Title level={2}>Admin Sign In</Typography.Title>
           <Typography.Paragraph type="secondary">
-            初始账号为 `admin`，初始密码为 `admin123`。登录后可在后台新增或修改管理员账号。
+            The default account is `admin` and the default password is `admin123`. After signing in, you can add or edit admin accounts.
           </Typography.Paragraph>
           <Form layout="vertical" onFinish={submit} size="large">
-            <Form.Item label="账号" name="username" rules={[{ required: true, message: "请输入账号" }]}>
+            <Form.Item label="Username" name="username" rules={[{ required: true, message: "Please enter a username" }]}>
               <Input placeholder="admin" />
             </Form.Item>
-            <Form.Item label="密码" name="password" rules={[{ required: true, message: "请输入密码" }]}>
-              <Input.Password placeholder="请输入密码" />
+            <Form.Item label="Password" name="password" rules={[{ required: true, message: "Please enter a password" }]}>
+              <Input.Password placeholder="Enter your password" />
             </Form.Item>
             <Button block htmlType="submit" loading={loading} type="primary">
-              登录后台
+              Sign In to Admin
             </Button>
           </Form>
         </Card>

@@ -121,7 +121,7 @@ export async function createOrderRecord(
     });
 
     if (products.length !== productIds.length) {
-      throw new Error("部分商品不存在或已下架。");
+      throw new Error("Some products do not exist or are no longer available.");
     }
 
     const productMap = new Map(products.map((product) => [product.id, product]));
@@ -129,11 +129,11 @@ export async function createOrderRecord(
       const product = productMap.get(item.id);
 
       if (!product) {
-        throw new Error("部分商品不存在或已下架。");
+        throw new Error("Some products do not exist or are no longer available.");
       }
 
       if (product.inventory < item.quantity) {
-        throw new Error(`${product.name} 库存不足。`);
+        throw new Error(`${product.name} is out of stock for the requested quantity.`);
       }
 
       const productPrice = Number(product.price);

@@ -54,7 +54,7 @@ export function CustomerAuthCard({
       <header className="auth-header">
         <p className="auth-header__kicker">{t("auth.kicker")}</p>
         <h1 className="auth-header__title">
-          {title || t("auth.welcome", { storeName: process.env.NEXT_PUBLIC_STORE_NAME || "商城" })}
+          {title || t("auth.welcome", { storeName: process.env.NEXT_PUBLIC_STORE_NAME || "Store" })}
         </h1>
         <p className="auth-header__desc">
           {description || t("auth.desc")}

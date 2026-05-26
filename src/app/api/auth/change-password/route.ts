@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(request: Request) {
   const user = await getCurrentCustomerProfile();
   if (!user) {
-    return NextResponse.json({ message: "请先登录" }, { status: 401 });
+    return NextResponse.json({ message: "Please sign in first." }, { status: 401 });
   }
 
   const { currentPassword, newPassword } = (await request.json()) as {
@@ -16,17 +16,17 @@ export async function POST(request: Request) {
   };
 
   if (!currentPassword || !newPassword || newPassword.length < 6) {
-    return NextResponse.json({ message: "请填写完整信息，新密码至少 6 位" }, { status: 400 });
+    return NextResponse.json({ message: "Please complete all fields. The new password must be at least 6 characters." }, { status: 400 });
   }
 
   const dbUser = await prisma.customerUser.findUnique({ where: { id: user.id } });
   if (!dbUser) {
-    return NextResponse.json({ message: "用户不存在" }, { status: 404 });
+    return NextResponse.json({ message: "User not found." }, { status: 404 });
   }
 
   const valid = await verifyPassword(currentPassword, dbUser.passwordHash);
   if (!valid) {
-    return NextResponse.json({ message: "当前密码不正确" }, { status: 400 });
+    return NextResponse.json({ message: "The current password is incorrect." }, { status: 400 });
   }
 
   await prisma.customerUser.update({

@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         create: Array.isArray(body.options)
           ? body.options.map((option: Record<string, unknown>, index: number) => ({
               id: String(option.id || crypto.randomUUID()),
-              label: String(option.label || `选项 ${index + 1}`),
+              label: String(option.label || `Option ${index + 1}`),
               value: String(option.value || index + 1),
               sortOrder: Number(option.sortOrder || index + 1),
               isActive: Boolean(option.isActive ?? true),
@@ -59,7 +59,7 @@ export async function PATCH(request: Request) {
       ? body.options.map((option: Record<string, unknown>, index: number) => ({
           id: String(option.id || crypto.randomUUID()),
           groupId: String(body.id),
-          label: String(option.label || `选项 ${index + 1}`),
+          label: String(option.label || `Option ${index + 1}`),
           value: String(option.value || index + 1),
           sortOrder: Number(option.sortOrder || index + 1),
           isActive: Boolean(option.isActive ?? true),

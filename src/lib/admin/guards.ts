@@ -8,7 +8,7 @@ export async function ensureAdminApiAccess() {
   if (!admin) {
     return {
       admin: null,
-      response: NextResponse.json({ message: "未登录或登录已过期" }, { status: 401 }),
+      response: NextResponse.json({ message: "Not signed in or session has expired." }, { status: 401 }),
     };
   }
 

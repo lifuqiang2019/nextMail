@@ -10,35 +10,35 @@ export async function POST(request: Request) {
     const { email, password } = (await request.json()) as { email?: string; password?: string };
 
     if (!email || !password) {
-      return NextResponse.json({ message: "请输入邮箱和密码" }, { status: 400 });
+      return NextResponse.json({ message: "Please enter your email and password." }, { status: 400 });
     }
 
     const user = await prisma.customerUser.findUnique({
       where: { email: normalizeEmail(email) },
     });
     if (!user || !user.isActive) {
-      return NextResponse.json({ message: "账号不存在或已停用" }, { status: 404 });
+      return NextResponse.json({ message: "The account does not exist or has been disabled." }, { status: 404 });
     }
 
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
-      return NextResponse.json({ message: "密码错误" }, { status: 401 });
+      return NextResponse.json({ message: "Incorrect password." }, { status: 401 });
     }
 
     await createCustomerSession(user.id);
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof SyntaxError) {
-      return NextResponse.json({ message: "请求体不是合法的 JSON" }, { status: 400 });
+      return NextResponse.json({ message: "The request body is not valid JSON." }, { status: 400 });
     }
 
     if (isRecoverableCustomerAuthError(error)) {
       return NextResponse.json(
-        { message: "当前数据库连接异常，暂时无法登录，请稍后再试。" },
+        { message: "The database is temporarily unavailable, so sign-in cannot be completed right now. Please try again later." },
         { status: 503 },
       );
     }
 
-    return NextResponse.json({ message: "登录失败，请稍后重试。" }, { status: 500 });
+    return NextResponse.json({ message: "Sign-in failed. Please try again later." }, { status: 500 });
   }
 }

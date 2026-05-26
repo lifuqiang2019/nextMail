@@ -21,7 +21,7 @@ export function CartSidebar() {
       title={
         <div className="flex items-center gap-2">
           <ShoppingCart size={20} style={{ color: "#ff5000" }} />
-          <span className="text-base font-semibold">我的购物车</span>
+          <span className="text-base font-semibold">My Cart</span>
           {items.length > 0 && (
             <span className="ml-2 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white">
               {items.reduce((s, i) => s + i.quantity, 0)}
@@ -35,7 +35,7 @@ export function CartSidebar() {
       footer={
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">合计（不含运费）</span>
+            <span className="text-gray-500">Subtotal (shipping excluded)</span>
             <span className="text-xl font-bold text-red-500">{formatCurrency(subtotal)}</span>
           </div>
           <button
@@ -44,7 +44,7 @@ export function CartSidebar() {
             onClick={goCheckout}
             type="button"
           >
-            去结算
+            Go to Checkout
           </button>
         </div>
       }
@@ -52,13 +52,13 @@ export function CartSidebar() {
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-gray-400">
           <ShoppingCart size={56} strokeWidth={1} />
-          <p className="mt-4 text-base">购物车是空的</p>
+          <p className="mt-4 text-base">Your cart is empty</p>
           <button
             className="mt-4 rounded-full border border-orange-400 px-6 py-2 text-sm font-medium text-orange-500 transition hover:border-orange-500 hover:bg-orange-50"
             onClick={closeCart}
             type="button"
           >
-            继续逛逛
+            Continue Shopping
           </button>
         </div>
       ) : (
@@ -71,7 +71,7 @@ export function CartSidebar() {
               />
               <div className="flex flex-1 flex-col justify-between overflow-hidden">
                 <p className="tm-pretty line-clamp-2 text-sm font-medium leading-6 text-slate-900">{item.name}</p>
-                <p className="mt-0.5 text-xs text-gray-400">{formatCurrency(item.price)} / 件</p>
+                <p className="mt-0.5 text-xs text-gray-400">{formatCurrency(item.price)} / item</p>
                 <div className="mt-1 flex items-center justify-between">
                   <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-1 py-1">
                     <button
@@ -95,7 +95,7 @@ export function CartSidebar() {
                     onClick={() => removeItem(item.id)}
                     type="button"
                   >
-                    删除
+                    Remove
                   </button>
                 </div>
               </div>
@@ -106,7 +106,7 @@ export function CartSidebar() {
             onClick={clearCart}
             type="button"
           >
-            清空购物车
+            Clear Cart
           </button>
         </div>
       )}

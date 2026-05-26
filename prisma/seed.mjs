@@ -31,8 +31,8 @@ async function readSeedSource() {
   const categories = rawCategories
     .map((category, index) => ({
       id: sanitizeText(category?.id, `cat-${index + 1}`),
-      name: sanitizeText(category?.name, `分类 ${index + 1}`),
-      description: sanitizeText(category?.description, "待补充分类描述。"),
+      name: sanitizeText(category?.name, `Category ${index + 1}`),
+      description: sanitizeText(category?.description, "Category description coming soon."),
     }))
     .filter((category, index, list) => list.findIndex((item) => item.id === category.id) === index);
 
@@ -45,7 +45,7 @@ async function readSeedSource() {
 
       return {
         id: sanitizeText(product?.id, `prod-${index + 1}`),
-        name: sanitizeText(product?.name, `商品 ${index + 1}`),
+        name: sanitizeText(product?.name, `Product ${index + 1}`),
         categoryId: categories.some((category) => category.id === categoryId)
           ? categoryId
           : defaultCategoryId,
@@ -53,7 +53,7 @@ async function readSeedSource() {
         originalPrice: originalPrice > 0 ? Math.max(originalPrice, price) : null,
         badge: sanitizeText(product?.badge) || null,
         inventory: Math.max(Math.round(sanitizeNumber(product?.inventory, 0)), 0),
-        description: sanitizeText(product?.description, "待补充商品描述。"),
+        description: sanitizeText(product?.description, "Product description coming soon."),
       };
     })
     .filter((product, index, list) => list.findIndex((item) => item.id === product.id) === index);
@@ -61,10 +61,10 @@ async function readSeedSource() {
   return {
     settings: {
       storeName: sanitizeText(parsed?.settings?.storeName, "NextMail Mall"),
-      heroTitle: sanitizeText(parsed?.settings?.heroTitle, "品质好物，一站购齐"),
+      heroTitle: sanitizeText(parsed?.settings?.heroTitle, "Great picks, all in one place"),
       heroSubtitle: sanitizeText(
         parsed?.settings?.heroSubtitle,
-        "在同一个 Next 项目里同时提供商城前台、购物车和后台配置能力。",
+        "A single Next project that includes the storefront, cart, and an admin dashboard.",
       ),
     },
     categories: categories.length > 0
@@ -72,8 +72,8 @@ async function readSeedSource() {
       : [
           {
             id: "cat-default",
-            name: "默认分类",
-            description: "用于兜底的商品分类。",
+            name: "Default Category",
+            description: "A fallback category used when no category data is provided.",
           },
         ],
     products,

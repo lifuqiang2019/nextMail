@@ -46,7 +46,7 @@ export async function DELETE(request: Request) {
   const { id } = (await request.json()) as { id: string };
   const linkedCount = await prisma.product.count({ where: { categoryId: id } });
   if (linkedCount > 0) {
-    return NextResponse.json({ message: "请先移除该分类下的商品" }, { status: 400 });
+    return NextResponse.json({ message: "Please remove products from this category first." }, { status: 400 });
   }
   await prisma.category.delete({ where: { id } });
   return NextResponse.json({ ok: true });

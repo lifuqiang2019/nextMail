@@ -1,11 +1,151 @@
 import type { StoreData } from "@/types/store";
+import type { AppLocale } from "@/lib/i18n/config";
 
-export const fallbackStore: StoreData = {
+export const fallbackStoreEn: StoreData = {
+  settings: {
+    storeName: "ShoeMall Pro",
+    heroTitle: "A mobile-first sneaker shop",
+    heroSubtitle:
+      "Customer sign-up/login on the storefront, and an admin console for products, filters, and store settings.",
+    heroNotice:
+      "Filters can be configured in admin. Customers can contact the merchant using the order link and contact info on the order page.",
+    supportEmail: "support@shoemall.local",
+    supportPhone: "400-820-2026",
+    purchaseGuide:
+      "After placing an order, take a screenshot of the order page and contact the merchant using the info shown on the page to confirm size, stock, and shipping details.",
+    orderLink: "https://shoemall.example.com/order/contact",
+  },
+  categories: [
+    {
+      id: "cat-shoes",
+      name: "Shoes",
+      slug: "shoes",
+      description: "Basketball, running, and retro sneakers.",
+      sortOrder: 1,
+      isActive: true,
+    },
+    {
+      id: "cat-apparel",
+      name: "Apparel",
+      slug: "apparel",
+      description: "Jerseys, hoodies, and tees for your fit.",
+      sortOrder: 2,
+      isActive: true,
+    },
+  ],
+  filterGroups: [
+    {
+      id: "fg-shoes-price",
+      name: "Shoe Price",
+      slug: "shoes-price",
+      description: "Admin-configured price filters for shoes.",
+      sortOrder: 1,
+      isActive: true,
+      options: [
+        { id: "fo-shoes-5", groupId: "fg-shoes-price", label: "$5", value: "5", sortOrder: 1, isActive: true },
+        { id: "fo-shoes-7", groupId: "fg-shoes-price", label: "$7", value: "7", sortOrder: 2, isActive: true },
+        { id: "fo-shoes-10", groupId: "fg-shoes-price", label: "$10", value: "10", sortOrder: 3, isActive: true },
+      ],
+    },
+    {
+      id: "fg-apparel-price",
+      name: "Apparel Price",
+      slug: "apparel-price",
+      description: "Admin-configured price filters for apparel.",
+      sortOrder: 2,
+      isActive: true,
+      options: [
+        { id: "fo-apparel-5", groupId: "fg-apparel-price", label: "$5", value: "5", sortOrder: 1, isActive: true },
+        { id: "fo-apparel-7", groupId: "fg-apparel-price", label: "$7", value: "7", sortOrder: 2, isActive: true },
+        { id: "fo-apparel-10", groupId: "fg-apparel-price", label: "$10", value: "10", sortOrder: 3, isActive: true },
+      ],
+    },
+  ],
+  products: [
+    {
+      id: "prod-aj1-low",
+      name: "Air Jordan 1 Low SE",
+      slug: "air-jordan-1-low-se",
+      sku: "AJ1LOWSE-553558",
+      brand: "Jordan",
+      categoryId: "cat-shoes",
+      price: 7,
+      originalPrice: 10,
+      badge: "Hot",
+      inventory: 36,
+      description: "A classic low-top silhouette for daily streetwear and a great storefront demo item.",
+      imageUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80",
+      sizes: ["39", "40", "41", "42", "43", "44"],
+      colorway: "White/Red/Black",
+      featured: true,
+      status: "ACTIVE",
+      filterOptionIds: ["fo-shoes-7"],
+    },
+    {
+      id: "prod-kd17",
+      name: "Nike KD 17 EP",
+      slug: "nike-kd-17-ep",
+      sku: "KD17EP-FJ9488",
+      brand: "Nike",
+      categoryId: "cat-shoes",
+      price: 10,
+      originalPrice: 12,
+      badge: "New",
+      inventory: 24,
+      description: "A performance-ready basketball sneaker, perfect for showcasing admin-configured filtering.",
+      imageUrl: "https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?auto=format&fit=crop&w=1200&q=80",
+      sizes: ["40", "41", "42", "43", "44", "45"],
+      colorway: "Blue/Orange",
+      featured: true,
+      status: "ACTIVE",
+      filterOptionIds: ["fo-shoes-10"],
+    },
+    {
+      id: "prod-tee-oversize",
+      name: "Oversize Logo Tee",
+      slug: "oversize-logo-tee",
+      sku: "TEE-OVER-1001",
+      brand: "ShoeMall",
+      categoryId: "cat-apparel",
+      price: 5,
+      originalPrice: 7,
+      badge: "Fit",
+      inventory: 48,
+      description: "An easy-going oversize tee that pairs well with sneakers.",
+      imageUrl: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80",
+      sizes: ["S", "M", "L", "XL"],
+      colorway: "White",
+      featured: false,
+      status: "ACTIVE",
+      filterOptionIds: ["fo-apparel-5"],
+    },
+    {
+      id: "prod-hoodie-classic",
+      name: "Classic Street Hoodie",
+      slug: "classic-street-hoodie",
+      sku: "HOOD-CL-2002",
+      brand: "ShoeMall",
+      categoryId: "cat-apparel",
+      price: 7,
+      originalPrice: 10,
+      badge: "Hoodie",
+      inventory: 22,
+      description: "A classic street hoodie for fall/winter fits.",
+      imageUrl: "https://images.unsplash.com/photo-1503342394128-c104d54dba01?auto=format&fit=crop&w=1200&q=80",
+      sizes: ["M", "L", "XL"],
+      colorway: "Dark Gray",
+      featured: true,
+      status: "ACTIVE",
+      filterOptionIds: ["fo-apparel-7"],
+    },
+  ],
+};
+
+export const fallbackStoreZh: StoreData = {
   settings: {
     storeName: "ShoeMall Pro",
     heroTitle: "移动端优先的潮流鞋商城",
-    heroSubtitle:
-      "前台支持邮箱注册登录，后台支持管理员账号管理、过滤条件配置与商品 CRUD。",
+    heroSubtitle: "前台支持邮箱注册登录，后台支持管理员账号管理、过滤条件配置与商品 CRUD。",
     heroNotice: "支持后台灵活配置过滤条件，用户在下单页可直接通过订单链接和联系方式联系商家完成购买。",
     supportEmail: "support@shoemall.local",
     supportPhone: "400-820-2026",
@@ -138,3 +278,9 @@ export const fallbackStore: StoreData = {
     },
   ],
 };
+
+export const fallbackStore = fallbackStoreEn;
+
+export function getFallbackStore(locale: AppLocale): StoreData {
+  return locale === "zh-CN" ? fallbackStoreZh : fallbackStoreEn;
+}

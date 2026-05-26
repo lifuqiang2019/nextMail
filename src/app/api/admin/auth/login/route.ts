@@ -11,17 +11,17 @@ export async function POST(request: Request) {
   };
 
   if (!username || !password) {
-    return NextResponse.json({ message: "请输入账号和密码" }, { status: 400 });
+    return NextResponse.json({ message: "Please enter your username and password." }, { status: 400 });
   }
 
   const user = await prisma.adminUser.findUnique({ where: { username } });
   if (!user || !user.isActive) {
-    return NextResponse.json({ message: "管理员账号不存在或已停用" }, { status: 404 });
+    return NextResponse.json({ message: "The admin account does not exist or has been disabled." }, { status: 404 });
   }
 
   const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) {
-    return NextResponse.json({ message: "密码错误" }, { status: 401 });
+    return NextResponse.json({ message: "Incorrect password." }, { status: 401 });
   }
 
   await createAdminSession(user.id);

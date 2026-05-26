@@ -6,11 +6,11 @@ import { createOrderRecord, isDatabaseConfigured } from "@/lib/database";
 export const dynamic = "force-dynamic";
 
 const createOrderSchema = z.object({
-  receiverName: z.string().trim().min(2, "请填写收货人姓名。"),
-  receiverPhone: z.string().trim().min(6, "请填写联系电话。"),
-  receiverEmail: z.string().email("请填写正确的联系邮箱。"),
-  receiverAddress: z.string().trim().min(6, "请填写收货地址。"),
-  note: z.string().trim().max(200, "备注不能超过 200 字。").optional(),
+  receiverName: z.string().trim().min(2, "Please enter the receiver name."),
+  receiverPhone: z.string().trim().min(6, "Please enter a contact phone number."),
+  receiverEmail: z.string().email("Please enter a valid contact email."),
+  receiverAddress: z.string().trim().min(6, "Please enter the shipping address."),
+  note: z.string().trim().max(200, "Notes must be 200 characters or fewer.").optional(),
   items: z
     .array(
       z.object({
@@ -18,13 +18,13 @@ const createOrderSchema = z.object({
         quantity: z.number().int().positive(),
       }),
     )
-    .min(1, "购物车至少需要 1 件商品。"),
+    .min(1, "Your cart must contain at least one item."),
 });
 
 export async function POST(request: Request) {
   if (!isDatabaseConfigured()) {
     return Response.json(
-      { message: "当前未配置数据库连接串（NEXTMAIL_DATABASE_URL / DATABASE_URL），暂时无法创建订单。" },
+      { message: "Database connection is not configured yet (NEXTMAIL_DATABASE_URL / DATABASE_URL), so orders cannot be created right now." },
       { status: 503 },
     );
   }
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   const currentUser = await getCurrentCustomerProfile();
 
   if (!currentUser) {
-    return Response.json({ message: "请先登录后再下单。" }, { status: 401 });
+    return Response.json({ message: "Please sign in before placing an order." }, { status: 401 });
   }
 
   try {
@@ -45,11 +45,11 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return Response.json({ message: error.issues[0]?.message || "参数错误。" }, { status: 400 });
+      return Response.json({ message: error.issues[0]?.message || "Invalid request parameters." }, { status: 400 });
     }
 
     if (error instanceof SyntaxError) {
-      return Response.json({ message: "请求体不是合法的 JSON。" }, { status: 400 });
+      return Response.json({ message: "The request body is not valid JSON." }, { status: 400 });
     }
 
     if (error instanceof Error) {
@@ -58,12 +58,12 @@ export async function POST(request: Request) {
           error.message,
         )
       ) {
-        return Response.json({ message: "数据库连接繁忙，请稍后重试。" }, { status: 503 });
+        return Response.json({ message: "The database is busy. Please try again later." }, { status: 503 });
       }
 
       return Response.json({ message: error.message }, { status: 400 });
     }
 
-    return Response.json({ message: "创建订单失败，请稍后重试。" }, { status: 500 });
+    return Response.json({ message: "Failed to create the order. Please try again later." }, { status: 500 });
   }
 }

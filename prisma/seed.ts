@@ -1,11 +1,13 @@
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
+loadEnv({ path: ".env.local" });
+loadEnv();
 
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import bcrypt from "bcryptjs";
 
 import { PrismaClient } from "../src/generated/prisma/client";
 import { getDatabaseName, getDatabaseUrl } from "../src/lib/env";
-import { fallbackStore } from "../src/lib/store-defaults";
+import { fallbackStoreEn, fallbackStoreZh } from "../src/lib/store-defaults";
 
 const databaseUrl = getDatabaseUrl();
 const databaseName = getDatabaseName();
@@ -24,18 +26,46 @@ async function main() {
   await prisma.filterOption.deleteMany();
   await prisma.filterGroup.deleteMany();
   await prisma.category.deleteMany();
+  const storeSettingI18n = (prisma as unknown as { storeSettingI18n?: { deleteMany: () => Promise<unknown>; createMany: (args: unknown) => Promise<unknown> } })
+    .storeSettingI18n;
+  if (storeSettingI18n) {
+    await storeSettingI18n.deleteMany();
+  }
 
   await prisma.storeSetting.upsert({
     where: { id: 1 },
-    update: fallbackStore.settings,
+    update: fallbackStoreEn.settings,
     create: {
       id: 1,
-      ...fallbackStore.settings,
+      ...fallbackStoreEn.settings,
     },
   });
 
+  if (storeSettingI18n) {
+    await storeSettingI18n.createMany({
+      data: [
+        {
+          storeId: 1,
+          locale: "en-US",
+          heroTitle: fallbackStoreEn.settings.heroTitle,
+          heroSubtitle: fallbackStoreEn.settings.heroSubtitle,
+          heroNotice: fallbackStoreEn.settings.heroNotice,
+          purchaseGuide: fallbackStoreEn.settings.purchaseGuide,
+        },
+        {
+          storeId: 1,
+          locale: "zh-CN",
+          heroTitle: fallbackStoreZh.settings.heroTitle,
+          heroSubtitle: fallbackStoreZh.settings.heroSubtitle,
+          heroNotice: fallbackStoreZh.settings.heroNotice,
+          purchaseGuide: fallbackStoreZh.settings.purchaseGuide,
+        },
+      ],
+    });
+  }
+
   await prisma.category.createMany({
-    data: fallbackStore.categories.map((category) => ({
+    data: fallbackStoreEn.categories.map((category) => ({
       id: category.id,
       name: category.name,
       slug: category.slug,
@@ -45,7 +75,7 @@ async function main() {
     })),
   });
 
-  for (const group of fallbackStore.filterGroups) {
+  for (const group of fallbackStoreEn.filterGroups) {
     await prisma.filterGroup.create({
       data: {
         id: group.id,
@@ -67,7 +97,7 @@ async function main() {
     });
   }
 
-  for (const product of fallbackStore.products) {
+  for (const product of fallbackStoreEn.products) {
     await prisma.product.create({
       data: {
         id: product.id,
@@ -98,7 +128,7 @@ async function main() {
   await prisma.adminUser.upsert({
     where: { username: "admin" },
     update: {
-      displayName: "系统管理员",
+      displayName: "System Admin",
       email: "admin@shoemall.local",
       passwordHash: adminPasswordHash,
       isActive: true,
@@ -106,7 +136,7 @@ async function main() {
     create: {
       id: crypto.randomUUID(),
       username: "admin",
-      displayName: "系统管理员",
+      displayName: "System Admin",
       email: "admin@shoemall.local",
       passwordHash: adminPasswordHash,
       isActive: true,
