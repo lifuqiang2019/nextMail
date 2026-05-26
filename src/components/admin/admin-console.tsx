@@ -26,7 +26,7 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import type {
   AdminProfile,
@@ -46,6 +46,13 @@ type ModuleKey = "categories" | "filters" | "products" | "admins";
 
 type ProductFormValues = Product & { sizesInput?: string };
 type FilterGroupFormValues = FilterGroup;
+type ProductImageUploadResponse = {
+  fileName: string;
+  url: string;
+  size: string;
+  contentType: string;
+  createdAt: string;
+};
 
 export function AdminConsole({ admin, initialData }: { admin: AdminProfile; initialData: AdminDashboardData }) {
   const [activeKey, setActiveKey] = useState<ModuleKey>("products");
@@ -61,6 +68,9 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [editingFilterId, setEditingFilterId] = useState<string | null>(null);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [productImageUploading, setProductImageUploading] = useState(false);
+  const productImageInputRef = useRef<HTMLInputElement | null>(null);
+  const productImageUrl = Form.useWatch("imageUrl", productForm);
 
   const refreshData = async () => {
     const response = await fetch("/api/admin/bootstrap", { cache: "no-store" });
@@ -135,8 +145,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
   };
 
   const submitProduct = async (values: ProductFormValues) => {
+    const currentImageUrl = productForm.getFieldValue("imageUrl") || productImageUrl || values.imageUrl || "";
     const payload = {
       ...values,
+      imageUrl: currentImageUrl,
       sizes: (values.sizesInput || "")
         .split(",")
         .map((item) => item.trim())
@@ -172,6 +184,48 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     }
     message.success("Product deleted");
     await refreshData();
+  };
+
+  const uploadProductImage = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setProductImageUploading(true);
+    try {
+      const response = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const json = (await response.json()) as Partial<ProductImageUploadResponse> & { message?: string };
+
+      if (!response.ok || !json.url) {
+        message.error(json.message || "Failed to upload image");
+        return;
+      }
+
+      productForm.setFieldValue("imageUrl", String(json.url).trim());
+      message.success("Image uploaded");
+    } catch {
+      message.error("Failed to upload image");
+    } finally {
+      setProductImageUploading(false);
+    }
+  };
+
+  const handleProductImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const [file] = Array.from(event.target.files || []);
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      message.error("Please select an image file");
+      return;
+    }
+
+    await uploadProductImage(file);
   };
 
   const submitAdmin = async (values: {
@@ -516,281 +570,138 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
           ) : null}
         </div>
 
-        <Modal
-          centered
-          destroyOnHidden
-          footer={null}
-          onCancel={() => setCategoryModalOpen(false)}
-          open={categoryModalOpen}
-          rootClassName="tm-admin-modal"
-          title={editingCategoryId ? "Edit Category" : "Add Category"}
-        >
-          <Form
-            className="tm-admin-modal__form"
-            form={categoryForm}
-            layout="vertical"
-            onFinish={submitCategory}
-          >
-            <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-              <Form.Item label="Category Name" name="name" rules={[{ required: true }]}>
-                <Input placeholder="Enter category name" />
-              </Form.Item>
-              <Form.Item label="Slug" name="slug">
-                <Input placeholder="category-slug" />
-              </Form.Item>
-            </div>
-            <Form.Item label="Description" name="description" rules={[{ required: true }]}>
-              <Input.TextArea placeholder="Describe the category" rows={3} />
-            </Form.Item>
-            <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-              <Form.Item initialValue={1} label="Sort Order" name="sortOrder">
-                <InputNumber min={0} />
-              </Form.Item>
-              <Form.Item initialValue={true} label="Active" name="isActive" valuePropName="checked">
-                <Switch />
-              </Form.Item>
-            </div>
-            <div className="tm-admin-modal__actions">
-              <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">
-                Save Category
-              </Button>
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setCategoryModalOpen(false)} open={categoryModalOpen} title={editingCategoryId ? "Edit Category" : "Add Category"}>
+          <Form form={categoryForm} layout="vertical" onFinish={submitCategory}>
+            <Form.Item label="Category Name" name="name" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="Slug" name="slug"><Input /></Form.Item>
+            <Form.Item label="Description" name="description" rules={[{ required: true }]}><Input.TextArea rows={3} /></Form.Item>
+            <Form.Item initialValue={1} label="Sort Order" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+            <Form.Item initialValue={true} label="Active" name="isActive" valuePropName="checked"><Switch /></Form.Item>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+              <Button htmlType="submit" type="primary">Save Category</Button>
             </div>
           </Form>
         </Modal>
 
-        <Modal
-          centered
-          destroyOnHidden
-          footer={null}
-          onCancel={() => setFilterModalOpen(false)}
-          open={filterModalOpen}
-          rootClassName="tm-admin-modal"
-          title={editingFilterId ? "Edit Filter Group" : "Add Filter Group"}
-          width={760}
-        >
-          <Form
-            className="tm-admin-modal__form"
-            form={filterForm}
-            layout="vertical"
-            onFinish={submitFilter}
-          >
-            <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-              <Form.Item label="Filter Group Name" name="name" rules={[{ required: true }]}>
-                <Input placeholder="e.g. Size, Color" />
-              </Form.Item>
-              <Form.Item label="Slug" name="slug">
-                <Input placeholder="filter-slug" />
-              </Form.Item>
-            </div>
-            <Form.Item label="Description" name="description">
-              <Input.TextArea placeholder="Group description" rows={2} />
-            </Form.Item>
-            <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-              <Form.Item initialValue={1} label="Sort Order" name="sortOrder">
-                <InputNumber min={0} />
-              </Form.Item>
-              <Form.Item initialValue={true} label="Active" name="isActive" valuePropName="checked">
-                <Switch />
-              </Form.Item>
-            </div>
-
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setFilterModalOpen(false)} open={filterModalOpen} title={editingFilterId ? "Edit Filter Group" : "Add Filter Group"} width={760}>
+          <Form form={filterForm} layout="vertical" onFinish={submitFilter}>
+            <Form.Item label="Filter Group Name" name="name" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="Slug" name="slug"><Input /></Form.Item>
+            <Form.Item label="Description" name="description"><Input.TextArea rows={2} /></Form.Item>
+            <Form.Item initialValue={1} label="Sort Order" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+            <Form.Item initialValue={true} label="Active" name="isActive" valuePropName="checked"><Switch /></Form.Item>
             <Form.List name="options">
               {(fields, { add, remove }) => (
-                <div className="tm-admin-modal__section">
-                  <div className="tm-admin-modal__section-head">
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
                     <Typography.Text strong>Filter Options</Typography.Text>
-                    <Button
-                      onClick={() => add({ isActive: true, sortOrder: fields.length + 1 })}
-                      size="small"
-                      type="dashed"
-                    >
-                      Add Option
-                    </Button>
+                    <Button onClick={() => add({ isActive: true, sortOrder: fields.length + 1 })}>Add Option</Button>
                   </div>
-                  <div className="mt-4 space-y-4">
+                  <Space orientation="vertical" size={16} style={{ display: "flex" }}>
                     {fields.map((field, index) => (
-                      <Card
-                        className="tm-admin-modal__option-card"
-                        extra={
-                          <Button danger size="small" type="link" onClick={() => remove(field.name)}>
-                            Delete
-                          </Button>
-                        }
-                        key={field.key}
-                        size="small"
-                        title={`Option ${index + 1}`}
-                      >
-                        <Form.Item hidden name={[field.name, "id"]}>
-                          <Input />
-                        </Form.Item>
-                        <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-                          <Form.Item label="Label" name={[field.name, "label"]} rules={[{ required: true }]}>
-                            <Input placeholder="e.g. Red, 42" />
-                          </Form.Item>
-                          <Form.Item label="Value" name={[field.name, "value"]} rules={[{ required: true }]}>
-                            <Input placeholder="e.g. red, 42" />
-                          </Form.Item>
-                        </div>
-                        <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-                          <Form.Item label="Sort Order" name={[field.name, "sortOrder"]}>
-                            <InputNumber min={0} />
-                          </Form.Item>
-                          <Form.Item
-                            initialValue={true}
-                            label="Active"
-                            name={[field.name, "isActive"]}
-                            valuePropName="checked"
-                          >
-                            <Switch />
-                          </Form.Item>
-                        </div>
+                      <Card key={field.key} size="small" title={`Option ${index + 1}`} extra={<Button danger type="link" onClick={() => remove(field.name)}>Delete</Button>}>
+                        <Form.Item hidden name={[field.name, "id"]}><Input /></Form.Item>
+                        <Form.Item label="Label" name={[field.name, "label"]} rules={[{ required: true }]}><Input /></Form.Item>
+                        <Form.Item label="Value" name={[field.name, "value"]} rules={[{ required: true }]}><Input /></Form.Item>
+                        <Form.Item label="Sort Order" name={[field.name, "sortOrder"]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+                        <Form.Item initialValue={true} label="Active" name={[field.name, "isActive"]} valuePropName="checked"><Switch /></Form.Item>
                       </Card>
                     ))}
-                    {fields.length === 0 && (
-                      <div className="py-8 text-center text-gray-400">
-                        No options added yet. Click &quot;Add Option&quot; to begin.
-                      </div>
-                    )}
-                  </div>
+                  </Space>
                 </div>
               )}
             </Form.List>
-
-            <div className="tm-admin-modal__actions">
-              <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">
-                Save Filter Group
-              </Button>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+              <Button htmlType="submit" type="primary">Save Filter Group</Button>
             </div>
           </Form>
         </Modal>
 
-        <Modal
-          centered
-          destroyOnHidden
-          footer={null}
-          onCancel={() => setProductModalOpen(false)}
-          open={productModalOpen}
-          rootClassName="tm-admin-modal"
-          title={editingProductId ? "Edit Product" : "Add Product"}
-          width={860}
-        >
-          <Form
-            className="tm-admin-modal__form"
-            form={productForm}
-            layout="vertical"
-            onFinish={submitProduct}
-          >
-            <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-              <Form.Item label="Product Name" name="name" rules={[{ required: true }]}>
-                <Input placeholder="Enter product name" />
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setProductModalOpen(false)} open={productModalOpen} title={editingProductId ? "Edit Product" : "Add Product"} width={860}>
+          <Form form={productForm} layout="vertical" onFinish={submitProduct}>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Form.Item label="Product Name" name="name" rules={[{ required: true }]}><Input /></Form.Item>
+              <Form.Item label="Brand" name="brand" rules={[{ required: true }]}><Input /></Form.Item>
+              <Form.Item label="Slug" name="slug"><Input /></Form.Item>
+              <Form.Item label="SKU" name="sku"><Input /></Form.Item>
+              <Form.Item label="Category" name="categoryId" rules={[{ required: true }]}><Select options={data.store.categories.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
+              <Form.Item label="Badge" name="badge"><Input /></Form.Item>
+              <Form.Item label="Price" name="price" rules={[{ required: true }]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+              <Form.Item label="Original Price" name="originalPrice"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+              <Form.Item label="Inventory" name="inventory" rules={[{ required: true }]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+              <Form.Item label="Colorway" name="colorway"><Input /></Form.Item>
+              <Form.Item
+                label="Cover Image"
+                required
+                validateStatus={productImageUrl ? undefined : "error"}
+                help={productImageUrl ? undefined : "Please upload a cover image"}
+              >
+                <Space direction="vertical" size={12} style={{ display: "flex", width: "100%" }}>
+                  <Form.Item name="imageUrl" noStyle rules={[{ required: true, message: "Please upload a cover image" }]}>
+                    <Input type="hidden" />
+                  </Form.Item>
+                  <input
+                    ref={productImageInputRef}
+                    accept="image/*"
+                    hidden
+                    onChange={handleProductImageChange}
+                    type="file"
+                  />
+                  <Space wrap>
+                    <Button
+                      loading={productImageUploading}
+                      onClick={() => productImageInputRef.current?.click()}
+                    >
+                      Upload Image
+                    </Button>
+                    <Button
+                      disabled={!productImageUrl || productImageUploading}
+                      onClick={() => productForm.setFieldValue("imageUrl", "")}
+                    >
+                      Clear
+                    </Button>
+                  </Space>
+                  <Input placeholder="Uploaded image URL will appear here" readOnly value={productImageUrl} />
+                  {productImageUrl ? (
+                    <div
+                      style={{
+                        border: "1px solid #f0f0f0",
+                        borderRadius: 12,
+                        overflow: "hidden",
+                        width: "100%",
+                      }}
+                    >
+                      <img
+                        alt="Product cover preview"
+                        src={productImageUrl}
+                        style={{ aspectRatio: "16 / 10", display: "block", objectFit: "cover", width: "100%" }}
+                      />
+                    </div>
+                  ) : null}
+                </Space>
               </Form.Item>
-              <Form.Item label="Brand" name="brand" rules={[{ required: true }]}>
-                <Input placeholder="e.g. Nike, Adidas" />
-              </Form.Item>
-              <Form.Item label="Slug" name="slug">
-                <Input placeholder="product-slug" />
-              </Form.Item>
-              <Form.Item label="SKU" name="sku">
-                <Input placeholder="Unique SKU" />
-              </Form.Item>
-              <Form.Item label="Category" name="categoryId" rules={[{ required: true }]}>
-                <Select
-                  options={data.store.categories.map((item) => ({ label: item.name, value: item.id }))}
-                  placeholder="Select category"
-                />
-              </Form.Item>
-              <Form.Item label="Badge" name="badge">
-                <Input placeholder="e.g. New Arrival, Sale" />
-              </Form.Item>
-              <Form.Item label="Price" name="price" rules={[{ required: true }]}>
-                <InputNumber min={0} />
-              </Form.Item>
-              <Form.Item label="Original Price" name="originalPrice">
-                <InputNumber min={0} />
-              </Form.Item>
-              <Form.Item label="Inventory" name="inventory" rules={[{ required: true }]}>
-                <InputNumber min={0} />
-              </Form.Item>
-              <Form.Item label="Colorway" name="colorway">
-                <Input placeholder="e.g. White/Black" />
-              </Form.Item>
-              <Form.Item label="Cover Image URL" name="imageUrl" rules={[{ required: true }]}>
-                <Input placeholder="https://example.com/image.jpg" />
-              </Form.Item>
-              <Form.Item initialValue="ACTIVE" label="Status" name="status">
-                <Select
-                  options={[
-                    { label: "ACTIVE", value: "ACTIVE" },
-                    { label: "DRAFT", value: "DRAFT" },
-                  ]}
-                />
-              </Form.Item>
+              <Form.Item label="Status" initialValue="ACTIVE" name="status"><Select options={[{ label: "ACTIVE", value: "ACTIVE" }, { label: "DRAFT", value: "DRAFT" }]} /></Form.Item>
             </div>
-            <div className="mt-2 grid grid-cols-1 gap-x-4 md:grid-cols-2">
-              <Form.Item label="Sizes (comma separated)" name="sizesInput">
-                <Input placeholder="39,40,41,42" />
-              </Form.Item>
-              <Form.Item initialValue={false} label="Featured Product" name="featured" valuePropName="checked">
-                <Switch />
-              </Form.Item>
-            </div>
-            <Form.Item label="Filter Bindings" name="filterOptionIds">
-              <Select
-                mode="multiple"
-                options={flatFilterOptions}
-                placeholder="Select the filters that apply to this product"
-              />
-            </Form.Item>
-            <Form.Item label="Description" name="description" rules={[{ required: true }]}>
-              <Input.TextArea placeholder="Enter product description" rows={4} />
-            </Form.Item>
-            <div className="tm-admin-modal__actions">
-              <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">
-                Save Product
-              </Button>
+            <Form.Item label="Sizes (comma separated)" name="sizesInput"><Input placeholder="39,40,41,42" /></Form.Item>
+            <Form.Item label="Filter Bindings" name="filterOptionIds"><Select mode="multiple" options={flatFilterOptions} placeholder="Select the filters that apply to this product" /></Form.Item>
+            <Form.Item initialValue={false} label="Featured Product" name="featured" valuePropName="checked"><Switch /></Form.Item>
+            <Form.Item label="Description" name="description" rules={[{ required: true }]}><Input.TextArea rows={4} /></Form.Item>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+              <Button htmlType="submit" type="primary">Save Product</Button>
             </div>
           </Form>
         </Modal>
 
-        <Modal
-          centered
-          destroyOnHidden
-          footer={null}
-          onCancel={() => setAdminModalOpen(false)}
-          open={adminModalOpen}
-          rootClassName="tm-admin-modal"
-          title="Admin User"
-        >
-          <Form
-            className="tm-admin-modal__form"
-            form={adminForm}
-            layout="vertical"
-            onFinish={submitAdmin}
-          >
-            <Form.Item hidden name="id">
-              <Input />
-            </Form.Item>
-            <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-              <Form.Item label="Username" name="username" rules={[{ required: true }]}>
-                <Input placeholder="Enter username" />
-              </Form.Item>
-              <Form.Item label="Display Name" name="displayName" rules={[{ required: true }]}>
-                <Input placeholder="Enter display name" />
-              </Form.Item>
-            </div>
-            <Form.Item label="Email" name="email">
-              <Input placeholder="admin@example.com" />
-            </Form.Item>
-            <Form.Item label="Password" name="password">
-              <Input.Password placeholder="Leave blank to keep unchanged" />
-            </Form.Item>
-            <Form.Item initialValue={true} label="Active" name="isActive" valuePropName="checked">
-              <Switch />
-            </Form.Item>
-            <div className="tm-admin-modal__actions">
-              <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">
-                Save Admin User
-              </Button>
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setAdminModalOpen(false)} open={adminModalOpen} title="Admin User">
+          <Form form={adminForm} layout="vertical" onFinish={submitAdmin}>
+            <Form.Item hidden name="id"><Input /></Form.Item>
+            <Form.Item label="Username" name="username" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="Display Name" name="displayName" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="Email" name="email"><Input /></Form.Item>
+            <Form.Item label="Password (leave blank when editing to keep unchanged)" name="password"><Input.Password /></Form.Item>
+            <Form.Item initialValue={true} label="Active" name="isActive" valuePropName="checked"><Switch /></Form.Item>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+              <Button htmlType="submit" type="primary">Save Admin User</Button>
             </div>
           </Form>
         </Modal>

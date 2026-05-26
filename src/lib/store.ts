@@ -5,7 +5,6 @@ import type {
   StoreData,
   StoreSettings,
 } from "@/types/store";
-import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { getFallbackStore } from "@/lib/store-defaults";
 import { getRequestLocale } from "@/lib/i18n/server";
@@ -207,15 +206,85 @@ function decimalToNumber(value: { toNumber(): number } | null | undefined) {
   return value ? value.toNumber() : undefined;
 }
 
-const readStoreDataInternal = cache(async (locale: AppLocale): Promise<StoreData> => {
+function isRecoverableStoreError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const fullMessage = `${error.name}\n${error.message}\n${String((error as { cause?: unknown }).cause ?? "")}`;
+  return /DriverAdapterError|pool timeout|max_connections_per_hour|failed to retrieve a connection|does not exist|doesn't exist|P2021/i.test(
+    fullMessage,
+  );
+}
+
+type StoreSettingI18nPayload = {
+  heroTitle: string;
+  heroSubtitle: string;
+  heroNotice: string;
+  purchaseGuide: string;
+};
+
+async function readOptionalStoreSettingI18n(locale: AppLocale): Promise<StoreSettingI18nPayload | null> {
+  const storeSettingI18n = (prisma as unknown as {
+    storeSettingI18n?: {
+      findUnique: (args: unknown) => Promise<StoreSettingI18nPayload | null>;
+    };
+  }).storeSettingI18n;
+
+  if (!storeSettingI18n) {
+    return null;
+  }
+
+  try {
+    return await storeSettingI18n.findUnique({
+      where: { storeId_locale: { storeId: 1, locale } },
+    });
+  } catch (error) {
+    if (isRecoverableStoreError(error)) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+async function upsertOptionalStoreSettingI18n(locale: AppLocale, localizedSettings: StoreSettingI18nPayload) {
+  const storeSettingI18n = (prisma as unknown as {
+    storeSettingI18n?: {
+      upsert: (args: unknown) => Promise<unknown>;
+    };
+  }).storeSettingI18n;
+
+  if (!storeSettingI18n) {
+    return null;
+  }
+
+  try {
+    return await storeSettingI18n.upsert({
+      where: { storeId_locale: { storeId: 1, locale } },
+      update: localizedSettings,
+      create: {
+        storeId: 1,
+        locale,
+        ...localizedSettings,
+      },
+    });
+  } catch (error) {
+    if (isRecoverableStoreError(error)) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+const readStoreDataInternal = async (locale: AppLocale): Promise<StoreData> => {
   const fallback = getFallbackStore(locale);
   const placeholders = getPlaceholders(locale);
 
   try {
     const settingsPromise = prisma.storeSetting.findUnique({ where: { id: 1 } });
-    const settingsI18nPromise =
-      (prisma as unknown as { storeSettingI18n?: { findUnique: (args: unknown) => unknown } })
-        .storeSettingI18n?.findUnique({ where: { storeId_locale: { storeId: 1, locale } } }) ?? null;
+    const settingsI18nPromise = readOptionalStoreSettingI18n(locale);
 
     const [settings, settingsI18n, categories, filterGroups, products] = await Promise.all([
       settingsPromise,
@@ -302,10 +371,13 @@ const readStoreDataInternal = cache(async (locale: AppLocale): Promise<StoreData
       })),
     }, fallback, placeholders);
   } catch (error) {
-    console.error("[Store] Database read error, falling back to static data:", error);
-    return normalizeStoreData(fallback, fallback, placeholders);
+    if (isRecoverableStoreError(error)) {
+      return normalizeStoreData(fallback, fallback, placeholders);
+    }
+
+    throw error;
   }
-});
+};
 
 export async function readStoreData(locale?: AppLocale): Promise<StoreData> {
   const resolvedLocale = locale ?? (await getRequestLocale());
@@ -347,19 +419,7 @@ export async function writeStoreData(input: Partial<StoreData>, locale?: AppLoca
     },
   });
 
-  const storeSettingI18n = (prisma as unknown as { storeSettingI18n?: { upsert: (args: unknown) => Promise<unknown> } })
-    .storeSettingI18n;
-  if (storeSettingI18n) {
-    await storeSettingI18n.upsert({
-      where: { storeId_locale: { storeId: 1, locale: resolvedLocale } },
-      update: localizedSettings,
-      create: {
-        storeId: 1,
-        locale: resolvedLocale,
-        ...localizedSettings,
-      },
-    });
-  }
+  await upsertOptionalStoreSettingI18n(resolvedLocale, localizedSettings);
 
   await prisma.productFilterOption.deleteMany();
   await prisma.product.deleteMany();
@@ -432,16 +492,36 @@ export async function writeStoreData(input: Partial<StoreData>, locale?: AppLoca
 }
 
 export async function readAdminDashboardData() {
-  const [store, customers, admins] = await Promise.all([
-    readStoreData(),
-    prisma.customerUser.findMany({
+  const storePromise = readStoreData();
+  const customersPromise = prisma.customerUser
+    .findMany({
       orderBy: { createdAt: "desc" },
       select: { id: true, name: true, email: true, isActive: true, createdAt: true },
-    }),
-    prisma.adminUser.findMany({
+    })
+    .catch((error) => {
+      if (isRecoverableStoreError(error)) {
+        return [];
+      }
+
+      throw error;
+    });
+  const adminsPromise = prisma.adminUser
+    .findMany({
       orderBy: { createdAt: "asc" },
       select: { id: true, username: true, displayName: true, email: true, isActive: true, createdAt: true },
-    }),
+    })
+    .catch((error) => {
+      if (isRecoverableStoreError(error)) {
+        return [];
+      }
+
+      throw error;
+    });
+
+  const [store, customers, admins] = await Promise.all([
+    storePromise,
+    customersPromise,
+    adminsPromise,
   ]);
 
   return { store, customers, admins };

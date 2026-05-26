@@ -6,6 +6,17 @@ import { getRequestLocale } from "@/lib/i18n/server";
 import { DEFAULT_LOCALE } from "@/lib/i18n/config";
 import { getFallbackStore } from "@/lib/store-defaults";
 
+function isRecoverableStoreSettingError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const fullMessage = `${error.name}\n${error.message}\n${String((error as { cause?: unknown }).cause ?? "")}`;
+  return /DriverAdapterError|pool timeout|max_connections_per_hour|failed to retrieve a connection|does not exist|doesn't exist|P2021/i.test(
+    fullMessage,
+  );
+}
+
 export async function PUT(request: Request) {
   const access = await ensureAdminApiAccess();
   if (access.response) return access.response;
@@ -55,15 +66,21 @@ export async function PUT(request: Request) {
   const storeSettingI18n = (prisma as unknown as { storeSettingI18n?: { upsert: (args: unknown) => Promise<unknown> } })
     .storeSettingI18n;
   if (storeSettingI18n) {
-    await storeSettingI18n.upsert({
-      where: { storeId_locale: { storeId: 1, locale } },
-      update: localizedSettings,
-      create: {
-        storeId: 1,
-        locale,
-        ...localizedSettings,
-      },
-    });
+    try {
+      await storeSettingI18n.upsert({
+        where: { storeId_locale: { storeId: 1, locale } },
+        update: localizedSettings,
+        create: {
+          storeId: 1,
+          locale,
+          ...localizedSettings,
+        },
+      });
+    } catch (error) {
+      if (!isRecoverableStoreSettingError(error)) {
+        throw error;
+      }
+    }
   }
 
   return NextResponse.json(settings);
