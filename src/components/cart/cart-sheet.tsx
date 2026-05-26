@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useCart } from "@/components/cart/cart-provider";
 import { useLocale } from "@/components/providers/locale-provider";
 import { formatCurrency } from "@/lib/format";
+import { localizeCartItems } from "@/lib/store-localization";
 
 export function CartSheet() {
   const { t } = useTranslation();
@@ -26,6 +27,7 @@ export function CartSheet() {
   } = useCart();
   const pathname = usePathname();
   const skuCount = items.length;
+  const localizedItems = localizeCartItems(items, locale);
 
   useEffect(() => {
     if (pathname === "/cart" && isOpen) {
@@ -190,7 +192,7 @@ export function CartSheet() {
                 </div>
               </div>
 
-              {items.map((item) => (
+              {localizedItems.map((item) => (
                 <div
                   className="overflow-hidden rounded-none border border-slate-200 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.06)]"
                   key={item.id}

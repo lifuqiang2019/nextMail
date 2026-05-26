@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { notifyAuthChanged } from "@/components/providers/auth-provider";
 import { useLocale } from "@/components/providers/locale-provider";
 import { formatDate, formatCurrency } from "@/lib/format";
+import { localizeOrders } from "@/lib/store-localization";
 import type { CustomerProfile, Order } from "@/types/store";
 
 function getOrderStatusLabel(status: string, t: (key: string) => string) {
@@ -33,10 +34,11 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
   const { locale } = useLocale();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const recentOrders = orders.slice(0, 3);
-  const pendingCount = orders.filter((order) => ["PENDING", "PAID"].includes(order.status.toUpperCase())).length;
-  const shippedCount = orders.filter((order) => order.status.toUpperCase() === "SHIPPED").length;
-  const completedCount = orders.filter((order) => order.status.toUpperCase() === "COMPLETED").length;
+  const localizedOrders = localizeOrders(orders, locale);
+  const recentOrders = localizedOrders.slice(0, 3);
+  const pendingCount = localizedOrders.filter((order) => ["PENDING", "PAID"].includes(order.status.toUpperCase())).length;
+  const shippedCount = localizedOrders.filter((order) => order.status.toUpperCase() === "SHIPPED").length;
+  const completedCount = localizedOrders.filter((order) => order.status.toUpperCase() === "COMPLETED").length;
 
   const submit = async (values: { currentPassword: string; newPassword: string }) => {
     setLoading(true);

@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useLocale } from "@/components/providers/locale-provider";
 import { useCart } from "@/components/cart/cart-provider";
 import { formatCurrency } from "@/lib/format";
+import { localizeStoreData } from "@/lib/store-localization";
 import type { FilterGroup, Product, StoreData } from "@/types/store";
 
 function calcDiscountMeta(original: number, current: number) {
@@ -157,12 +158,14 @@ export function StoreShell({
   searchQuery?: string;
 }) {
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
   const [, contextHolder] = message.useMessage();
   const eagerImageCount = isMobile ? 0 : 4;
+  const localizedData = useMemo(() => localizeStoreData(initialData, locale), [initialData, locale]);
 
   const products = useMemo(() => {
-    return initialData.products.filter((product) => {
+    return localizedData.products.filter((product) => {
       // 1. 关键词筛选
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
@@ -175,15 +178,15 @@ export function StoreShell({
       }
 
       // 2. 分类组筛选
-      return initialData.filterGroups.every((group) => {
+      return localizedData.filterGroups.every((group) => {
         const selectedOptionId = selectedFilters[group.id];
         if (!selectedOptionId) return true;
         return product.filterOptionIds.includes(selectedOptionId);
       });
     });
-  }, [selectedFilters, initialData.filterGroups, initialData.products, searchQuery]);
+  }, [localizedData.filterGroups, localizedData.products, searchQuery, selectedFilters]);
 
-  const filterGroups = initialData.filterGroups.filter((g) => g.isActive !== false);
+  const filterGroups = localizedData.filterGroups.filter((g) => g.isActive !== false);
 
   const selectFilter = (group: FilterGroup, optionId?: string) => {
     setSelectedFilters((current) => {
@@ -208,15 +211,15 @@ export function StoreShell({
         <section className="store-hero">
           <div className="store-hero__content">
             <p className="store-hero__kicker">NEW SEASON</p>
-            <h1 className="store-hero__title">{initialData.settings.heroTitle}</h1>
-            <p className="store-hero__subtitle">{initialData.settings.heroSubtitle}</p>
-            {initialData.settings.heroNotice ? (
-              <p className="store-hero__notice">{initialData.settings.heroNotice}</p>
+            <h1 className="store-hero__title">{localizedData.settings.heroTitle}</h1>
+            <p className="store-hero__subtitle">{localizedData.settings.heroSubtitle}</p>
+            {localizedData.settings.heroNotice ? (
+              <p className="store-hero__notice">{localizedData.settings.heroNotice}</p>
             ) : null}
           </div>
           <div className="store-hero__stats">
             <div className="store-hero__stat">
-              <span className="store-hero__stat-value">{initialData.products.length}</span>
+              <span className="store-hero__stat-value">{localizedData.products.length}</span>
               <span className="store-hero__stat-label">{t("store.productsOnSale")}</span>
             </div>
             <div className="store-hero__stat">
