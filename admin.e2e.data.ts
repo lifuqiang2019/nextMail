@@ -4,7 +4,7 @@ import * as mariadb from "mariadb";
 loadEnv({ path: ".env.local", override: false });
 loadEnv({ path: ".env.production.local", override: false });
 loadEnv({ override: false });
-
+  
 const runId = Date.now().toString(36);
 
 export const fixtures = {
