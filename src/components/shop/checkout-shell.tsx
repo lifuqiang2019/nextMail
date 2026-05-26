@@ -11,7 +11,6 @@ import { useCart } from "@/components/cart/cart-provider";
 import { useLocale } from "@/components/providers/locale-provider";
 import { useAuth } from "@/components/providers/auth-provider";
 import { formatCurrency } from "@/lib/format";
-import { localizeCartItems, localizeStoreSettings } from "@/lib/store-localization";
 import type { CheckoutFormData, StoreSettings } from "@/types/store";
 
 type CheckoutShellProps = {
@@ -38,8 +37,6 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
   const [messageApi, contextHolder] = message.useMessage();
   const [formData, setFormData] = useState<CheckoutFormState>(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const localizedItems = useMemo(() => localizeCartItems(items, locale), [items, locale]);
-  const localizedSettings = useMemo(() => localizeStoreSettings(settings, locale), [locale, settings]);
 
   const canSubmitOrder = useMemo(() => {
     return databaseConfigured && Boolean(user) && items.length > 0 && !isLoading && !isSubmitting;
@@ -143,7 +140,7 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
               </div>
             ) : (
               <div className="space-y-2">
-                {localizedItems.map((item) => (
+                {items.map((item) => (
                   <article className="cart-item" key={item.id}>
                     <div
                       className="cart-item__image"
@@ -342,24 +339,24 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
               <MapPinned size={17} />
               <h3>{t("checkout.merchantContact")}</h3>
             </header>
-            <p className="info-card__desc">{localizedSettings.purchaseGuide}</p>
+            <p className="info-card__desc">{settings.purchaseGuide}</p>
 
             <div className="info-card__links">
-              {localizedSettings.supportPhone ? (
-                <a href={`tel:${localizedSettings.supportPhone}`} className="info-link info-link--orange">
+              {settings.supportPhone ? (
+                <a href={`tel:${settings.supportPhone}`} className="info-link info-link--orange">
                   <Phone size={17} />
-                  <span>{localizedSettings.supportPhone}</span>
+                  <span>{settings.supportPhone}</span>
                 </a>
               ) : null}
-              {localizedSettings.supportEmail ? (
-                <a href={`mailto:${localizedSettings.supportEmail}`} className="info-link info-link--blue">
+              {settings.supportEmail ? (
+                <a href={`mailto:${settings.supportEmail}`} className="info-link info-link--blue">
                   <Mail size={17} />
-                  <span>{localizedSettings.supportEmail}</span>
+                  <span>{settings.supportEmail}</span>
                 </a>
               ) : null}
-              {localizedSettings.orderLink ? (
-                <a href={localizedSettings.orderLink} rel="noreferrer" target="_blank" className="info-link info-link--gray">
-                  <span>{localizedSettings.orderLink}</span>
+              {settings.orderLink ? (
+                <a href={settings.orderLink} rel="noreferrer" target="_blank" className="info-link info-link--gray">
+                  <span>{settings.orderLink}</span>
                   <ExternalLink className="shrink-0" size={13} />
                 </a>
               ) : null}

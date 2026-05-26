@@ -4,7 +4,6 @@ import { getCurrentCustomerProfile } from "@/lib/auth/customer";
 import { isDatabaseConfigured, readOrdersByUserId } from "@/lib/database";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import { getServerTranslator } from "@/lib/i18n/server";
-import { localizeOrders } from "@/lib/store-localization";
 import type { Order } from "@/types/store";
 
 export const dynamic = "force-dynamic";
@@ -183,7 +182,6 @@ export default async function OrdersPage() {
 
   const totalSpent = orders.reduce((sum, order) => sum + order.totalAmount, 0);
   const latestOrder = orders[0];
-  const localizedOrders = localizeOrders(orders, locale);
 
   return (
     <div className="tm-shell orders-page">
@@ -223,7 +221,7 @@ export default async function OrdersPage() {
             </Link>
           </div>
         ) : (
-          localizedOrders.map((order) => <OrderCard key={order.id} locale={locale} order={order} t={t} />)
+          orders.map((order) => <OrderCard key={order.id} locale={locale} order={order} t={t} />)
         )}
       </section>
     </div>

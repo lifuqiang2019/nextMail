@@ -48,17 +48,8 @@ export function LocaleProvider({
 }) {
   const router = useRouter();
   const fallbackLocale = normalizeLocale(initialLocale);
-  const [locale, setLocaleState] = useState<AppLocale>(() => {
-    if (i18n.resolvedLanguage !== fallbackLocale) {
-      void i18n.changeLanguage(fallbackLocale);
-    }
-
-    return fallbackLocale;
-  });
-
-  useEffect(() => {
-    setLocaleState((current) => (current === fallbackLocale ? current : fallbackLocale));
-  }, [fallbackLocale]);
+  const [overrideLocale, setOverrideLocale] = useState<AppLocale | null>(null);
+  const locale = overrideLocale ?? fallbackLocale;
 
   useEffect(() => {
     persistLocale(locale);
@@ -74,9 +65,8 @@ export function LocaleProvider({
         return;
       }
 
-      setLocaleState(normalized);
       persistLocale(normalized);
-      void i18n.changeLanguage(normalized);
+      setOverrideLocale(normalized);
       router.refresh();
     },
     [locale, router],
