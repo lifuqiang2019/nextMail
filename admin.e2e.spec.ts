@@ -2,7 +2,7 @@ import { expect, type Locator, type Page, test } from "@playwright/test";
 
 import { cleanupAdminE2EData, fixtures } from "./admin.e2e.data";
 
-const baseURL = process.env.PW_BASE_URL ?? "http://localhost:3010";
+const baseURL = process.env.PW_BASE_URL ?? "http://localhost:3000";
 
 test.use({ channel: "msedge" });
 test.setTimeout(180_000);

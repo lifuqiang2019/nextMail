@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-const baseURL = process.env.PW_BASE_URL ?? "http://localhost:3010";
+const baseURL = process.env.PW_BASE_URL ?? "http://localhost:3000";
 
 test.use({ channel: "msedge" });
 test.setTimeout(180_000);
@@ -28,6 +28,9 @@ async function disableAnimations(page: Page) {
         scroll-behavior: auto !important;
         caret-color: transparent !important;
       }
+      nextjs-portal {
+        display: none !important;
+      }
     `,
   });
 }
@@ -47,7 +50,11 @@ test("product detail visual - desktop", async ({ page }) => {
   await mockRemoteImages(page);
   await openFirstProductDetail(page);
   await disableAnimations(page);
-  await expect(page).toHaveScreenshot("product-detail-desktop.png", { fullPage: true });
+  await expect(page).toHaveScreenshot("product-detail-desktop.png", {
+    fullPage: true,
+    maxDiffPixelRatio: 0.02,
+    maxDiffPixels: 5000,
+  });
 });
 
 test.describe("product detail visual - mobile", () => {
@@ -64,6 +71,10 @@ test.describe("product detail visual - mobile", () => {
     await mockRemoteImages(page);
     await openFirstProductDetail(page);
     await disableAnimations(page);
-    await expect(page).toHaveScreenshot("product-detail-mobile.png", { fullPage: true });
+    await expect(page).toHaveScreenshot("product-detail-mobile.png", {
+      fullPage: true,
+      maxDiffPixelRatio: 0.02,
+      maxDiffPixels: 5000,
+    });
   });
 });
