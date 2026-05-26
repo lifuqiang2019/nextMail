@@ -36,13 +36,15 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
 
   return (
     <Dropdown
+      classNames={{
+        root: `locale-switcher__menu${compact ? " locale-switcher__menu--compact" : ""}`,
+      }}
       menu={{
         items: localeMenuItems,
         onClick: ({ key }) => setLocale(key as AppLocale),
         selectable: true,
         selectedKeys: [locale],
       }}
-      overlayClassName={`locale-switcher__menu${compact ? " locale-switcher__menu--compact" : ""}`}
       placement="bottomRight"
       trigger={["click"]}
     >

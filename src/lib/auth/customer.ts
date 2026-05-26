@@ -36,15 +36,21 @@ export async function createCustomerSession(userId: string) {
   await setAuthCookie(CUSTOMER_SESSION_COOKIE, token, expiresAt);
 }
 
+async function deleteCustomerSessionRecord(token: string | undefined) {
+  if (!token) {
+    return;
+  }
+
+  await prisma.customerSession.deleteMany({
+    where: { token },
+  });
+}
+
 export async function destroyCustomerSession() {
   const token = await getCookieToken(CUSTOMER_SESSION_COOKIE);
 
   try {
-    if (token) {
-      await prisma.customerSession.deleteMany({
-        where: { token },
-      });
-    }
+    await deleteCustomerSessionRecord(token);
   } catch (error) {
     if (!isRecoverableCustomerAuthError(error)) {
       throw error;
@@ -67,7 +73,8 @@ export async function getCurrentCustomerProfile(): Promise<CustomerProfile | nul
     });
 
     if (!session || session.expiresAt < new Date() || !session.user.isActive) {
-      await destroyCustomerSession();
+      // Reading auth state during page render must stay read-only for cookies.
+      await deleteCustomerSessionRecord(token);
       return null;
     }
 

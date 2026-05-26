@@ -22,10 +22,8 @@ import type { ColumnsType } from "antd/es/table";
 import {
   AppstoreOutlined,
   FilterOutlined,
-  SettingOutlined,
   ShoppingOutlined,
   TeamOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
@@ -36,7 +34,6 @@ import type {
   FilterGroup,
   Product,
   StoreData,
-  StoreSettings,
 } from "@/types/store";
 
 type AdminDashboardData = {
@@ -45,7 +42,7 @@ type AdminDashboardData = {
   admins: Array<{ id: string; username: string; displayName: string; email?: string | null; isActive: boolean; createdAt: string }>;
 };
 
-type ModuleKey = "settings" | "categories" | "filters" | "products" | "customers" | "admins";
+type ModuleKey = "categories" | "filters" | "products" | "admins";
 
 type ProductFormValues = Product & { sizesInput?: string };
 type FilterGroupFormValues = FilterGroup;
@@ -57,7 +54,6 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
   const [filterForm] = Form.useForm<FilterGroupFormValues>();
   const [productForm] = Form.useForm<ProductFormValues>();
   const [adminForm] = Form.useForm();
-  const [settingsForm] = Form.useForm<StoreSettings>();
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [productModalOpen, setProductModalOpen] = useState(false);
@@ -70,22 +66,6 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     const response = await fetch("/api/admin/bootstrap", { cache: "no-store" });
     const nextData = await response.json();
     setData(nextData);
-    settingsForm.setFieldsValue(nextData.store.settings);
-  };
-
-  const saveSettings = async (values: StoreSettings) => {
-    const response = await fetch("/api/admin/settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-    const payload = await response.json();
-    if (!response.ok) {
-      message.error(payload.message || "保存店铺配置失败");
-      return;
-    }
-    message.success("店铺配置已保存");
-    await refreshData();
   };
 
   const submitCategory = async (values: Category) => {
@@ -244,7 +224,16 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
       title: "操作",
       render: (_, record) => (
         <Space wrap>
-          <Button type="link" onClick={() => { setEditingCategoryId(record.id); categoryForm.setFieldsValue(record); setCategoryModalOpen(true); }}>编辑</Button>
+          <Button
+            type="link"
+            onClick={() => {
+              setEditingCategoryId(record.id);
+              setCategoryModalOpen(true);
+              deferFormAction(() => categoryForm.setFieldsValue(record));
+            }}
+          >
+            编辑
+          </Button>
           <Popconfirm title="确认删除该分类？" onConfirm={() => removeCategory(record.id)}>
             <Button danger type="link">删除</Button>
           </Popconfirm>
@@ -262,7 +251,16 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
       title: "操作",
       render: (_, record) => (
         <Space wrap>
-          <Button type="link" onClick={() => { setEditingFilterId(record.id); filterForm.setFieldsValue(record); setFilterModalOpen(true); }}>编辑</Button>
+          <Button
+            type="link"
+            onClick={() => {
+              setEditingFilterId(record.id);
+              setFilterModalOpen(true);
+              deferFormAction(() => filterForm.setFieldsValue(record));
+            }}
+          >
+            编辑
+          </Button>
           <Popconfirm title="确认删除该过滤组？" onConfirm={() => removeFilter(record.id)}>
             <Button danger type="link">删除</Button>
           </Popconfirm>
@@ -292,7 +290,16 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
       title: "操作",
       render: (_, record) => (
         <Space wrap>
-          <Button type="link" onClick={() => { setEditingProductId(record.id); productForm.setFieldsValue({ ...record, sizesInput: record.sizes.join(",") }); setProductModalOpen(true); }}>编辑</Button>
+          <Button
+            type="link"
+            onClick={() => {
+              setEditingProductId(record.id);
+              setProductModalOpen(true);
+              deferFormAction(() => productForm.setFieldsValue({ ...record, sizesInput: record.sizes.join(",") }));
+            }}
+          >
+            编辑
+          </Button>
           <Popconfirm title="确认删除该商品？" onConfirm={() => removeProduct(record.id)}>
             <Button danger type="link">删除</Button>
           </Popconfirm>
@@ -301,318 +308,244 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     },
   ];
 
-  const customerColumns: ColumnsType<(typeof data.customers)[number]> = [
-    { title: "昵称", dataIndex: "name" },
-    { title: "邮箱", dataIndex: "email" },
-    { title: "状态", dataIndex: "isActive", render: (value) => <Tag color={value ? "green" : "default"}>{value ? "正常" : "停用"}</Tag> },
-    { title: "注册时间", dataIndex: "createdAt", render: (value) => new Date(value).toLocaleString() },
-  ];
-
   const adminColumns: ColumnsType<(typeof data.admins)[number]> = [
     { title: "账号", dataIndex: "username" },
     { title: "显示名", dataIndex: "displayName" },
     { title: "邮箱", dataIndex: "email", render: (value) => value || "-" },
     { title: "状态", dataIndex: "isActive", render: (value) => <Tag color={value ? "green" : "default"}>{value ? "启用" : "停用"}</Tag> },
-    { title: "操作", render: (_, record) => <Button type="link" onClick={() => { adminForm.setFieldsValue(record); setAdminModalOpen(true); }}>编辑账号</Button> },
+    {
+      title: "操作",
+      render: (_, record) => (
+        <Button
+          type="link"
+          onClick={() => {
+            setAdminModalOpen(true);
+            deferFormAction(() => adminForm.setFieldsValue(record));
+          }}
+        >
+          编辑账号
+        </Button>
+      ),
+    },
   ];
 
   const menuItems = [
     { key: "products", icon: <ShoppingOutlined />, label: "商品管理" },
     { key: "categories", icon: <AppstoreOutlined />, label: "分类管理" },
     { key: "filters", icon: <FilterOutlined />, label: "过滤条件" },
-    { key: "customers", icon: <UserOutlined />, label: "会员用户" },
     { key: "admins", icon: <TeamOutlined />, label: "后台账号" },
-    { key: "settings", icon: <SettingOutlined />, label: "店铺配置" },
   ];
-
-  const settingsInitial = useMemo(() => data.store.settings, [data.store.settings]);
-  const moduleMeta: Record<ModuleKey, { title: string; description: string; detail: string }> = {
-    products: {
-      title: "商品管理",
-      description: "集中维护商品信息、库存、价格和过滤条件，后台改完前台会直接同步展示。",
-      detail: `共 ${data.store.products.length} 个商品，其中 ${data.store.products.filter((item) => item.status === "ACTIVE").length} 个处于上架状态。`,
-    },
-    categories: {
-      title: "分类管理",
-      description: "调整分类名称、排序和启用状态，影响首页筛选和后台商品归类。",
-      detail: `当前共有 ${data.store.categories.length} 个分类，已启用 ${data.store.categories.filter((item) => item.isActive).length} 个。`,
-    },
-    filters: {
-      title: "过滤组管理",
-      description: "维护颜色、尺码等筛选维度，商品列表和筛选逻辑会依赖这里的配置。",
-      detail: `共有 ${data.store.filterGroups.length} 个过滤组，合计 ${data.store.filterGroups.reduce((sum, group) => sum + group.options.length, 0)} 个选项。`,
-    },
-    customers: {
-      title: "前台会员",
-      description: "查看前台注册用户和状态，便于核对账号开通情况。",
-      detail: `目前共有 ${data.customers.length} 位会员，其中 ${data.customers.filter((item) => item.isActive).length} 位为正常状态。`,
-    },
-    admins: {
-      title: "后台账号",
-      description: "管理后台可登录账号，控制运营人员的访问权限和启用状态。",
-      detail: `当前已有 ${data.admins.length} 个后台账号，启用中 ${data.admins.filter((item) => item.isActive).length} 个。`,
-    },
-    settings: {
-      title: "店铺配置",
-      description: "统一维护商城展示文案、联系方式和下单说明，减少到处改文案的成本。",
-      detail: `当前店铺名称为「${data.store.settings.storeName}」，首页和下单页都会读取这里的配置。`,
-    },
+  const moduleTitles: Record<ModuleKey, string> = {
+    products: "商品管理",
+    categories: "分类管理",
+    filters: "过滤条件",
+    admins: "后台账号",
+  };
+  const moduleDescriptions: Record<ModuleKey, string> = {
+    products: `共 ${data.store.products.length} 个商品，支持新增、编辑和删除。`,
+    categories: `共 ${data.store.categories.length} 个分类，支持分类维护和状态调整。`,
+    filters: `共 ${data.store.filterGroups.length} 个过滤组，可维护选项和排序。`,
+    admins: `共 ${data.admins.length} 个后台账号，可维护登录信息和启用状态。`,
+  };
+  const tableScrollY = "calc(100dvh - 255px)";
+  const tableScroll = { x: "max-content" as const, y: tableScrollY };
+  const deferFormAction = (callback: () => void) => {
+    window.requestAnimationFrame(callback);
   };
 
-  const currentModule = moduleMeta[activeKey];
-
   return (
-    <Layout className="tm-admin-shell min-h-screen w-full bg-[#f8fafc]">
-        <Layout.Sider
-          breakpoint="lg"
-          collapsedWidth="0"
-          className="!bg-transparent p-0 lg:p-4"
-          theme="light"
-          width={288}
-        >
-          <div className="tm-admin-sidebar flex h-full min-h-screen flex-col px-5 py-6 sm:px-6 lg:border lg:border-slate-200 lg:bg-white lg:p-8 lg:shadow-sm">
-            <div className="border-b border-slate-200 px-2 pb-5">
-              <div className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium tracking-[0.2em] text-slate-500">
-                NEXTMAIL ADMIN
-              </div>
-              <Typography.Title level={3} style={{ margin: "16px 0 6px", color: "#0f172a" }}>
-                后台管理台
-              </Typography.Title>
-              <Typography.Paragraph style={{ margin: 0, color: "#64748b" }}>
-                商品、筛选、用户和店铺配置都集中在这里维护。
-              </Typography.Paragraph>
-            </div>
+    <Layout style={{ minHeight: "100dvh", background: "#f5f7fa" }}>
+      <Layout.Sider
+        breakpoint="lg"
+        collapsedWidth="0"
+        theme="light"
+        width={240}
+        style={{
+          background: "#fff",
+          borderRight: "1px solid #f0f0f0",
+          padding: "20px 12px",
+        }}
+      >
+        <div style={{ display: "flex", minHeight: "100dvh", flexDirection: "column", gap: 16 }}>
+          <div style={{ borderBottom: "1px solid #f0f0f0", padding: "4px 12px 12px" }}>
+            <Typography.Title level={4} style={{ margin: 0 }}>
+              后台管理
+            </Typography.Title>
+            <Typography.Text type="secondary">NextMail Admin</Typography.Text>
+          </div>
 
-            <div className="mt-6 border border-slate-200 bg-slate-50 p-5">
-              <div className="text-xs uppercase tracking-[0.22em] text-slate-500">当前登录</div>
-              <div className="mt-3 text-lg font-semibold text-slate-900">{admin.displayName}</div>
-              <div className="text-sm text-slate-500">{admin.username}</div>
-              <Button className="mt-4 h-11 w-full border-slate-200 bg-white text-slate-600 shadow-none hover:!border-slate-300 hover:!bg-slate-50 hover:!text-slate-900" onClick={logout}>
+          <Menu
+            mode="inline"
+            items={menuItems}
+            onClick={(event) => setActiveKey(event.key as ModuleKey)}
+            selectedKeys={[activeKey]}
+            style={{ flex: 1, borderInlineEnd: 0 }}
+          />
+
+          <Card size="small">
+            <Space orientation="vertical" size={4} style={{ display: "flex" }}>
+              <Typography.Text strong>{admin.displayName}</Typography.Text>
+              <Typography.Text type="secondary">{admin.username}</Typography.Text>
+              <Button block onClick={logout}>
                 退出后台
               </Button>
-            </div>
+            </Space>
+          </Card>
+        </div>
+      </Layout.Sider>
 
-            <div className="mt-6 flex-1 overflow-y-auto">
-              <div className="px-2 pb-3 text-xs font-medium uppercase tracking-[0.2em] text-slate-500">功能导航</div>
-              <Menu
-                className="tm-admin-menu"
-                items={menuItems}
-                onClick={(event) => setActiveKey(event.key as ModuleKey)}
-                selectedKeys={[activeKey]}
-                theme="light"
-                style={{ borderInlineEnd: 0, background: "transparent" }}
-              />
-            </div>
-
-            <div className="mt-5 border border-orange-100 bg-orange-50/50 p-5 text-sm">
-              <div className="font-medium text-orange-900">当前聚焦</div>
-              <div className="mt-1 leading-6 text-orange-800/80">{currentModule.detail}</div>
-            </div>
+      <Layout.Content style={{ minWidth: 0, padding: "16px 0 24px" }}>
+        <div style={{ width: "100%" }}>
+          <div style={{ marginBottom: 16 }}>
+            <Typography.Title level={3} style={{ margin: 0 }}>
+              {moduleTitles[activeKey]}
+            </Typography.Title>
+            <Typography.Paragraph type="secondary" style={{ margin: "8px 0 0" }}>
+              {moduleDescriptions[activeKey]}
+            </Typography.Paragraph>
           </div>
-        </Layout.Sider>
-        <Layout.Content className="min-w-0 flex-1 p-0">
-          <div className="flex min-h-screen w-full flex-col gap-6 px-5 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-8 xl:px-10">
-            <div className="tm-admin-hero border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
-              <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium tracking-[0.2em] text-slate-500">
-                    ACTIVE MODULE
-                  </div>
-                  <Typography.Title level={2} style={{ margin: "14px 0 8px", color: "#0f172a" }}>
-                    {currentModule.title}
-                  </Typography.Title>
-                  <Typography.Paragraph style={{ margin: 0, maxWidth: 780, color: "#64748b" }}>
-                    {currentModule.description}
-                  </Typography.Paragraph>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2 xl:min-w-[460px]">
-                  <div className="border border-slate-200 bg-slate-50 p-5">
-                    <div className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">当前管理员</div>
-                    <div className="mt-2 text-lg font-semibold text-slate-900">{admin.displayName}</div>
-                    <div className="text-sm text-slate-500">{admin.username}</div>
-                  </div>
-                  <div className="border border-orange-100 bg-orange-50/60 p-5">
-                    <div className="text-xs font-medium uppercase tracking-[0.18em] text-orange-700">模块概览</div>
-                    <div className="mt-2 text-sm leading-6 text-orange-900/80">{currentModule.detail}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div className="w-full space-y-6">
-            {activeKey === "products" ? (
-              <CardSection
-                title="商品管理"
-                description="商品列表支持直接编辑价格、库存、分类和过滤条件，适合日常运营快速维护。"
-                extra={
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      setEditingProductId(null);
-                      productForm.resetFields();
-                      setProductModalOpen(true);
-                    }}
-                  >
-                    新增商品
-                  </Button>
-                }
-              >
-                <Table
-                  className="tm-admin-data-table"
-                  columns={productColumns}
-                  dataSource={data.store.products}
-                  pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
-                  rowKey="id"
-                  scroll={{ x: 1000 }}
-                />
-              </CardSection>
-            ) : null}
-            {activeKey === "categories" ? (
-              <CardSection
-                title="分类管理"
-                description="分类会同步影响前台导航和商品归类，建议按展示顺序维护。"
-                extra={
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      setEditingCategoryId(null);
-                      categoryForm.resetFields();
-                      setCategoryModalOpen(true);
-                    }}
-                  >
-                    新增分类
-                  </Button>
-                }
-              >
-                <Table
-                  className="tm-admin-data-table"
-                  columns={categoryColumns}
-                  dataSource={data.store.categories}
-                  pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
-                  rowKey="id"
-                  scroll={{ x: 800 }}
-                />
-              </CardSection>
-            ) : null}
-            {activeKey === "filters" ? (
-              <CardSection
-                title="过滤条件"
-                description="过滤组选项会参与前台筛选和商品绑定，适合集中配置颜色、尺码等维度。"
-                extra={
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      setEditingFilterId(null);
+          {activeKey === "products" ? (
+            <CardSection
+              title={moduleTitles.products}
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setEditingProductId(null);
+                    setProductModalOpen(true);
+                    deferFormAction(() => productForm.resetFields());
+                  }}
+                >
+                  新增商品
+                </Button>
+              }
+            >
+              <Table
+                columns={productColumns}
+                dataSource={data.store.products}
+                pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
+                rowKey="id"
+                scroll={tableScroll}
+                size="middle"
+              />
+            </CardSection>
+          ) : null}
+
+          {activeKey === "categories" ? (
+            <CardSection
+              title={moduleTitles.categories}
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setEditingCategoryId(null);
+                    setCategoryModalOpen(true);
+                    deferFormAction(() => categoryForm.resetFields());
+                  }}
+                >
+                  新增分类
+                </Button>
+              }
+            >
+              <Table
+                columns={categoryColumns}
+                dataSource={data.store.categories}
+                pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
+                rowKey="id"
+                scroll={tableScroll}
+                size="middle"
+              />
+            </CardSection>
+          ) : null}
+
+          {activeKey === "filters" ? (
+            <CardSection
+              title={moduleTitles.filters}
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setEditingFilterId(null);
+                    setFilterModalOpen(true);
+                    deferFormAction(() => {
                       filterForm.resetFields();
                       filterForm.setFieldValue("options", []);
-                      setFilterModalOpen(true);
-                    }}
-                  >
-                    新增过滤组
-                  </Button>
-                }
-              >
-                <Table
-                  className="tm-admin-data-table"
-                  columns={filterColumns}
-                  dataSource={data.store.filterGroups}
-                  pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
-                  rowKey="id"
-                  scroll={{ x: 800 }}
-                />
-              </CardSection>
-            ) : null}
-            {activeKey === "customers" ? (
-              <CardSection
-                title="前台会员列表"
-                description="这里展示前台注册会员信息，方便核对账号状态和注册时间。"
-              >
-                <Table
-                  className="tm-admin-data-table"
-                  columns={customerColumns}
-                  dataSource={data.customers}
-                  pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
-                  rowKey="id"
-                  scroll={{ x: 800 }}
-                />
-              </CardSection>
-            ) : null}
-            {activeKey === "admins" ? (
-              <CardSection
-                title="后台账号管理"
-                description="后台账号用于运营和维护店铺内容，建议保持最小化授权。"
-                extra={
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      adminForm.resetFields();
-                      setAdminModalOpen(true);
-                    }}
-                  >
-                    新增管理员
-                  </Button>
-                }
-              >
-                <Table
-                  className="tm-admin-data-table"
-                  columns={adminColumns}
-                  dataSource={data.admins}
-                  pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
-                  rowKey="id"
-                  scroll={{ x: 800 }}
-                />
-              </CardSection>
-            ) : null}
-            {activeKey === "settings" ? (
-              <CardSection
-                title="店铺配置"
-                description="配置会直接影响首页展示、下单说明和联系方式，适合统一维护。"
-              >
-                <Form initialValues={settingsInitial} form={settingsForm} layout="vertical" onFinish={saveSettings}>
-                  <Form.Item label="店铺名称" name="storeName" rules={[{ required: true }]}><Input /></Form.Item>
-                  <Form.Item label="首页标题" name="heroTitle" rules={[{ required: true }]}><Input /></Form.Item>
-                  <Form.Item label="首页副标题" name="heroSubtitle" rules={[{ required: true }]}><Input.TextArea rows={4} /></Form.Item>
-                  <Form.Item label="公告文案" name="heroNotice"><Input.TextArea rows={3} /></Form.Item>
-                  <Form.Item label="联系电话" name="supportPhone"><Input /></Form.Item>
-                  <Form.Item label="联系邮箱" name="supportEmail"><Input /></Form.Item>
-                  <Form.Item label="购买说明（下单页显示）" name="purchaseGuide"><Input.TextArea rows={4} /></Form.Item>
-                  <Form.Item label="统一订单链接（所有人可见）" name="orderLink"><Input /></Form.Item>
-                  <Button htmlType="submit" type="primary">保存配置</Button>
-                </Form>
-              </CardSection>
-            ) : null}
+                    });
+                  }}
+                >
+                  新增过滤组
+                </Button>
+              }
+            >
+              <Table
+                columns={filterColumns}
+                dataSource={data.store.filterGroups}
+                pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
+                rowKey="id"
+                scroll={tableScroll}
+                size="middle"
+              />
+            </CardSection>
+          ) : null}
+
+          {activeKey === "admins" ? (
+            <CardSection
+              title={moduleTitles.admins}
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setAdminModalOpen(true);
+                    deferFormAction(() => adminForm.resetFields());
+                  }}
+                >
+                  新增管理员
+                </Button>
+              }
+            >
+              <Table
+                columns={adminColumns}
+                dataSource={data.admins}
+                pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
+                rowKey="id"
+                scroll={tableScroll}
+                size="middle"
+              />
+            </CardSection>
+          ) : null}
+        </div>
+
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setCategoryModalOpen(false)} open={categoryModalOpen} title={editingCategoryId ? "编辑分类" : "新增分类"}>
+          <Form form={categoryForm} layout="vertical" onFinish={submitCategory}>
+            <Form.Item label="分类名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="Slug" name="slug"><Input /></Form.Item>
+            <Form.Item label="描述" name="description" rules={[{ required: true }]}><Input.TextArea rows={3} /></Form.Item>
+            <Form.Item initialValue={1} label="排序" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+            <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+              <Button htmlType="submit" type="primary">保存分类</Button>
             </div>
-          </div>
+          </Form>
+        </Modal>
 
-          <Modal centered destroyOnHidden footer={null} onCancel={() => setCategoryModalOpen(false)} open={categoryModalOpen} rootClassName="tm-admin-modal" title={editingCategoryId ? "编辑分类" : "新增分类"}>
-            <Form className="tm-admin-modal__form" form={categoryForm} layout="vertical" onFinish={submitCategory}>
-              <Form.Item label="分类名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
-              <Form.Item label="Slug" name="slug"><Input /></Form.Item>
-              <Form.Item label="描述" name="description" rules={[{ required: true }]}><Input.TextArea rows={3} /></Form.Item>
-              <Form.Item initialValue={1} label="排序" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-              <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
-              <div className="tm-admin-modal__actions">
-                <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">保存分类</Button>
-              </div>
-            </Form>
-          </Modal>
-
-          <Modal centered destroyOnHidden footer={null} onCancel={() => setFilterModalOpen(false)} open={filterModalOpen} rootClassName="tm-admin-modal" title={editingFilterId ? "编辑过滤组" : "新增过滤组"} width={760}>
-            <Form className="tm-admin-modal__form" form={filterForm} layout="vertical" onFinish={submitFilter}>
-              <Form.Item label="过滤组名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
-              <Form.Item label="Slug" name="slug"><Input /></Form.Item>
-              <Form.Item label="描述" name="description"><Input.TextArea rows={2} /></Form.Item>
-              <Form.Item initialValue={1} label="排序" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-              <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
-              <Form.List name="options">
-                {(fields, { add, remove }) => (
-                  <div className="tm-admin-modal__section space-y-4">
-                    <div className="tm-admin-modal__section-head">
-                      <Typography.Text strong>过滤选项</Typography.Text>
-                      <Button onClick={() => add({ isActive: true, sortOrder: fields.length + 1 })}>新增选项</Button>
-                    </div>
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setFilterModalOpen(false)} open={filterModalOpen} title={editingFilterId ? "编辑过滤组" : "新增过滤组"} width={760}>
+          <Form form={filterForm} layout="vertical" onFinish={submitFilter}>
+            <Form.Item label="过滤组名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="Slug" name="slug"><Input /></Form.Item>
+            <Form.Item label="描述" name="description"><Input.TextArea rows={2} /></Form.Item>
+            <Form.Item initialValue={1} label="排序" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+            <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
+            <Form.List name="options">
+              {(fields, { add, remove }) => (
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
+                    <Typography.Text strong>过滤选项</Typography.Text>
+                    <Button onClick={() => add({ isActive: true, sortOrder: fields.length + 1 })}>新增选项</Button>
+                  </div>
+                  <Space orientation="vertical" size={16} style={{ display: "flex" }}>
                     {fields.map((field, index) => (
-                      <Card className="tm-admin-modal__option-card" key={field.key} size="small" title={`选项 ${index + 1}`} extra={<Button danger type="link" onClick={() => remove(field.name)}>删除</Button>}>
+                      <Card key={field.key} size="small" title={`选项 ${index + 1}`} extra={<Button danger type="link" onClick={() => remove(field.name)}>删除</Button>}>
                         <Form.Item hidden name={[field.name, "id"]}><Input /></Form.Item>
                         <Form.Item label="显示文案" name={[field.name, "label"]} rules={[{ required: true }]}><Input /></Form.Item>
                         <Form.Item label="值" name={[field.name, "value"]} rules={[{ required: true }]}><Input /></Form.Item>
@@ -620,56 +553,57 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
                         <Form.Item initialValue={true} label="启用" name={[field.name, "isActive"]} valuePropName="checked"><Switch /></Form.Item>
                       </Card>
                     ))}
-                  </div>
-                )}
-              </Form.List>
-              <div className="tm-admin-modal__actions">
-                <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">保存过滤组</Button>
-              </div>
-            </Form>
-          </Modal>
+                  </Space>
+                </div>
+              )}
+            </Form.List>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+              <Button htmlType="submit" type="primary">保存过滤组</Button>
+            </div>
+          </Form>
+        </Modal>
 
-          <Modal centered destroyOnHidden footer={null} onCancel={() => setProductModalOpen(false)} open={productModalOpen} rootClassName="tm-admin-modal" title={editingProductId ? "编辑商品" : "新增商品"} width={860}>
-            <Form className="tm-admin-modal__form" form={productForm} layout="vertical" onFinish={submitProduct}>
-              <div className="tm-admin-modal__grid grid grid-cols-1 gap-4 md:grid-cols-2">
-                <Form.Item label="商品名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
-                <Form.Item label="品牌" name="brand" rules={[{ required: true }]}><Input /></Form.Item>
-                <Form.Item label="Slug" name="slug"><Input /></Form.Item>
-                <Form.Item label="SKU" name="sku"><Input /></Form.Item>
-                <Form.Item label="所属分类" name="categoryId" rules={[{ required: true }]}><Select options={data.store.categories.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
-                <Form.Item label="标签" name="badge"><Input /></Form.Item>
-                <Form.Item label="售价" name="price" rules={[{ required: true }]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-                <Form.Item label="划线价" name="originalPrice"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-                <Form.Item label="库存" name="inventory" rules={[{ required: true }]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-                <Form.Item label="配色" name="colorway"><Input /></Form.Item>
-                <Form.Item label="封面图 URL" name="imageUrl" rules={[{ required: true }]}><Input /></Form.Item>
-                <Form.Item label="状态" initialValue="ACTIVE" name="status"><Select options={[{ label: "ACTIVE", value: "ACTIVE" }, { label: "DRAFT", value: "DRAFT" }]} /></Form.Item>
-              </div>
-              <Form.Item label="尺码，逗号分隔" name="sizesInput"><Input placeholder="39,40,41,42" /></Form.Item>
-              <Form.Item label="过滤条件绑定" name="filterOptionIds"><Select mode="multiple" options={flatFilterOptions} placeholder="选择该商品所属的过滤条件" /></Form.Item>
-              <Form.Item initialValue={false} label="推荐商品" name="featured" valuePropName="checked"><Switch /></Form.Item>
-              <Form.Item label="描述" name="description" rules={[{ required: true }]}><Input.TextArea rows={4} /></Form.Item>
-              <div className="tm-admin-modal__actions">
-                <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">保存商品</Button>
-              </div>
-            </Form>
-          </Modal>
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setProductModalOpen(false)} open={productModalOpen} title={editingProductId ? "编辑商品" : "新增商品"} width={860}>
+          <Form form={productForm} layout="vertical" onFinish={submitProduct}>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Form.Item label="商品名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
+              <Form.Item label="品牌" name="brand" rules={[{ required: true }]}><Input /></Form.Item>
+              <Form.Item label="Slug" name="slug"><Input /></Form.Item>
+              <Form.Item label="SKU" name="sku"><Input /></Form.Item>
+              <Form.Item label="所属分类" name="categoryId" rules={[{ required: true }]}><Select options={data.store.categories.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
+              <Form.Item label="标签" name="badge"><Input /></Form.Item>
+              <Form.Item label="售价" name="price" rules={[{ required: true }]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+              <Form.Item label="划线价" name="originalPrice"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+              <Form.Item label="库存" name="inventory" rules={[{ required: true }]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+              <Form.Item label="配色" name="colorway"><Input /></Form.Item>
+              <Form.Item label="封面图 URL" name="imageUrl" rules={[{ required: true }]}><Input /></Form.Item>
+              <Form.Item label="状态" initialValue="ACTIVE" name="status"><Select options={[{ label: "ACTIVE", value: "ACTIVE" }, { label: "DRAFT", value: "DRAFT" }]} /></Form.Item>
+            </div>
+            <Form.Item label="尺码，逗号分隔" name="sizesInput"><Input placeholder="39,40,41,42" /></Form.Item>
+            <Form.Item label="过滤条件绑定" name="filterOptionIds"><Select mode="multiple" options={flatFilterOptions} placeholder="选择该商品所属的过滤条件" /></Form.Item>
+            <Form.Item initialValue={false} label="推荐商品" name="featured" valuePropName="checked"><Switch /></Form.Item>
+            <Form.Item label="描述" name="description" rules={[{ required: true }]}><Input.TextArea rows={4} /></Form.Item>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+              <Button htmlType="submit" type="primary">保存商品</Button>
+            </div>
+          </Form>
+        </Modal>
 
-          <Modal centered destroyOnHidden footer={null} onCancel={() => setAdminModalOpen(false)} open={adminModalOpen} rootClassName="tm-admin-modal" title="管理员账号">
-            <Form className="tm-admin-modal__form" form={adminForm} layout="vertical" onFinish={submitAdmin}>
-              <Form.Item hidden name="id"><Input /></Form.Item>
-              <Form.Item label="账号" name="username" rules={[{ required: true }]}><Input /></Form.Item>
-              <Form.Item label="显示名" name="displayName" rules={[{ required: true }]}><Input /></Form.Item>
-              <Form.Item label="邮箱" name="email"><Input /></Form.Item>
-              <Form.Item label="密码（编辑时留空表示不改）" name="password"><Input.Password /></Form.Item>
-              <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
-              <div className="tm-admin-modal__actions">
-                <Button className="tm-admin-modal__submit" htmlType="submit" type="primary">保存管理员</Button>
-              </div>
-            </Form>
-          </Modal>
-        </Layout.Content>
-      </Layout>
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setAdminModalOpen(false)} open={adminModalOpen} title="管理员账号">
+          <Form form={adminForm} layout="vertical" onFinish={submitAdmin}>
+            <Form.Item hidden name="id"><Input /></Form.Item>
+            <Form.Item label="账号" name="username" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="显示名" name="displayName" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="邮箱" name="email"><Input /></Form.Item>
+            <Form.Item label="密码（编辑时留空表示不改）" name="password"><Input.Password /></Form.Item>
+            <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+              <Button htmlType="submit" type="primary">保存管理员</Button>
+            </div>
+          </Form>
+        </Modal>
+      </Layout.Content>
+    </Layout>
   );
 }
 
@@ -685,19 +619,24 @@ function CardSection({
   children: ReactNode;
 }) {
   return (
-    <div className="tm-admin-data-card border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
-      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="space-y-1">
-          <Typography.Title level={3} style={{ margin: 0, color: "#0f172a" }}>{title}</Typography.Title>
+    <Card
+      extra={extra}
+      style={{ borderRadius: 16, boxShadow: "0 1px 2px rgba(15, 23, 42, 0.04)" }}
+      styles={{ body: { paddingTop: 0 } }}
+      title={
+        <div>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            {title}
+          </Typography.Title>
           {description ? (
-            <Typography.Paragraph style={{ margin: 0, color: "#64748b" }}>
+            <Typography.Paragraph type="secondary" style={{ margin: "4px 0 0" }}>
               {description}
             </Typography.Paragraph>
           ) : null}
         </div>
-        {extra}
-      </div>
+      }
+    >
       {children}
-    </div>
+    </Card>
   );
 }

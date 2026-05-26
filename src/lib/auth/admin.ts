@@ -27,14 +27,20 @@ export async function createAdminSession(userId: string) {
   await setAuthCookie(ADMIN_SESSION_COOKIE, token, expiresAt);
 }
 
+async function deleteAdminSessionRecord(token: string | undefined) {
+  if (!token) {
+    return;
+  }
+
+  await prisma.adminSession.deleteMany({
+    where: { token },
+  });
+}
+
 export async function destroyAdminSession() {
   const token = await getCookieToken(ADMIN_SESSION_COOKIE);
 
-  if (token) {
-    await prisma.adminSession.deleteMany({
-      where: { token },
-    });
-  }
+  await deleteAdminSessionRecord(token);
 
   await clearAuthCookie(ADMIN_SESSION_COOKIE);
 }
@@ -51,7 +57,8 @@ export async function getCurrentAdminProfile(): Promise<AdminProfile | null> {
   });
 
   if (!session || session.expiresAt < new Date() || !session.user.isActive) {
-    await destroyAdminSession();
+    // Reading auth state during page render must stay read-only for cookies.
+    await deleteAdminSessionRecord(token);
     return null;
   }
 

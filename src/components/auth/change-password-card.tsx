@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
+import { notifyAuthChanged } from "@/components/providers/auth-provider";
 import { useLocale } from "@/components/providers/locale-provider";
 import { formatDate, formatCurrency } from "@/lib/format";
 import type { CustomerProfile, Order } from "@/types/store";
@@ -57,6 +58,7 @@ export function ChangePasswordCard({ user, orders }: { user: CustomerProfile; or
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
+      notifyAuthChanged();
       router.push("/");
       router.refresh();
     } catch {

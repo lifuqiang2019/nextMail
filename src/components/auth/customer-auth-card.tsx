@@ -6,6 +6,8 @@ import { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { useAuth } from "@/components/providers/auth-provider";
+
 type CustomerAuthCardProps = {
   successRedirect?: string;
   title?: string;
@@ -19,6 +21,7 @@ export function CustomerAuthCard({
 }: CustomerAuthCardProps = {}) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { refreshSession } = useAuth();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
 
@@ -40,6 +43,7 @@ export function CustomerAuthCard({
     }
 
     message.success(mode === "login" ? t("auth.loginSuccess") : t("auth.registerSuccess"));
+    await refreshSession();
     router.push(successRedirect);
     router.refresh();
     setLoading(false);

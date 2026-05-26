@@ -8,7 +8,7 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useSyncExternalStore,
+  useState,
 } from "react";
 
 import { i18n } from "@/lib/i18n/client";
@@ -27,15 +27,6 @@ type LocaleContextValue = {
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 const LOCALE_EVENT = "nextmail-locale-updated";
 
-function readStoredLocale(fallbackLocale: AppLocale) {
-  if (typeof window === "undefined") {
-    return fallbackLocale;
-  }
-
-  const storedLocale = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-  return storedLocale ? normalizeLocale(storedLocale) : fallbackLocale;
-}
-
 function persistLocale(locale: AppLocale) {
   if (typeof document !== "undefined") {
     document.cookie = `${LOCALE_COOKIE_NAME}=${locale}; path=/; max-age=31536000; samesite=lax`;
@@ -48,21 +39,6 @@ function persistLocale(locale: AppLocale) {
   }
 }
 
-function subscribeLocale(callback: () => void) {
-  if (typeof window === "undefined") {
-    return () => {};
-  }
-
-  const handler = () => callback();
-  window.addEventListener("storage", handler);
-  window.addEventListener(LOCALE_EVENT, handler);
-
-  return () => {
-    window.removeEventListener("storage", handler);
-    window.removeEventListener(LOCALE_EVENT, handler);
-  };
-}
-
 export function LocaleProvider({
   children,
   initialLocale,
@@ -72,15 +48,23 @@ export function LocaleProvider({
 }) {
   const router = useRouter();
   const fallbackLocale = normalizeLocale(initialLocale);
-  const locale = useSyncExternalStore(
-    subscribeLocale,
-    () => readStoredLocale(fallbackLocale),
-    () => fallbackLocale,
-  );
+  const [locale, setLocaleState] = useState<AppLocale>(() => {
+    if (i18n.resolvedLanguage !== fallbackLocale) {
+      void i18n.changeLanguage(fallbackLocale);
+    }
+
+    return fallbackLocale;
+  });
+
+  useEffect(() => {
+    setLocaleState((current) => (current === fallbackLocale ? current : fallbackLocale));
+  }, [fallbackLocale]);
 
   useEffect(() => {
     persistLocale(locale);
-    void i18n.changeLanguage(locale);
+    if (i18n.resolvedLanguage !== locale) {
+      void i18n.changeLanguage(locale);
+    }
   }, [locale]);
 
   const setLocale = useCallback(
@@ -90,6 +74,7 @@ export function LocaleProvider({
         return;
       }
 
+      setLocaleState(normalized);
       persistLocale(normalized);
       void i18n.changeLanguage(normalized);
       router.refresh();

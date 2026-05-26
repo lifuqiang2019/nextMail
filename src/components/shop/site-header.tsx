@@ -8,6 +8,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
+import { notifyAuthChanged } from "@/components/providers/auth-provider";
 import { useCart } from "@/components/cart/cart-provider";
 import { LanguageSwitcher } from "@/components/shop/language-switcher";
 import type { CustomerProfile } from "@/types/store";
@@ -45,6 +46,7 @@ export function SiteHeader({
   const logout = async () => {
     setLoggingOut(true);
     await fetch("/api/auth/logout", { method: "POST" });
+    notifyAuthChanged();
     router.push("/");
     router.refresh();
     setLoggingOut(false);

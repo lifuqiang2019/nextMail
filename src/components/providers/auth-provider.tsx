@@ -13,6 +13,13 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const AUTH_EVENT = "nextmail-auth-updated";
+
+export function notifyAuthChanged() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(AUTH_EVENT));
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -79,6 +86,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     void loadSession();
+
+    if (typeof window !== "undefined") {
+      const handleAuthChanged = () => {
+        void refreshSession();
+      };
+
+      window.addEventListener(AUTH_EVENT, handleAuthChanged);
+
+      return () => {
+        cancelled = true;
+        window.removeEventListener(AUTH_EVENT, handleAuthChanged);
+      };
+    }
 
     return () => {
       cancelled = true;
