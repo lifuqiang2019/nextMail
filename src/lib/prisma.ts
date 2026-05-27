@@ -1,15 +1,12 @@
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
-
 import { PrismaClient } from "@/generated/prisma/client";
-import { getDatabaseName, getDatabaseUrl } from "@/lib/env";
+import { getDatabaseUrl } from "@/lib/env";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
 };
 
 const databaseUrl = getDatabaseUrl();
-const databaseName = getDatabaseName();
-const canInitializePrisma = Boolean(databaseUrl && databaseName);
 
 function createMissingConfigProxy() {
   return new Proxy(
@@ -24,12 +21,39 @@ function createMissingConfigProxy() {
   ) as PrismaClient;
 }
 
+function parseDatabaseUrl(url: string) {
+  const parsedUrl = new URL(url);
+  return {
+    host: parsedUrl.hostname,
+    port: parseInt(parsedUrl.port) || 3306,
+    user: decodeURIComponent(parsedUrl.username),
+    password: decodeURIComponent(parsedUrl.password),
+    database: parsedUrl.pathname.replace(/^\/+/, ""),
+  };
+}
+
 function createPrismaClient() {
-  if (!canInitializePrisma) {
+  if (!databaseUrl) {
     return createMissingConfigProxy();
   }
 
-  const adapter = new PrismaMariaDb(databaseUrl, { database: databaseName });
+  const { host, port, user, password, database } = parseDatabaseUrl(databaseUrl);
+  
+  const adapter = new PrismaMariaDb(
+    {
+      host,
+      port,
+      user,
+      password,
+      connectTimeout: 30000,
+      socketTimeout: 60000,
+      poolTimeout: 30000,
+      connectionLimit: 10,
+    },
+    {
+      database,
+    }
+  );
 
   return new PrismaClient({
     adapter,
