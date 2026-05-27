@@ -47,7 +47,6 @@ function createPrismaClient() {
       password,
       connectTimeout: 30000,
       socketTimeout: 60000,
-      poolTimeout: 30000,
       connectionLimit: 10,
     },
     {
