@@ -114,8 +114,7 @@ export const resources = {
         stockCount: "库存 {{count}} 件",
         shippingTitle: "填写收货信息",
         shippingDesc: "下单后会自动生成订单记录，你可以在订单页查看自己的订单。",
-        dbNotConfigured:
-          "当前还没有配置数据库连接。你可以填写 `NEXTMAIL_DATABASE_URL` / `DATABASE_URL`，或使用 `NEXTMAIL_DATABASE_HOST`、`NEXTMAIL_DATABASE_USER`、`NEXTMAIL_DATABASE_PASSWORD`、`NEXTMAIL_DATABASE_NAME` 这组变量。",
+        dbNotConfigured: "当前还没有配置 `NEXTMAIL_DATABASE_URL`（或 `DATABASE_URL`），现在只能浏览商品和购物车，暂时无法真正提交订单。",
         checkingLogin: "正在确认登录状态...",
         loginRequiredDesc: "提交订单前需要先登录账号，登录后会自动带出你的联系邮箱。",
         goLogin: "去登录",
@@ -209,8 +208,7 @@ export const resources = {
       },
       orders: {
         title: "我的订单",
-        dbNotConfiguredDesc:
-          "当前还没有配置 MySQL 连接。订单功能代码已经接好，填好 `NEXTMAIL_DATABASE_URL` / `DATABASE_URL`，或补齐 `NEXTMAIL_DATABASE_HOST`、`NEXTMAIL_DATABASE_USER`、`NEXTMAIL_DATABASE_PASSWORD`、`NEXTMAIL_DATABASE_NAME` 后即可使用。",
+        dbNotConfiguredDesc: "当前还没有配置 MySQL 连接串，订单功能代码已经接好，填好 `NEXTMAIL_DATABASE_URL`（或 `DATABASE_URL`）后即可使用。",
         loginRequiredDesc: "请先登录，再查看你自己的订单记录。",
         goLogin: "去登录",
         dbBusyDesc: "已登录账号: {{email}}。当前数据库连接繁忙，暂时无法读取订单记录，请稍后重试。",
@@ -356,8 +354,7 @@ export const resources = {
         stockCount: "{{count}} in stock",
         shippingTitle: "Shipping Information",
         shippingDesc: "An order record is created after checkout, and you can review it on the orders page.",
-        dbNotConfigured:
-          "The database is not configured yet. Set `NEXTMAIL_DATABASE_URL` / `DATABASE_URL`, or provide `NEXTMAIL_DATABASE_HOST`, `NEXTMAIL_DATABASE_USER`, `NEXTMAIL_DATABASE_PASSWORD`, and `NEXTMAIL_DATABASE_NAME`.",
+        dbNotConfigured: "`NEXTMAIL_DATABASE_URL` (or `DATABASE_URL`) is not configured yet, so you can browse products and cart only for now.",
         checkingLogin: "Checking sign-in status...",
         loginRequiredDesc: "Please sign in before submitting the order. Your contact email will be filled automatically after login.",
         goLogin: "Sign in",
@@ -451,8 +448,7 @@ export const resources = {
       },
       orders: {
         title: "My Orders",
-        dbNotConfiguredDesc:
-          "MySQL is not configured yet. The order feature is ready, and it will work after you set `NEXTMAIL_DATABASE_URL` / `DATABASE_URL`, or provide `NEXTMAIL_DATABASE_HOST`, `NEXTMAIL_DATABASE_USER`, `NEXTMAIL_DATABASE_PASSWORD`, and `NEXTMAIL_DATABASE_NAME`.",
+        dbNotConfiguredDesc: "MySQL is not configured yet. The order feature is ready, and it will work after you set `NEXTMAIL_DATABASE_URL` (or `DATABASE_URL`).",
         loginRequiredDesc: "Please sign in before viewing your order history.",
         goLogin: "Sign in",
         dbBusyDesc: "Signed in as: {{email}}. The database is busy right now and orders cannot be loaded yet. Please try again later.",

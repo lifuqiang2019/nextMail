@@ -9,33 +9,47 @@ const baseURL = process.env.PW_BASE_URL ?? "http://localhost:3000";
 test.use({ channel: "msedge" });
 test.setTimeout(180_000);
 
-test.beforeAll(async () => {
-  await cleanupAdminE2EData();
+test("admin access is gated for unauthenticated users", async ({ page, request }) => {
+  await page.goto(`${baseURL}/admin`, { waitUntil: "domcontentloaded" });
+  await expect(page).toHaveURL(/\/admin\/login/);
+  await expect(page.getByRole("heading", { name: "Admin Sign In" })).toBeVisible();
+
+  const response = await request.post(`${baseURL}/api/admin/products`, {
+    data: { id: "unauth-test" },
+  });
+
+  expect(response.status()).toBe(401);
 });
 
-test.afterAll(async () => {
-  await cleanupAdminE2EData();
-});
+test.describe("admin CRUD flow", () => {
+  test.beforeAll(async () => {
+    await cleanupAdminE2EData();
+  });
 
-test("admin CRUD flow is repeatable", async ({ page }) => {
-  logStep("login as default admin");
-  await login(page, "admin", "admin123");
-  await expect(page.getByRole("heading", { name: "Admin Console" })).toBeVisible();
+  test.afterAll(async () => {
+    await cleanupAdminE2EData();
+  });
 
-  logStep("verify categories CRUD");
-  await verifyCategoryFlow(page);
+  test("admin CRUD flow is repeatable", async ({ page }) => {
+    logStep("login as default admin");
+    await login(page, "admin", "admin123");
+    await expect(page.getByRole("heading", { name: "Admin Console" })).toBeVisible();
 
-  logStep("verify filters CRUD");
-  await verifyFilterFlow(page);
+    logStep("verify categories CRUD");
+    await verifyCategoryFlow(page);
 
-  logStep("verify products CRUD");
-  await verifyProductFlow(page);
+    logStep("verify filters CRUD");
+    await verifyFilterFlow(page);
 
-  logStep("cleanup category and filter through UI");
-  await cleanupCategoryAndFilter(page);
+    logStep("verify products CRUD");
+    await verifyProductFlow(page);
 
-  logStep("verify admin users create/view/update/login/disable");
-  await verifyAdminFlow(page);
+    logStep("cleanup category and filter through UI");
+    await cleanupCategoryAndFilter(page);
+
+    logStep("verify admin users create/view/update/login/disable");
+    await verifyAdminFlow(page);
+  });
 });
 
 async function verifyCategoryFlow(page: Page) {

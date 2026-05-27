@@ -1,8 +1,6 @@
 import { config as loadEnv } from "dotenv";
 import * as mariadb from "mariadb";
 
-import { getDatabaseUrl } from "./src/lib/env";
-
 loadEnv({ path: ".env.local", override: false });
 loadEnv({ path: ".env.production.local", override: false });
 loadEnv({ override: false });
@@ -90,11 +88,9 @@ export async function cleanupAdminE2EData() {
 }
 
 async function createDatabaseConnection() {
-  const databaseUrl = getDatabaseUrl();
+  const databaseUrl = process.env.NEXTMAIL_DATABASE_URL ?? process.env.DATABASE_URL;
   if (!databaseUrl) {
-    throw new Error(
-      "Missing database config for E2E cleanup. Set NEXTMAIL_DATABASE_URL / DATABASE_URL, or provide NEXTMAIL_DATABASE_HOST, NEXTMAIL_DATABASE_USER, NEXTMAIL_DATABASE_PASSWORD, and NEXTMAIL_DATABASE_NAME.",
-    );
+    throw new Error("Missing NEXTMAIL_DATABASE_URL or DATABASE_URL for E2E cleanup.");
   }
 
   const url = new URL(databaseUrl);
