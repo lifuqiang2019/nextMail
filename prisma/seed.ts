@@ -25,7 +25,6 @@ const adapter = new PrismaMariaDb(
     password: decodeURIComponent(url.password),
     connectTimeout: 30000,
     socketTimeout: 60000,
-    poolTimeout: 30000,
     connectionLimit: 1,
   },
   { database: databaseName || url.pathname.replace(/^\/+/, "") },
