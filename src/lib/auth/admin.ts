@@ -17,7 +17,7 @@ export function isRecoverableAdminAuthError(error: unknown) {
   }
 
   const fullMessage = `${error.name}\n${error.message}\n${String((error as { cause?: unknown }).cause ?? "")}`;
-  return /DriverAdapterError|pool timeout|max_connections_per_hour|failed to retrieve a connection|does not exist|doesn't exist|P2021/i.test(
+  return /DriverAdapterError|pool timeout|max_connections_per_hour|failed to retrieve a connection|does not exist|doesn't exist|P2021|ECONNREFUSED|ETIMEDOUT|Too many connections|ER_CON_COUNT_ERROR|ER_USER_LIMIT_REACHED|ER_ACCESS_DENIED_ERROR/i.test(
     fullMessage,
   );
 }

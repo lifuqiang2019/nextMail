@@ -8,19 +8,52 @@ export function AdminLoginCard() {
 
   const submit = async (values: { username: string; password: string }) => {
     setLoading(true);
-    const response = await fetch("/api/admin/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      message.error(data.message || "Sign-in failed");
+    try {
+      const response = await fetch("/api/admin/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      const contentType = response.headers.get("content-type") ?? "";
+      let data: unknown = null;
+
+      if (contentType.includes("application/json")) {
+        try {
+          data = await response.json();
+        } catch {
+          data = null;
+        }
+      } else {
+        const text = await response.text();
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch {
+          data = text ? { message: text } : null;
+        }
+      }
+
+      if (!response.ok) {
+        const messageText =
+          typeof data === "object" && data
+            ? (data as { message?: unknown }).message
+            : null;
+
+        message.error(
+          typeof messageText === "string" && messageText.trim()
+            ? messageText
+            : `Sign-in failed (${response.status})`,
+        );
+        return;
+      }
+
+      message.success("Admin signed in successfully");
+      window.location.assign("/admin");
+    } catch {
+      message.error("Sign-in failed. Please try again later.");
+    } finally {
       setLoading(false);
-      return;
     }
-    message.success("Admin signed in successfully");
-    window.location.assign("/admin");
   };
 
   return (

@@ -38,7 +38,15 @@ function createPrismaClient() {
   }
 
   const { host, port, user, password, database } = parseDatabaseUrl(databaseUrl);
-  
+
+  const configuredLimit = Number(process.env.NEXTMAIL_DB_CONNECTION_LIMIT);
+  const connectionLimit =
+    Number.isFinite(configuredLimit) && configuredLimit > 0
+      ? configuredLimit
+      : host === "localhost" || host === "127.0.0.1" || host === "::1"
+        ? 10
+        : 1;
+
   const adapter = new PrismaMariaDb(
     {
       host,
@@ -48,7 +56,7 @@ function createPrismaClient() {
       connectTimeout: 30000,
       socketTimeout: 60000,
       poolTimeout: 30000,
-      connectionLimit: 10,
+      connectionLimit,
     },
     {
       database,
@@ -61,8 +69,25 @@ function createPrismaClient() {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+let prismaClient: PrismaClient | undefined = globalForPrisma.prisma;
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+function getPrismaClient() {
+  if (!prismaClient) {
+    prismaClient = createPrismaClient();
+    if (process.env.NODE_ENV !== "production") {
+      globalForPrisma.prisma = prismaClient;
+    }
+  }
+  return prismaClient;
 }
+
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = getPrismaClient();
+    const value = (client as unknown as Record<PropertyKey, unknown>)[prop];
+    if (typeof value === "function") {
+      return (value as (...args: unknown[]) => unknown).bind(client);
+    }
+    return value;
+  },
+}) as PrismaClient;

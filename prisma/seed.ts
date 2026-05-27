@@ -12,7 +12,24 @@ import { fallbackStoreEn, fallbackStoreZh } from "../src/lib/store-defaults";
 const databaseUrl = getDatabaseUrl();
 const databaseName = getDatabaseName();
 
-const adapter = new PrismaMariaDb(databaseUrl, { database: databaseName });
+if (!databaseUrl) {
+  throw new Error("Missing NEXTMAIL_DATABASE_URL / DATABASE_URL for seeding.");
+}
+
+const url = new URL(databaseUrl);
+const adapter = new PrismaMariaDb(
+  {
+    host: url.hostname,
+    port: url.port ? Number(url.port) : 3306,
+    user: decodeURIComponent(url.username),
+    password: decodeURIComponent(url.password),
+    connectTimeout: 30000,
+    socketTimeout: 60000,
+    poolTimeout: 30000,
+    connectionLimit: 1,
+  },
+  { database: databaseName || url.pathname.replace(/^\/+/, "") },
+);
 
 const prisma = new PrismaClient({ adapter });
 
