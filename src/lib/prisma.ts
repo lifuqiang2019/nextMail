@@ -9,15 +9,35 @@ const globalForPrisma = globalThis as unknown as {
 
 const databaseUrl = getDatabaseUrl();
 const databaseName = getDatabaseName();
+const canInitializePrisma = Boolean(databaseUrl && databaseName);
 
-const adapter = new PrismaMariaDb(databaseUrl, { database: databaseName });
+function createMissingConfigProxy() {
+  return new Proxy(
+    {},
+    {
+      get() {
+        throw new Error(
+          "Database connection is not configured. Set NEXTMAIL_DATABASE_URL / DATABASE_URL, or provide NEXTMAIL_DATABASE_HOST, NEXTMAIL_DATABASE_USER, NEXTMAIL_DATABASE_PASSWORD, and NEXTMAIL_DATABASE_NAME.",
+        );
+      },
+    },
+  ) as PrismaClient;
+}
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
+function createPrismaClient() {
+  if (!canInitializePrisma) {
+    return createMissingConfigProxy();
+  }
+
+  const adapter = new PrismaMariaDb(databaseUrl, { database: databaseName });
+
+  return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
+}
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;

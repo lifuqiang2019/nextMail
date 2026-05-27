@@ -24,7 +24,10 @@ const createOrderSchema = z.object({
 export async function POST(request: Request) {
   if (!isDatabaseConfigured()) {
     return Response.json(
-      { message: "Database connection is not configured yet (NEXTMAIL_DATABASE_URL / DATABASE_URL), so orders cannot be created right now." },
+      {
+        message:
+          "Database connection is not configured yet. Set NEXTMAIL_DATABASE_URL / DATABASE_URL, or provide NEXTMAIL_DATABASE_HOST, NEXTMAIL_DATABASE_USER, NEXTMAIL_DATABASE_PASSWORD, and NEXTMAIL_DATABASE_NAME.",
+      },
       { status: 503 },
     );
   }

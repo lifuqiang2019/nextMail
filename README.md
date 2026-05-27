@@ -2,8 +2,8 @@
 
 一个基于 Next.js App Router 的前后台一体化商城示例项目，当前已经包含邮箱密码登录注册、商品首页、购物车、下单流程、订单列表和后台商品配置。项目支持两种数据模式：
 
-- 已配置 `DATABASE_URL` 时：使用 MySQL + Prisma
-- 未配置 `DATABASE_URL` 时：店铺和商品配置继续回退到本地 `data/store.json`
+- 已配置数据库连接时：使用 MySQL + Prisma
+- 未配置数据库连接时：店铺和商品配置继续回退到本地 `data/store.json`
 
 ## 当前能力
 
@@ -59,10 +59,21 @@ data/
 
 ## 环境变量
 
-复制项目根目录下的 `.env.example` 为 `.env.local`，至少填写：
+复制项目根目录下的 `.env.example` 为 `.env.local`，至少填写下面两种方式中的一种：
 
 ```bash
 DATABASE_URL="mysql://root:password@127.0.0.1:3306/nextmail"
+AUTH_SECRET="replace-with-a-long-random-string"
+```
+
+或使用分开的生产环境变量：
+
+```bash
+NEXTMAIL_DATABASE_HOST="127.0.0.1"
+NEXTMAIL_DATABASE_PORT="3306"
+NEXTMAIL_DATABASE_USER="root"
+NEXTMAIL_DATABASE_PASSWORD="password"
+NEXTMAIL_DATABASE_NAME="nextmail"
 AUTH_SECRET="replace-with-a-long-random-string"
 ```
 
