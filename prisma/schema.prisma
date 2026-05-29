@@ -17,6 +17,9 @@ model StoreSetting {
   supportPhone    String   @default("")
   purchaseGuide   String   @default("") @db.Text
   orderLink       String   @default("") @db.Text
+  paymentAccountName   String   @default("")
+  paymentAccountNumber String   @default("")
+  paymentBankName      String   @default("")
   updatedAt       DateTime @updatedAt
 
   i18n            StoreSettingI18n[]

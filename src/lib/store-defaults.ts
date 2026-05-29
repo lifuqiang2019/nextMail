@@ -14,6 +14,9 @@ export const fallbackStoreEn: StoreData = {
     purchaseGuide:
       "After placing an order, take a screenshot of the order page and contact the merchant using the info shown on the page to confirm size, stock, and shipping details.",
     orderLink: "https://shoemall.example.com/order/contact",
+    paymentAccountName: "张帅",
+    paymentAccountNumber: "266353636727",
+    paymentBankName: "中国银行某支行",
   },
   categories: [
     {
@@ -152,6 +155,9 @@ export const fallbackStoreZh: StoreData = {
     purchaseGuide:
       "提交订单后，请截图当前订单页，并通过页面展示的联系方式发送给商家确认购买。商家会根据截图或订单链接与你确认尺码、库存和发货信息。",
     orderLink: "https://shoemall.example.com/order/contact",
+    paymentAccountName: "张帅",
+    paymentAccountNumber: "266353636727",
+    paymentBankName: "中国银行某支行",
   },
   categories: [
     {

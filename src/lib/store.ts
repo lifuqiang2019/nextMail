@@ -78,6 +78,9 @@ function sanitizeSettings(
     supportPhone: sanitizeText(input?.supportPhone, fallback.settings.supportPhone),
     purchaseGuide: sanitizeText(input?.purchaseGuide, fallback.settings.purchaseGuide),
     orderLink: sanitizeText(input?.orderLink, fallback.settings.orderLink),
+    paymentAccountName: sanitizeText(input?.paymentAccountName, fallback.settings.paymentAccountName ?? ""),
+    paymentAccountNumber: sanitizeText(input?.paymentAccountNumber, fallback.settings.paymentAccountNumber ?? ""),
+    paymentBankName: sanitizeText(input?.paymentBankName, fallback.settings.paymentBankName ?? ""),
   };
 }
 
@@ -324,6 +327,9 @@ const readStoreDataInternal = async (locale: AppLocale): Promise<StoreData> => {
         supportEmail: settings.supportEmail,
         supportPhone: settings.supportPhone,
         orderLink: settings.orderLink,
+        paymentAccountName: settings.paymentAccountName,
+        paymentAccountNumber: settings.paymentAccountNumber,
+        paymentBankName: settings.paymentBankName,
         ...localizedSettings,
       },
       categories: categories.map((category) => ({
@@ -395,6 +401,9 @@ export async function writeStoreData(input: Partial<StoreData>, locale?: AppLoca
     supportEmail: normalized.settings.supportEmail,
     supportPhone: normalized.settings.supportPhone,
     orderLink: normalized.settings.orderLink,
+    paymentAccountName: normalized.settings.paymentAccountName ?? "",
+    paymentAccountNumber: normalized.settings.paymentAccountNumber ?? "",
+    paymentBankName: normalized.settings.paymentBankName ?? "",
   };
 
   const localizedSettings = {

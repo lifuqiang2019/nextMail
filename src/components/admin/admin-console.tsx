@@ -22,6 +22,7 @@ import type { ColumnsType } from "antd/es/table";
 import {
   AppstoreOutlined,
   FilterOutlined,
+  SettingOutlined,
   ShoppingOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
@@ -42,7 +43,7 @@ type AdminDashboardData = {
   admins: Array<{ id: string; username: string; displayName: string; email?: string | null; isActive: boolean; createdAt: string }>;
 };
 
-type ModuleKey = "categories" | "filters" | "products" | "admins";
+type ModuleKey = "settings" | "categories" | "filters" | "products" | "admins";
 
 type ProductFormValues = Product & { sizesInput?: string };
 type FilterGroupFormValues = FilterGroup;
@@ -61,6 +62,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
   const [filterForm] = Form.useForm<FilterGroupFormValues>();
   const [productForm] = Form.useForm<ProductFormValues>();
   const [adminForm] = Form.useForm();
+  const [settingsForm] = Form.useForm<StoreData["settings"]>();
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [productModalOpen, setProductModalOpen] = useState(false);
@@ -257,6 +259,22 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     window.location.assign("/admin/login");
   };
 
+  const submitSettings = async (values: StoreData["settings"]) => {
+    const response = await fetch("/api/admin/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values),
+    });
+    const payload = await response.json();
+    if (!response.ok) {
+      message.error(payload.message || "Failed to save settings");
+      return;
+    }
+    message.success("Settings updated");
+    settingsForm.setFieldsValue(values);
+    await refreshData();
+  };
+
   const flatFilterOptions = useMemo(
     () =>
       data.store.filterGroups.flatMap((group) =>
@@ -384,18 +402,21 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
   ];
 
   const menuItems = [
+    { key: "settings", icon: <SettingOutlined />, label: "Settings" },
     { key: "products", icon: <ShoppingOutlined />, label: "Products" },
     { key: "categories", icon: <AppstoreOutlined />, label: "Categories" },
     { key: "filters", icon: <FilterOutlined />, label: "Filters" },
     { key: "admins", icon: <TeamOutlined />, label: "Admin Users" },
   ];
   const moduleTitles: Record<ModuleKey, string> = {
+    settings: "Settings",
     products: "Products",
     categories: "Categories",
     filters: "Filters",
     admins: "Admin Users",
   };
   const moduleDescriptions: Record<ModuleKey, string> = {
+    settings: "Manage storefront settings and checkout payment info here.",
     products: `${data.store.products.length} products in total. You can create, edit, and delete them here.`,
     categories: `${data.store.categories.length} categories in total. Manage category details and active states here.`,
     filters: `${data.store.filterGroups.length} filter groups in total. Maintain options and sorting here.`,
@@ -458,6 +479,31 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               {moduleDescriptions[activeKey]}
             </Typography.Paragraph>
           </div>
+
+          {activeKey === "settings" ? (
+            <CardSection title={moduleTitles.settings}>
+              <Form form={settingsForm} initialValues={data.store.settings} layout="vertical" onFinish={submitSettings}>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <Form.Item label="Store Name" name="storeName" rules={[{ required: true }]}><Input /></Form.Item>
+                  <Form.Item label="Order Link" name="orderLink"><Input /></Form.Item>
+                  <Form.Item label="Support Email" name="supportEmail"><Input /></Form.Item>
+                  <Form.Item label="Support Phone" name="supportPhone"><Input /></Form.Item>
+                  <Form.Item label="Payment Account Name" name="paymentAccountName"><Input /></Form.Item>
+                  <Form.Item label="Payment Account Number" name="paymentAccountNumber"><Input /></Form.Item>
+                  <Form.Item label="Payment Bank Name" name="paymentBankName"><Input /></Form.Item>
+                </div>
+
+                <Form.Item label="Hero Title" name="heroTitle"><Input /></Form.Item>
+                <Form.Item label="Hero Subtitle" name="heroSubtitle"><Input.TextArea rows={2} /></Form.Item>
+                <Form.Item label="Hero Notice" name="heroNotice"><Input.TextArea rows={2} /></Form.Item>
+                <Form.Item label="Purchase Guide" name="purchaseGuide"><Input.TextArea rows={4} /></Form.Item>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+                  <Button htmlType="submit" type="primary">Save Settings</Button>
+                </div>
+              </Form>
+            </CardSection>
+          ) : null}
 
           {activeKey === "products" ? (
             <CardSection

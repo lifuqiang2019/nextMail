@@ -30,12 +30,18 @@ export async function PUT(request: Request) {
   const supportEmail = typeof body.supportEmail === "string" ? body.supportEmail.trim() : "";
   const supportPhone = typeof body.supportPhone === "string" ? body.supportPhone.trim() : "";
   const orderLink = typeof body.orderLink === "string" ? body.orderLink.trim() : "";
+  const paymentAccountName = typeof body.paymentAccountName === "string" ? body.paymentAccountName.trim() : "";
+  const paymentAccountNumber = typeof body.paymentAccountNumber === "string" ? body.paymentAccountNumber.trim() : "";
+  const paymentBankName = typeof body.paymentBankName === "string" ? body.paymentBankName.trim() : "";
 
   const baseSettings = {
     storeName: storeName || fallback.settings.storeName,
     supportEmail: supportEmail || fallback.settings.supportEmail,
     supportPhone: supportPhone || fallback.settings.supportPhone,
     orderLink: orderLink || fallback.settings.orderLink,
+    paymentAccountName: paymentAccountName || fallback.settings.paymentAccountName || "",
+    paymentAccountNumber: paymentAccountNumber || fallback.settings.paymentAccountNumber || "",
+    paymentBankName: paymentBankName || fallback.settings.paymentBankName || "",
   };
 
   const heroTitle = typeof body.heroTitle === "string" ? body.heroTitle.trim() : "";
