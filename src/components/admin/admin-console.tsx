@@ -24,12 +24,10 @@ import {
   FilterOutlined,
   ShoppingOutlined,
   TeamOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 
-import { formatDateTime } from "@/lib/format";
 import type {
   AdminProfile,
   Category,
@@ -44,7 +42,7 @@ type AdminDashboardData = {
   admins: Array<{ id: string; username: string; displayName: string; email?: string | null; isActive: boolean; createdAt: string }>;
 };
 
-type ModuleKey = "categories" | "filters" | "products" | "customers" | "admins";
+type ModuleKey = "categories" | "filters" | "products" | "admins";
 
 type ProductFormValues = Product & { sizesInput?: string };
 type FilterGroupFormValues = FilterGroup;
@@ -385,32 +383,22 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     },
   ];
 
-  const customerColumns: ColumnsType<(typeof data.customers)[number]> = [
-    { title: "用户名", dataIndex: "name" },
-    { title: "邮箱", dataIndex: "email" },
-    { title: "状态", dataIndex: "isActive", render: (value) => <Tag color={value ? "green" : "default"}>{value ? "启用" : "停用"}</Tag> },
-    { title: "注册时间", dataIndex: "createdAt", render: (value) => formatDateTime(value, "zh-CN") },
-  ];
-
   const menuItems = [
     { key: "products", icon: <ShoppingOutlined />, label: "Products" },
     { key: "categories", icon: <AppstoreOutlined />, label: "Categories" },
     { key: "filters", icon: <FilterOutlined />, label: "Filters" },
-    { key: "customers", icon: <UserOutlined />, label: "用户管理" },
     { key: "admins", icon: <TeamOutlined />, label: "Admin Users" },
   ];
   const moduleTitles: Record<ModuleKey, string> = {
     products: "Products",
     categories: "Categories",
     filters: "Filters",
-    customers: "客户列表",
     admins: "Admin Users",
   };
   const moduleDescriptions: Record<ModuleKey, string> = {
     products: `${data.store.products.length} products in total. You can create, edit, and delete them here.`,
     categories: `${data.store.categories.length} categories in total. Manage category details and active states here.`,
     filters: `${data.store.filterGroups.length} filter groups in total. Maintain options and sorting here.`,
-    customers: `当前共有 ${data.customers.length} 个注册用户，可在此查看客户账号列表。`,
     admins: `${data.admins.length} admin accounts in total. Manage login details and active states here.`,
   };
   const tableScrollY = "calc(100dvh - 255px)";
@@ -573,19 +561,6 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               <Table
                 columns={adminColumns}
                 dataSource={data.admins}
-                pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
-                rowKey="id"
-                scroll={tableScroll}
-                size="middle"
-              />
-            </CardSection>
-          ) : null}
-
-          {activeKey === "customers" ? (
-            <CardSection title={moduleTitles.customers}>
-              <Table
-                columns={customerColumns}
-                dataSource={data.customers}
                 pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
                 rowKey="id"
                 scroll={tableScroll}

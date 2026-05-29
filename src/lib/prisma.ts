@@ -32,13 +32,24 @@ function parseDatabaseUrl(url: string) {
   };
 }
 
+function getConnectionLimit() {
+  const configuredValue = process.env.NEXTMAIL_DB_CONNECTION_LIMIT ?? process.env.DB_CONNECTION_LIMIT;
+  const parsedValue = Number.parseInt(configuredValue ?? "", 10);
+
+  if (Number.isFinite(parsedValue) && parsedValue > 0) {
+    return parsedValue;
+  }
+
+  return 10;
+}
+
 function createPrismaClient() {
   if (!databaseUrl) {
     return createMissingConfigProxy();
   }
 
   const { host, port, user, password, database } = parseDatabaseUrl(databaseUrl);
-  
+
   const adapter = new PrismaMariaDb(
     {
       host,
@@ -47,7 +58,7 @@ function createPrismaClient() {
       password,
       connectTimeout: 30000,
       socketTimeout: 60000,
-      connectionLimit: 10,
+      connectionLimit: getConnectionLimit(),
     },
     {
       database,
