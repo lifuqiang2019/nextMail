@@ -496,7 +496,19 @@ export async function readAdminDashboardData() {
   const customersPromise = prisma.customerUser
     .findMany({
       orderBy: { createdAt: "desc" },
-      select: { id: true, name: true, email: true, isActive: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            orders: true,
+          },
+        },
+      },
     })
     .catch((error) => {
       if (isRecoverableStoreError(error)) {
@@ -524,5 +536,17 @@ export async function readAdminDashboardData() {
     adminsPromise,
   ]);
 
-  return { store, customers, admins };
+  return {
+    store,
+    customers: customers.map((customer) => ({
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      isActive: customer.isActive,
+      createdAt: customer.createdAt,
+      updatedAt: customer.updatedAt,
+      orderCount: customer._count.orders,
+    })),
+    admins,
+  };
 }
