@@ -7,6 +7,9 @@ export type StoreSettings = {
   supportPhone: string;
   purchaseGuide: string;
   orderLink: string;
+  paymentAccountName?: string;
+  paymentAccountNumber?: string;
+  paymentBankName?: string;
 };
 
 export type Category = {

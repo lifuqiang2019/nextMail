@@ -80,6 +80,11 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
       return;
     }
 
+    const currentUser = user;
+    if (!currentUser) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -89,9 +94,9 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          receiverName: formData.receiverName ?? user.name,
+          receiverName: formData.receiverName ?? currentUser.name,
           receiverPhone: formData.receiverPhone,
-          receiverEmail: formData.receiverEmail ?? user.email,
+          receiverEmail: formData.receiverEmail ?? currentUser.email,
           receiverAddress: formData.receiverAddress,
           note: formData.note.trim() || undefined,
           items: items.map((item) => ({
@@ -146,9 +151,9 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
         <div className="space-y-3 text-sm leading-7 text-slate-700">
           <p>请按照以下收款信息进行付款：</p>
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div>收款户名：{settings.paymentAccountName}</div>
-            <div>收款账号：{settings.paymentAccountNumber}</div>
-            <div>收款银行：{settings.paymentBankName}</div>
+            <div>收款户名：{settings.paymentAccountName || "—"}</div>
+            <div>收款账号：{settings.paymentAccountNumber || "—"}</div>
+            <div>收款银行：{settings.paymentBankName || "—"}</div>
           </div>
           <p>确认信息无误后，再点击“我已知晓并提交订单”。</p>
         </div>
