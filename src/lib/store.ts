@@ -286,22 +286,17 @@ const readStoreDataInternal = async (locale: AppLocale): Promise<StoreData> => {
   const placeholders = getPlaceholders(locale);
 
   try {
-    const settingsPromise = prisma.storeSetting.findUnique({ where: { id: 1 } });
-    const settingsI18nPromise = readOptionalStoreSettingI18n(locale);
-
-    const [settings, settingsI18n, categories, filterGroups, products] = await Promise.all([
-      settingsPromise,
-      settingsI18nPromise,
-      prisma.category.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
-      prisma.filterGroup.findMany({
-        include: { options: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] } },
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-      }),
-      prisma.product.findMany({
-        include: { filterRefs: true },
-        orderBy: [{ featured: "desc" }, { createdAt: "asc" }],
-      }),
-    ]);
+    const settings = await prisma.storeSetting.findUnique({ where: { id: 1 } });
+    const settingsI18n = await readOptionalStoreSettingI18n(locale);
+    const categories = await prisma.category.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+    const filterGroups = await prisma.filterGroup.findMany({
+      include: { options: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] } },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    });
+    const products = await prisma.product.findMany({
+      include: { filterRefs: true },
+      orderBy: [{ featured: "desc" }, { createdAt: "asc" }],
+    });
 
     if (!settings || categories.length === 0 || products.length === 0) {
       return normalizeStoreData(fallback, fallback, placeholders);
@@ -501,8 +496,8 @@ export async function writeStoreData(input: Partial<StoreData>, locale?: AppLoca
 }
 
 export async function readAdminDashboardData() {
-  const storePromise = readStoreData();
-  const customersPromise = prisma.customerUser
+  const store = await readStoreData();
+  const customers = await prisma.customerUser
     .findMany({
       orderBy: { createdAt: "desc" },
       select: { id: true, name: true, email: true, isActive: true, createdAt: true },
@@ -514,7 +509,7 @@ export async function readAdminDashboardData() {
 
       throw error;
     });
-  const adminsPromise = prisma.adminUser
+  const admins = await prisma.adminUser
     .findMany({
       orderBy: { createdAt: "asc" },
       select: { id: true, username: true, displayName: true, email: true, isActive: true, createdAt: true },
@@ -526,12 +521,6 @@ export async function readAdminDashboardData() {
 
       throw error;
     });
-
-  const [store, customers, admins] = await Promise.all([
-    storePromise,
-    customersPromise,
-    adminsPromise,
-  ]);
 
   return { store, customers, admins };
 }

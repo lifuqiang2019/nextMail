@@ -3,7 +3,8 @@ import { normalizeLocale } from "@/lib/i18n/config";
 export function formatCurrency(value: number, locale?: string) {
   return new Intl.NumberFormat(normalizeLocale(locale), {
     style: "currency",
-    currency: "CNY",
+    currency: "USD",
+    currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 0,
   }).format(value);
 }
