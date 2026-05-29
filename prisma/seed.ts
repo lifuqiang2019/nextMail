@@ -37,9 +37,6 @@ async function main() {
 
   await prisma.customerSession.deleteMany();
   await prisma.adminSession.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.customerUser.deleteMany();
   await prisma.productFilterOption.deleteMany();
   await prisma.product.deleteMany();
   await prisma.filterOption.deleteMany();

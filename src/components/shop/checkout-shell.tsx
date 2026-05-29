@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button, message } from "antd";
+import { Button, Modal, message } from "antd";
 import { ExternalLink, Mail, MapPinned, MessageCircle, Phone } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -37,6 +37,7 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
   const [messageApi, contextHolder] = message.useMessage();
   const [formData, setFormData] = useState<CheckoutFormState>(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   const canSubmitOrder = useMemo(() => {
     return databaseConfigured && Boolean(user) && items.length > 0 && !isLoading && !isSubmitting;
@@ -49,27 +50,33 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
     }));
   };
 
-  const submitOrder = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  const validateBeforeSubmit = () => {
     if (!databaseConfigured) {
       messageApi.error(t("checkout.messageDbNotConfigured"));
-      return;
+      return false;
     }
 
     if (isLoading) {
       messageApi.info(t("checkout.messageCheckingLogin"));
-      return;
+      return false;
     }
 
     if (!user) {
       messageApi.error(t("checkout.messageLoginRequired"));
       router.push("/auth");
-      return;
+      return false;
     }
 
     if (items.length === 0) {
       messageApi.warning(t("checkout.messageEmptyCart"));
+      return false;
+    }
+
+    return true;
+  };
+
+  const createOrder = async () => {
+    if (!validateBeforeSubmit()) {
       return;
     }
 
@@ -100,6 +107,7 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
         throw new Error(data.message || t("checkout.messageOrderFailed"));
       }
 
+      setPaymentModalOpen(false);
       clearCart();
       messageApi.success({ content: t("checkout.messageOrderSuccess"), duration: 1.5 });
       router.push("/orders");
@@ -111,9 +119,40 @@ export function CheckoutShell({ settings, databaseConfigured }: CheckoutShellPro
     }
   };
 
+  const submitOrder = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!validateBeforeSubmit()) {
+      return;
+    }
+
+    setPaymentModalOpen(true);
+  };
+
   return (
     <div className="tm-shell cart-page">
       {contextHolder}
+      <Modal
+        cancelButtonProps={{ disabled: isSubmitting }}
+        cancelText="关闭"
+        confirmLoading={isSubmitting}
+        okButtonProps={{ danger: false }}
+        okText="我已知晓并提交订单"
+        onCancel={() => setPaymentModalOpen(false)}
+        onOk={createOrder}
+        open={paymentModalOpen}
+        title="收款信息"
+      >
+        <div className="space-y-3 text-sm leading-7 text-slate-700">
+          <p>请按照以下收款信息进行付款：</p>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div>收款户名：{settings.paymentAccountName}</div>
+            <div>收款账号：{settings.paymentAccountNumber}</div>
+            <div>收款银行：{settings.paymentBankName}</div>
+          </div>
+          <p>确认信息无误后，再点击“我已知晓并提交订单”。</p>
+        </div>
+      </Modal>
 
       <div className="cart-breadcrumb">
         <Link href="/">{t("common.home")}</Link>
