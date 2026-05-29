@@ -1,11 +1,12 @@
 import { normalizeLocale } from "@/lib/i18n/config";
 
 export function formatCurrency(value: number, locale?: string) {
-  return new Intl.NumberFormat(normalizeLocale(locale), {
-    style: "currency",
-    currency: "CNY",
+  const roundedValue = Number.isFinite(value) ? value : 0;
+  const formattedNumber = new Intl.NumberFormat(normalizeLocale(locale), {
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(roundedValue);
+
+  return `$${formattedNumber}`;
 }
 
 export function formatDate(value: string | Date, locale?: string) {

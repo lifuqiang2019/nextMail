@@ -180,9 +180,9 @@ export const fallbackStoreZh: StoreData = {
       sortOrder: 1,
       isActive: true,
       options: [
-        { id: "fo-shoes-5", groupId: "fg-shoes-price", label: "5 美元", value: "5", sortOrder: 1, isActive: true },
-        { id: "fo-shoes-7", groupId: "fg-shoes-price", label: "7 美元", value: "7", sortOrder: 2, isActive: true },
-        { id: "fo-shoes-10", groupId: "fg-shoes-price", label: "10 美元", value: "10", sortOrder: 3, isActive: true },
+        { id: "fo-shoes-5", groupId: "fg-shoes-price", label: "$5", value: "5", sortOrder: 1, isActive: true },
+        { id: "fo-shoes-7", groupId: "fg-shoes-price", label: "$7", value: "7", sortOrder: 2, isActive: true },
+        { id: "fo-shoes-10", groupId: "fg-shoes-price", label: "$10", value: "10", sortOrder: 3, isActive: true },
       ],
     },
     {
@@ -193,9 +193,9 @@ export const fallbackStoreZh: StoreData = {
       sortOrder: 2,
       isActive: true,
       options: [
-        { id: "fo-apparel-5", groupId: "fg-apparel-price", label: "5 美元", value: "5", sortOrder: 1, isActive: true },
-        { id: "fo-apparel-7", groupId: "fg-apparel-price", label: "7 美元", value: "7", sortOrder: 2, isActive: true },
-        { id: "fo-apparel-10", groupId: "fg-apparel-price", label: "10 美元", value: "10", sortOrder: 3, isActive: true },
+        { id: "fo-apparel-5", groupId: "fg-apparel-price", label: "$5", value: "5", sortOrder: 1, isActive: true },
+        { id: "fo-apparel-7", groupId: "fg-apparel-price", label: "$7", value: "7", sortOrder: 2, isActive: true },
+        { id: "fo-apparel-10", groupId: "fg-apparel-price", label: "$10", value: "10", sortOrder: 3, isActive: true },
       ],
     },
   ],

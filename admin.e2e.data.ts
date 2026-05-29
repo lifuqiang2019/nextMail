@@ -8,6 +8,11 @@ loadEnv({ override: false });
 const runId = Date.now().toString(36);
 
 export const fixtures = {
+  customer: {
+    name: `E2E 客户 ${runId}`,
+    email: `e2e-customer-${runId}@example.com`,
+    password: "TempCustomer123",
+  },
   category: {
     slug: `e2e-category-${runId}`,
     name: `E2E 分类 ${runId} A`,
@@ -62,9 +67,22 @@ export const fixtures = {
 };
 
 export async function cleanupAdminE2EData() {
-  const connection = await createDatabaseConnection();
+  let connection: Awaited<ReturnType<typeof createDatabaseConnection>> | null = null;
 
   try {
+    connection = await createDatabaseConnection();
+
+    const tempCustomers = await connection.query<Array<{ id: string }>>(
+      "SELECT id FROM `CustomerUser` WHERE email LIKE ?",
+      ["e2e-customer-%@example.com"],
+    );
+
+    const customerIds = tempCustomers.map((customer) => customer.id);
+    if (customerIds.length > 0) {
+      await connection.query("DELETE FROM `CustomerSession` WHERE userId IN (?)", [customerIds]);
+      await connection.query("DELETE FROM `CustomerUser` WHERE id IN (?)", [customerIds]);
+    }
+
     const tempAdmins = await connection.query<Array<{ id: string }>>(
       "SELECT id FROM `AdminUser` WHERE username LIKE ?",
       ["e2e_admin_temp_%"],
@@ -82,8 +100,10 @@ export async function cleanupAdminE2EData() {
       "E2E 过滤组 %",
     ]);
     await connection.query("DELETE FROM `Category` WHERE slug LIKE ? OR name LIKE ?", ["e2e-category-%", "E2E 分类 %"]);
+  } catch (error) {
+    console.warn("[admin-e2e] cleanup skipped:", error instanceof Error ? error.message : String(error));
   } finally {
-    await connection.end();
+    await connection?.end();
   }
 }
 

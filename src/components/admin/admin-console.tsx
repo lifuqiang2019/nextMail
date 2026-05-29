@@ -24,10 +24,12 @@ import {
   FilterOutlined,
   ShoppingOutlined,
   TeamOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 
+import { formatDateTime } from "@/lib/format";
 import type {
   AdminProfile,
   Category,
@@ -42,7 +44,7 @@ type AdminDashboardData = {
   admins: Array<{ id: string; username: string; displayName: string; email?: string | null; isActive: boolean; createdAt: string }>;
 };
 
-type ModuleKey = "categories" | "filters" | "products" | "admins";
+type ModuleKey = "categories" | "filters" | "products" | "customers" | "admins";
 
 type ProductFormValues = Product & { sizesInput?: string };
 type FilterGroupFormValues = FilterGroup;
@@ -86,10 +88,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     });
     const payload = await response.json();
     if (!response.ok) {
-      message.error(payload.message || "保存分类失败");
+      message.error(payload.message || "Failed to save category");
       return;
     }
-    message.success(editingCategoryId ? "分类已更新" : "分类已创建");
+    message.success(editingCategoryId ? "Category updated" : "Category created");
     setCategoryModalOpen(false);
     setEditingCategoryId(null);
     categoryForm.resetFields();
@@ -104,10 +106,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     });
     const payload = await response.json();
     if (!response.ok) {
-      message.error(payload.message || "删除分类失败");
+      message.error(payload.message || "Failed to delete category");
       return;
     }
-    message.success("分类已删除");
+    message.success("Category deleted");
     await refreshData();
   };
 
@@ -119,10 +121,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     });
     const payload = await response.json();
     if (!response.ok) {
-      message.error(payload.message || "保存筛选器组失败");
+      message.error(payload.message || "Failed to save filter group");
       return;
     }
-    message.success(editingFilterId ? "筛选器组已更新" : "筛选器组已创建");
+    message.success(editingFilterId ? "Filter group updated" : "Filter group created");
     setFilterModalOpen(false);
     setEditingFilterId(null);
     filterForm.resetFields();
@@ -137,10 +139,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     });
     const payload = await response.json();
     if (!response.ok) {
-      message.error(payload.message || "删除筛选器组失败");
+      message.error(payload.message || "Failed to delete filter group");
       return;
     }
-    message.success("筛选器组已删除");
+    message.success("Filter group deleted");
     await refreshData();
   };
 
@@ -161,10 +163,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     });
     const json = await response.json();
     if (!response.ok) {
-      message.error(json.message || "保存商品失败");
+      message.error(json.message || "Failed to save product");
       return;
     }
-    message.success(editingProductId ? "商品已更新" : "商品已创建");
+    message.success(editingProductId ? "Product updated" : "Product created");
     setProductModalOpen(false);
     setEditingProductId(null);
     productForm.resetFields();
@@ -179,10 +181,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     });
     const json = await response.json();
     if (!response.ok) {
-      message.error(json.message || "删除商品失败");
+      message.error(json.message || "Failed to delete product");
       return;
     }
-    message.success("商品已删除");
+    message.success("Product deleted");
     await refreshData();
   };
 
@@ -199,14 +201,14 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
       const json = (await response.json()) as Partial<ProductImageUploadResponse> & { message?: string };
 
       if (!response.ok || !json.url) {
-        message.error(json.message || "上传图片失败");
+        message.error(json.message || "Failed to upload image");
         return;
       }
 
       productForm.setFieldValue("imageUrl", String(json.url).trim());
-      message.success("图片已上传");
+      message.success("Image uploaded");
     } catch {
-      message.error("上传图片失败");
+      message.error("Failed to upload image");
     } finally {
       setProductImageUploading(false);
     }
@@ -221,7 +223,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     }
 
     if (!file.type.startsWith("image/")) {
-      message.error("请选择图片文件");
+      message.error("Please select an image file");
       return;
     }
 
@@ -243,10 +245,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
     });
     const json = await response.json();
     if (!response.ok) {
-      message.error(json.message || "保存管理员失败");
+      message.error(json.message || "Failed to save admin user");
       return;
     }
-    message.success(values.id ? "管理员已更新" : "管理员已创建");
+    message.success(values.id ? "Admin user updated" : "Admin user created");
     setAdminModalOpen(false);
     adminForm.resetFields();
     await refreshData();
@@ -269,13 +271,13 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
   );
 
   const categoryColumns: ColumnsType<Category> = [
-    { title: "分类名称", dataIndex: "name" },
-    { title: "标识", dataIndex: "slug", render: (value) => value || "-" },
-    { title: "描述", dataIndex: "description" },
-    { title: "排序", dataIndex: "sortOrder" },
-    { title: "状态", dataIndex: "isActive", render: (value) => <Tag color={value ? "green" : "default"}>{value ? "启用" : "禁用"}</Tag> },
+    { title: "Category Name", dataIndex: "name" },
+    { title: "Slug", dataIndex: "slug", render: (value) => value || "-" },
+    { title: "Description", dataIndex: "description" },
+    { title: "Sort Order", dataIndex: "sortOrder" },
+    { title: "Status", dataIndex: "isActive", render: (value) => <Tag color={value ? "green" : "default"}>{value ? "Active" : "Inactive"}</Tag> },
     {
-      title: "操作",
+      title: "Actions",
       render: (_, record) => (
         <Space wrap>
           <Button
@@ -286,10 +288,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               deferFormAction(() => categoryForm.setFieldsValue(record));
             }}
           >
-            编辑
+            Edit
           </Button>
-          <Popconfirm title="确定删除此分类吗？" onConfirm={() => removeCategory(record.id)}>
-            <Button danger type="link">删除</Button>
+          <Popconfirm title="Delete this category?" onConfirm={() => removeCategory(record.id)}>
+            <Button danger type="link">Delete</Button>
           </Popconfirm>
         </Space>
       ),
@@ -297,12 +299,12 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
   ];
 
   const filterColumns: ColumnsType<FilterGroup> = [
-    { title: "筛选器组", dataIndex: "name" },
-    { title: "描述", dataIndex: "description" },
-    { title: "选项数量", render: (_, record) => record.options.length },
-    { title: "状态", dataIndex: "isActive", render: (value) => <Tag color={value ? "green" : "default"}>{value ? "启用" : "禁用"}</Tag> },
+    { title: "Filter Group", dataIndex: "name" },
+    { title: "Description", dataIndex: "description" },
+    { title: "Option Count", render: (_, record) => record.options.length },
+    { title: "Status", dataIndex: "isActive", render: (value) => <Tag color={value ? "green" : "default"}>{value ? "Active" : "Inactive"}</Tag> },
     {
-      title: "操作",
+      title: "Actions",
       render: (_, record) => (
         <Space wrap>
           <Button
@@ -313,10 +315,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               deferFormAction(() => filterForm.setFieldsValue(record));
             }}
           >
-            编辑
+            Edit
           </Button>
-          <Popconfirm title="确定删除此筛选器组吗？" onConfirm={() => removeFilter(record.id)}>
-            <Button danger type="link">删除</Button>
+          <Popconfirm title="Delete this filter group?" onConfirm={() => removeFilter(record.id)}>
+            <Button danger type="link">Delete</Button>
           </Popconfirm>
         </Space>
       ),
@@ -324,13 +326,13 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
   ];
 
   const productColumns: ColumnsType<Product> = [
-    { title: "商品", dataIndex: "name" },
-    { title: "品牌", dataIndex: "brand" },
-    { title: "分类", dataIndex: "categoryId", render: (value) => data.store.categories.find((item) => item.id === value)?.name || value },
-    { title: "价格", dataIndex: "price" },
-    { title: "库存", dataIndex: "inventory" },
+    { title: "Product", dataIndex: "name" },
+    { title: "Brand", dataIndex: "brand" },
+    { title: "Category", dataIndex: "categoryId", render: (value) => data.store.categories.find((item) => item.id === value)?.name || value },
+    { title: "Price", dataIndex: "price" },
+    { title: "Inventory", dataIndex: "inventory" },
     {
-      title: "筛选器",
+      title: "Filters",
       render: (_, record) => (
         <Space wrap>
           {record.filterOptionIds.map((optionId) => {
@@ -341,7 +343,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
       ),
     },
     {
-      title: "操作",
+      title: "Actions",
       render: (_, record) => (
         <Space wrap>
           <Button
@@ -352,10 +354,10 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               deferFormAction(() => productForm.setFieldsValue({ ...record, sizesInput: record.sizes.join(",") }));
             }}
           >
-            编辑
+            Edit
           </Button>
-          <Popconfirm title="确定删除此商品吗？" onConfirm={() => removeProduct(record.id)}>
-            <Button danger type="link">删除</Button>
+          <Popconfirm title="Delete this product?" onConfirm={() => removeProduct(record.id)}>
+            <Button danger type="link">Delete</Button>
           </Popconfirm>
         </Space>
       ),
@@ -363,12 +365,12 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
   ];
 
   const adminColumns: ColumnsType<(typeof data.admins)[number]> = [
-    { title: "用户名", dataIndex: "username" },
-    { title: "显示名称", dataIndex: "displayName" },
-    { title: "邮箱", dataIndex: "email", render: (value) => value || "-" },
-    { title: "状态", dataIndex: "isActive", render: (value) => <Tag color={value ? "green" : "default"}>{value ? "启用" : "禁用"}</Tag> },
+    { title: "Username", dataIndex: "username" },
+    { title: "Display Name", dataIndex: "displayName" },
+    { title: "Email", dataIndex: "email", render: (value) => value || "-" },
+    { title: "Status", dataIndex: "isActive", render: (value) => <Tag color={value ? "green" : "default"}>{value ? "Active" : "Inactive"}</Tag> },
     {
-      title: "操作",
+      title: "Actions",
       render: (_, record) => (
         <Button
           type="link"
@@ -377,29 +379,39 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
             deferFormAction(() => adminForm.setFieldsValue(record));
           }}
         >
-          编辑管理员
+          Edit Admin
         </Button>
       ),
     },
   ];
 
+  const customerColumns: ColumnsType<(typeof data.customers)[number]> = [
+    { title: "用户名", dataIndex: "name" },
+    { title: "邮箱", dataIndex: "email" },
+    { title: "状态", dataIndex: "isActive", render: (value) => <Tag color={value ? "green" : "default"}>{value ? "启用" : "停用"}</Tag> },
+    { title: "注册时间", dataIndex: "createdAt", render: (value) => formatDateTime(value, "zh-CN") },
+  ];
+
   const menuItems = [
-    { key: "products", icon: <ShoppingOutlined />, label: "商品" },
-    { key: "categories", icon: <AppstoreOutlined />, label: "分类" },
-    { key: "filters", icon: <FilterOutlined />, label: "筛选器" },
-    { key: "admins", icon: <TeamOutlined />, label: "管理员" },
+    { key: "products", icon: <ShoppingOutlined />, label: "Products" },
+    { key: "categories", icon: <AppstoreOutlined />, label: "Categories" },
+    { key: "filters", icon: <FilterOutlined />, label: "Filters" },
+    { key: "customers", icon: <UserOutlined />, label: "用户管理" },
+    { key: "admins", icon: <TeamOutlined />, label: "Admin Users" },
   ];
   const moduleTitles: Record<ModuleKey, string> = {
-    products: "商品",
-    categories: "分类",
-    filters: "筛选器",
-    admins: "管理员",
+    products: "Products",
+    categories: "Categories",
+    filters: "Filters",
+    customers: "客户列表",
+    admins: "Admin Users",
   };
   const moduleDescriptions: Record<ModuleKey, string> = {
-    products: `共 ${data.store.products.length} 个商品。您可以在此创建、编辑和删除商品。`,
-    categories: `共 ${data.store.categories.length} 个分类。在此管理分类详情和启用状态。`,
-    filters: `共 ${data.store.filterGroups.length} 个筛选器组。在此维护选项和排序。`,
-    admins: `共 ${data.admins.length} 个管理员账号。在此管理登录详情和启用状态。`,
+    products: `${data.store.products.length} products in total. You can create, edit, and delete them here.`,
+    categories: `${data.store.categories.length} categories in total. Manage category details and active states here.`,
+    filters: `${data.store.filterGroups.length} filter groups in total. Maintain options and sorting here.`,
+    customers: `当前共有 ${data.customers.length} 个注册用户，可在此查看客户账号列表。`,
+    admins: `${data.admins.length} admin accounts in total. Manage login details and active states here.`,
   };
   const tableScrollY = "calc(100dvh - 255px)";
   const tableScroll = { x: "max-content" as const, y: tableScrollY };
@@ -423,9 +435,9 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
         <div style={{ display: "flex", minHeight: "100dvh", flexDirection: "column", gap: 16 }}>
           <div style={{ borderBottom: "1px solid #f0f0f0", padding: "4px 12px 12px" }}>
             <Typography.Title level={4} style={{ margin: 0 }}>
-              管理控制台
+              Admin Console
             </Typography.Title>
-            <Typography.Text type="secondary">NextMail 管理后台</Typography.Text>
+            <Typography.Text type="secondary">NextMail Admin</Typography.Text>
           </div>
 
           <Menu
@@ -441,7 +453,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               <Typography.Text strong>{admin.displayName}</Typography.Text>
               <Typography.Text type="secondary">{admin.username}</Typography.Text>
               <Button block onClick={logout}>
-                退出登录
+                Sign Out
               </Button>
             </Space>
           </Card>
@@ -471,7 +483,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
                     deferFormAction(() => productForm.resetFields());
                   }}
                 >
-                  添加商品
+                  Add Product
                 </Button>
               }
             >
@@ -498,7 +510,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
                     deferFormAction(() => categoryForm.resetFields());
                   }}
                 >
-                  添加分类
+                  Add Category
                 </Button>
               }
             >
@@ -528,7 +540,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
                     });
                   }}
                 >
-                  添加筛选器组
+                  Add Filter Group
                 </Button>
               }
             >
@@ -554,7 +566,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
                     deferFormAction(() => adminForm.resetFields());
                   }}
                 >
-                  添加管理员
+                  Add Admin User
                 </Button>
               }
             >
@@ -568,43 +580,56 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               />
             </CardSection>
           ) : null}
+
+          {activeKey === "customers" ? (
+            <CardSection title={moduleTitles.customers}>
+              <Table
+                columns={customerColumns}
+                dataSource={data.customers}
+                pagination={{ hideOnSinglePage: true, showSizeChanger: false }}
+                rowKey="id"
+                scroll={tableScroll}
+                size="middle"
+              />
+            </CardSection>
+          ) : null}
         </div>
 
-        <Modal centered destroyOnHidden footer={null} onCancel={() => setCategoryModalOpen(false)} open={categoryModalOpen} title={editingCategoryId ? "编辑分类" : "添加分类"}>
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setCategoryModalOpen(false)} open={categoryModalOpen} title={editingCategoryId ? "Edit Category" : "Add Category"}>
           <Form form={categoryForm} layout="vertical" onFinish={submitCategory}>
-            <Form.Item label="分类名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
-            <Form.Item label="标识" name="slug"><Input /></Form.Item>
-            <Form.Item label="描述" name="description" rules={[{ required: true }]}><Input.TextArea rows={3} /></Form.Item>
-            <Form.Item initialValue={1} label="排序" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-            <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
+            <Form.Item label="Category Name" name="name" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="Slug" name="slug"><Input /></Form.Item>
+            <Form.Item label="Description" name="description" rules={[{ required: true }]}><Input.TextArea rows={3} /></Form.Item>
+            <Form.Item initialValue={1} label="Sort Order" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+            <Form.Item initialValue={true} label="Active" name="isActive" valuePropName="checked"><Switch /></Form.Item>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
-              <Button htmlType="submit" type="primary">保存分类</Button>
+              <Button htmlType="submit" type="primary">Save Category</Button>
             </div>
           </Form>
         </Modal>
 
-        <Modal centered destroyOnHidden footer={null} onCancel={() => setFilterModalOpen(false)} open={filterModalOpen} title={editingFilterId ? "编辑筛选器组" : "添加筛选器组"} width={760}>
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setFilterModalOpen(false)} open={filterModalOpen} title={editingFilterId ? "Edit Filter Group" : "Add Filter Group"} width={760}>
           <Form form={filterForm} layout="vertical" onFinish={submitFilter}>
-            <Form.Item label="筛选器组名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
-            <Form.Item label="标识" name="slug"><Input /></Form.Item>
-            <Form.Item label="描述" name="description"><Input.TextArea rows={2} /></Form.Item>
-            <Form.Item initialValue={1} label="排序" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-            <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
+            <Form.Item label="Filter Group Name" name="name" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="Slug" name="slug"><Input /></Form.Item>
+            <Form.Item label="Description" name="description"><Input.TextArea rows={2} /></Form.Item>
+            <Form.Item initialValue={1} label="Sort Order" name="sortOrder"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+            <Form.Item initialValue={true} label="Active" name="isActive" valuePropName="checked"><Switch /></Form.Item>
             <Form.List name="options">
               {(fields, { add, remove }) => (
                 <div style={{ marginTop: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
-                    <Typography.Text strong>筛选选项</Typography.Text>
-                    <Button onClick={() => add({ isActive: true, sortOrder: fields.length + 1 })}>添加选项</Button>
+                    <Typography.Text strong>Filter Options</Typography.Text>
+                    <Button onClick={() => add({ isActive: true, sortOrder: fields.length + 1 })}>Add Option</Button>
                   </div>
                   <Space orientation="vertical" size={16} style={{ display: "flex" }}>
                     {fields.map((field, index) => (
-                      <Card key={field.key} size="small" title={`选项 ${index + 1}`} extra={<Button danger type="link" onClick={() => remove(field.name)}>删除</Button>}>
+                      <Card key={field.key} size="small" title={`Option ${index + 1}`} extra={<Button danger type="link" onClick={() => remove(field.name)}>Delete</Button>}>
                         <Form.Item hidden name={[field.name, "id"]}><Input /></Form.Item>
-                        <Form.Item label="标签" name={[field.name, "label"]} rules={[{ required: true }]}><Input /></Form.Item>
-                        <Form.Item label="值" name={[field.name, "value"]} rules={[{ required: true }]}><Input /></Form.Item>
-                        <Form.Item label="排序" name={[field.name, "sortOrder"]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-                        <Form.Item initialValue={true} label="启用" name={[field.name, "isActive"]} valuePropName="checked"><Switch /></Form.Item>
+                        <Form.Item label="Label" name={[field.name, "label"]} rules={[{ required: true }]}><Input /></Form.Item>
+                        <Form.Item label="Value" name={[field.name, "value"]} rules={[{ required: true }]}><Input /></Form.Item>
+                        <Form.Item label="Sort Order" name={[field.name, "sortOrder"]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+                        <Form.Item initialValue={true} label="Active" name={[field.name, "isActive"]} valuePropName="checked"><Switch /></Form.Item>
                       </Card>
                     ))}
                   </Space>
@@ -612,32 +637,32 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
               )}
             </Form.List>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
-              <Button htmlType="submit" type="primary">保存筛选器组</Button>
+              <Button htmlType="submit" type="primary">Save Filter Group</Button>
             </div>
           </Form>
         </Modal>
 
-        <Modal centered destroyOnHidden footer={null} onCancel={() => setProductModalOpen(false)} open={productModalOpen} title={editingProductId ? "编辑商品" : "添加商品"} width={860}>
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setProductModalOpen(false)} open={productModalOpen} title={editingProductId ? "Edit Product" : "Add Product"} width={860}>
           <Form form={productForm} layout="vertical" onFinish={submitProduct}>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Form.Item label="商品名称" name="name" rules={[{ required: true }]}><Input /></Form.Item>
-              <Form.Item label="品牌" name="brand" rules={[{ required: true }]}><Input /></Form.Item>
-              <Form.Item label="标识" name="slug"><Input /></Form.Item>
+              <Form.Item label="Product Name" name="name" rules={[{ required: true }]}><Input /></Form.Item>
+              <Form.Item label="Brand" name="brand" rules={[{ required: true }]}><Input /></Form.Item>
+              <Form.Item label="Slug" name="slug"><Input /></Form.Item>
               <Form.Item label="SKU" name="sku"><Input /></Form.Item>
-              <Form.Item label="分类" name="categoryId" rules={[{ required: true }]}><Select options={data.store.categories.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
-              <Form.Item label="徽章" name="badge"><Input /></Form.Item>
-              <Form.Item label="价格" name="price" rules={[{ required: true }]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-              <Form.Item label="原价" name="originalPrice"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-              <Form.Item label="库存" name="inventory" rules={[{ required: true }]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
-              <Form.Item label="配色" name="colorway"><Input /></Form.Item>
+              <Form.Item label="Category" name="categoryId" rules={[{ required: true }]}><Select options={data.store.categories.map((item) => ({ label: item.name, value: item.id }))} /></Form.Item>
+              <Form.Item label="Badge" name="badge"><Input /></Form.Item>
+              <Form.Item label="Price" name="price" rules={[{ required: true }]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+              <Form.Item label="Original Price" name="originalPrice"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+              <Form.Item label="Inventory" name="inventory" rules={[{ required: true }]}><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+              <Form.Item label="Colorway" name="colorway"><Input /></Form.Item>
               <Form.Item
-                label="封面图片"
+                label="Cover Image"
                 required
                 validateStatus={productImageUrl ? undefined : "error"}
-                help={productImageUrl ? undefined : "请上传封面图片"}
+                help={productImageUrl ? undefined : "Please upload a cover image"}
               >
                 <Space direction="vertical" size={12} style={{ display: "flex", width: "100%" }}>
-                  <Form.Item name="imageUrl" noStyle rules={[{ required: true, message: "请上传封面图片" }]}>
+                  <Form.Item name="imageUrl" noStyle rules={[{ required: true, message: "Please upload a cover image" }]}>
                     <Input type="hidden" />
                   </Form.Item>
                   <input
@@ -652,16 +677,16 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
                       loading={productImageUploading}
                       onClick={() => productImageInputRef.current?.click()}
                     >
-                      上传图片
+                      Upload Image
                     </Button>
                     <Button
                       disabled={!productImageUrl || productImageUploading}
                       onClick={() => productForm.setFieldValue("imageUrl", "")}
                     >
-                      清除
+                      Clear
                     </Button>
                   </Space>
-                  <Input placeholder="上传的图片链接将显示在这里" readOnly value={productImageUrl} />
+                  <Input placeholder="Uploaded image URL will appear here" readOnly value={productImageUrl} />
                   {productImageUrl ? (
                     <div
                       style={{
@@ -672,7 +697,7 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
                       }}
                     >
                       <img
-                        alt="商品封面预览"
+                        alt="Product cover preview"
                         src={productImageUrl}
                         style={{ aspectRatio: "16 / 10", display: "block", objectFit: "cover", width: "100%" }}
                       />
@@ -680,28 +705,28 @@ export function AdminConsole({ admin, initialData }: { admin: AdminProfile; init
                   ) : null}
                 </Space>
               </Form.Item>
-              <Form.Item label="状态" initialValue="ACTIVE" name="status"><Select options={[{ label: "上架", value: "ACTIVE" }, { label: "草稿", value: "DRAFT" }]} /></Form.Item>
+              <Form.Item label="Status" initialValue="ACTIVE" name="status"><Select options={[{ label: "ACTIVE", value: "ACTIVE" }, { label: "DRAFT", value: "DRAFT" }]} /></Form.Item>
             </div>
-            <Form.Item label="尺码（用逗号分隔）" name="sizesInput"><Input placeholder="39,40,41,42" /></Form.Item>
-            <Form.Item label="筛选器绑定" name="filterOptionIds"><Select mode="multiple" options={flatFilterOptions} placeholder="选择适用于此商品的筛选器" /></Form.Item>
-            <Form.Item initialValue={false} label="推荐商品" name="featured" valuePropName="checked"><Switch /></Form.Item>
-            <Form.Item label="描述" name="description" rules={[{ required: true }]}><Input.TextArea rows={4} /></Form.Item>
+            <Form.Item label="Sizes (comma separated)" name="sizesInput"><Input placeholder="39,40,41,42" /></Form.Item>
+            <Form.Item label="Filter Bindings" name="filterOptionIds"><Select mode="multiple" options={flatFilterOptions} placeholder="Select the filters that apply to this product" /></Form.Item>
+            <Form.Item initialValue={false} label="Featured Product" name="featured" valuePropName="checked"><Switch /></Form.Item>
+            <Form.Item label="Description" name="description" rules={[{ required: true }]}><Input.TextArea rows={4} /></Form.Item>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
-              <Button htmlType="submit" type="primary">保存商品</Button>
+              <Button htmlType="submit" type="primary">Save Product</Button>
             </div>
           </Form>
         </Modal>
 
-        <Modal centered destroyOnHidden footer={null} onCancel={() => setAdminModalOpen(false)} open={adminModalOpen} title="管理员">
+        <Modal centered destroyOnHidden footer={null} onCancel={() => setAdminModalOpen(false)} open={adminModalOpen} title="Admin User">
           <Form form={adminForm} layout="vertical" onFinish={submitAdmin}>
             <Form.Item hidden name="id"><Input /></Form.Item>
-            <Form.Item label="用户名" name="username" rules={[{ required: true }]}><Input /></Form.Item>
-            <Form.Item label="显示名称" name="displayName" rules={[{ required: true }]}><Input /></Form.Item>
-            <Form.Item label="邮箱" name="email"><Input /></Form.Item>
-            <Form.Item label="密码（编辑时留空表示保持不变）" name="password"><Input.Password /></Form.Item>
-            <Form.Item initialValue={true} label="启用" name="isActive" valuePropName="checked"><Switch /></Form.Item>
+            <Form.Item label="Username" name="username" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="Display Name" name="displayName" rules={[{ required: true }]}><Input /></Form.Item>
+            <Form.Item label="Email" name="email"><Input /></Form.Item>
+            <Form.Item label="Password (leave blank when editing to keep unchanged)" name="password"><Input.Password /></Form.Item>
+            <Form.Item initialValue={true} label="Active" name="isActive" valuePropName="checked"><Switch /></Form.Item>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
-              <Button htmlType="submit" type="primary">保存管理员</Button>
+              <Button htmlType="submit" type="primary">Save Admin User</Button>
             </div>
           </Form>
         </Modal>

@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { expect, type Locator, type Page, test } from "@playwright/test";
+import { expect, type APIRequestContext, type Locator, type Page, test } from "@playwright/test";
 
 import { cleanupAdminE2EData, fixtures } from "./admin.e2e.data";
 
@@ -30,10 +30,16 @@ test.describe("admin CRUD flow", () => {
     await cleanupAdminE2EData();
   });
 
-  test("admin CRUD flow is repeatable", async ({ page }) => {
+  test("admin CRUD flow is repeatable", async ({ page, request }) => {
+    logStep("register customer for customer-list verification");
+    await registerCustomer(request);
+
     logStep("login as default admin");
     await login(page, "admin", "admin123");
     await expect(page.getByRole("heading", { name: "Admin Console" })).toBeVisible();
+
+    logStep("verify customers list");
+    await verifyCustomerListFlow(page);
 
     logStep("verify categories CRUD");
     await verifyCategoryFlow(page);
@@ -51,6 +57,15 @@ test.describe("admin CRUD flow", () => {
     await verifyAdminFlow(page);
   });
 });
+
+async function verifyCustomerListFlow(page: Page) {
+  await openModule(page, "用户管理", "客户列表");
+
+  const customerRow = tableRow(page, fixtures.customer.email);
+  await expect(customerRow).toBeVisible();
+  await expect(customerRow).toContainText(fixtures.customer.name);
+  await expect(customerRow).toContainText("启用");
+}
 
 async function verifyCategoryFlow(page: Page) {
   await openModule(page, "Categories");
@@ -258,6 +273,18 @@ async function login(page: Page, username: string, password: string) {
   await expect(page.getByRole("heading", { name: "Admin Console" })).toBeVisible();
 }
 
+async function registerCustomer(request: APIRequestContext) {
+  const response = await request.post(`${baseURL}/api/auth/register`, {
+    data: fixtures.customer,
+  });
+
+  const bodyText = await response.text().catch(() => "[response body unavailable]");
+  expect(
+    response.ok(),
+    `POST /api/auth/register failed with ${response.status()} ${response.statusText()}\n${bodyText}`,
+  ).toBeTruthy();
+}
+
 async function loginExpectFailure(page: Page, username: string, password: string, status: number) {
   await page.goto(`${baseURL}/admin/login`, { waitUntil: "domcontentloaded" });
   await page.getByLabel("Username").fill(username);
@@ -277,9 +304,13 @@ async function logout(page: Page) {
   await expect(page).toHaveURL(/\/admin\/login/);
 }
 
-async function openModule(page: Page, moduleName: "Products" | "Categories" | "Filters" | "Admin Users") {
+async function openModule(
+  page: Page,
+  moduleName: "Products" | "Categories" | "Filters" | "用户管理" | "Admin Users",
+  headingName: string = moduleName,
+) {
   await page.locator(".ant-menu-item").filter({ hasText: moduleName }).first().click();
-  await expect(page.locator("h3").filter({ hasText: moduleName })).toBeVisible();
+  await expect(page.locator("h3").filter({ hasText: headingName })).toBeVisible();
 }
 
 async function submitByApi(
